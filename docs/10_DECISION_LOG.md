@@ -76,3 +76,10 @@ Decision: Accept the existing `packages/workflow-dsl` prototype as TASK-001 prod
 Reason: The prototype matched the intended DSL direction, and targeted revisions closed the main safety gaps without requiring a rebuild or new dependency.
 Consequences: Workflow DSL is now the accepted source-of-truth package for future runtime/API tasks. Runtime and API remain provisional until their tasks are reviewed.
 Revisit trigger: DSL expands enough that manual validation becomes brittle, external JSON Schema is needed, or importer/exporter compatibility requires stricter schema tooling.
+
+## 2026-06-28: Accept Runtime Core As Safe Interpreter
+
+Decision: Accept `packages/runtime-core` as TASK-002 product code after revising it into a safe Workflow JSON interpreter.
+Reason: The runtime now validates DSL input before execution, tracks pending user input explicitly, interprets safe condition AST only, emits replay-ready traces, and keeps channel/provider logic out of the core.
+Consequences: `handoff` and `end` are terminal runtime nodes; `question` and required `field_collection` nodes pause across turns; `ai_response` and `rag_answer` stay deterministic placeholders with no external calls.
+Revisit trigger: Runtime needs durable persistence, action/webhook execution, real AI/RAG provider integration, or channel-specific behavior.

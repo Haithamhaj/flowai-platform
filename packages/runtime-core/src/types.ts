@@ -6,10 +6,7 @@ export interface RuntimeSessionState {
   currentNodeId: string;
   variables: Record<string, unknown>;
   collectedFields: Record<string, unknown>;
-  pendingField?: {
-    nodeId: string;
-    fieldKey: string;
-  };
+  awaitingInput?: RuntimeAwaitingInput;
   transcript: Array<{
     role: "user" | "assistant" | "system";
     text: string;
@@ -19,11 +16,27 @@ export interface RuntimeSessionState {
   ended: boolean;
 }
 
+export type RuntimeAwaitingInput =
+  | { kind: "question"; nodeId: string; variableKey: string }
+  | { kind: "field_collection"; nodeId: string; fieldKey: string };
+
 export interface RuntimeTraceEvent {
   id: string;
   sessionId: string;
   nodeId: string;
-  type: "node_entered" | "message_output" | "input_received" | "variable_set" | "edge_followed" | "session_ended";
+  type:
+    | "node_entered"
+    | "input_received"
+    | "message_output"
+    | "question_prompted"
+    | "field_prompted"
+    | "variable_set"
+    | "field_value_set"
+    | "condition_evaluated"
+    | "edge_selected"
+    | "fallback_used"
+    | "session_ended"
+    | "runtime_error";
   detail?: Record<string, unknown>;
   at: string;
 }
@@ -50,5 +63,5 @@ export interface WorkflowRuntimeOptions {
   workflow: WorkflowDefinition;
   sessionId?: string;
   now?: () => Date;
+  maxStepsPerTurn?: number;
 }
-
