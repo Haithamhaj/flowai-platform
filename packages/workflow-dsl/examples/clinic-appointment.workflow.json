@@ -1,0 +1,126 @@
+{
+  "version": "0.1",
+  "workflowId": "wf_clinic_appointment_demo",
+  "name": "Clinic Appointment Booking",
+  "description": "Books clinic appointments and answers basic patient questions.",
+  "sourceSummary": {
+    "businessName": "Small Clinic",
+    "businessCategory": "healthcare_clinic",
+    "sources": ["business_interview"],
+    "summary": "A small clinic offering family medicine, lab tests, appointment booking, FAQs, and staff handoff."
+  },
+  "assumptions": [
+    "The clinic wants Telegram preview before WhatsApp.",
+    "RAG answers are placeholder-only in this slice."
+  ],
+  "nodes": [
+    { "id": "start", "type": "start", "name": "Start" },
+    {
+      "id": "welcome",
+      "type": "message",
+      "name": "Welcome",
+      "message": "Welcome to Small Clinic. How can I help you today?",
+      "quickReplies": [
+        { "id": "book", "label": "Book appointment", "value": "book" },
+        { "id": "faq", "label": "Ask a question", "value": "faq" },
+        { "id": "staff", "label": "Talk to staff", "value": "staff" }
+      ]
+    },
+    { "id": "route_intent", "type": "condition", "name": "Route requested help" },
+    {
+      "id": "collect_appointment",
+      "type": "field_collection",
+      "name": "Collect appointment fields",
+      "fields": [
+        { "key": "patientName", "label": "Patient name", "type": "string", "required": true, "prompt": "What is the patient's full name?" },
+        { "key": "phone", "label": "Phone number", "type": "phone", "required": true, "prompt": "What phone number should we use?" },
+        { "key": "preferredDate", "label": "Preferred date", "type": "date", "required": true, "prompt": "What date do you prefer?" },
+        { "key": "reason", "label": "Visit reason", "type": "string", "required": true, "prompt": "What is the reason for the visit?" }
+      ],
+      "completionMessage": "Thanks. I collected the appointment request and will hand it to the clinic team."
+    },
+    {
+      "id": "faq_answer",
+      "type": "rag_answer",
+      "name": "FAQ answer",
+      "knowledgeSourceIds": ["ks_clinic_faq"],
+      "fallbackMessage": "I can answer clinic questions once the knowledge base is connected. For now, I can hand you to staff."
+    },
+    {
+      "id": "handoff_staff",
+      "type": "handoff",
+      "name": "Staff handoff",
+      "message": "I will hand this conversation to the clinic staff.",
+      "queue": "clinic_front_desk"
+    },
+    {
+      "id": "done",
+      "type": "end",
+      "name": "Done",
+      "message": "Thank you. The clinic team will follow up."
+    }
+  ],
+  "edges": [
+    { "id": "e_start_welcome", "source": "start", "target": "welcome", "priority": 1 },
+    { "id": "e_welcome_route", "source": "welcome", "target": "route_intent", "priority": 1 },
+    {
+      "id": "e_route_book",
+      "source": "route_intent",
+      "target": "collect_appointment",
+      "priority": 1,
+      "label": "Book appointment",
+      "condition": { "op": "intent_is", "intent": "book" }
+    },
+    {
+      "id": "e_route_faq",
+      "source": "route_intent",
+      "target": "faq_answer",
+      "priority": 2,
+      "label": "FAQ",
+      "condition": { "op": "intent_is", "intent": "faq" }
+    },
+    { "id": "e_route_handoff", "source": "route_intent", "target": "handoff_staff", "priority": 3, "fallback": true },
+    { "id": "e_collect_handoff", "source": "collect_appointment", "target": "handoff_staff", "priority": 1 },
+    { "id": "e_faq_done", "source": "faq_answer", "target": "done", "priority": 1 },
+    { "id": "e_handoff_done", "source": "handoff_staff", "target": "done", "priority": 1 }
+  ],
+  "variables": [
+    { "key": "patientName", "type": "string", "required": true },
+    { "key": "phone", "type": "phone", "required": true },
+    { "key": "preferredDate", "type": "date", "required": true },
+    { "key": "reason", "type": "string", "required": true }
+  ],
+  "knowledgeSources": [
+    { "id": "ks_clinic_faq", "type": "manual", "title": "Clinic FAQ" }
+  ],
+  "tools": [
+    { "id": "tool_create_appointment_request", "type": "internal", "name": "Create appointment request" }
+  ],
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "settings": {
+        "previewMode": true,
+        "botUsernameRef": "clinic_preview_bot"
+      }
+    }
+  },
+  "tests": [
+    {
+      "id": "test_book_appointment",
+      "name": "Book appointment path",
+      "input": ["book", "Huda Ali", "+966500000000", "2026-07-10", "Annual checkup"],
+      "expectedPath": ["start", "welcome", "route_intent", "collect_appointment", "handoff_staff", "done"]
+    },
+    {
+      "id": "test_faq",
+      "name": "FAQ placeholder path",
+      "input": ["faq"],
+      "expectedPath": ["start", "welcome", "route_intent", "faq_answer", "done"]
+    }
+  ],
+  "publishStatus": "draft",
+  "createdAt": "2026-06-28T00:00:00.000Z",
+  "updatedAt": "2026-06-28T00:00:00.000Z"
+}
+

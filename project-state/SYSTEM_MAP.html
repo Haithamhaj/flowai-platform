@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FlowAI Operating Map</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #172026;
+        background: #f7f8fa;
+      }
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 32px 20px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+      p {
+        color: #4d5b66;
+      }
+      .flow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin: 24px 0;
+      }
+      .step {
+        background: #fff;
+        border: 1px solid #d7dee6;
+        border-radius: 8px;
+        padding: 10px 12px;
+      }
+      .active {
+        border-color: #2f7d62;
+        background: #f1faf6;
+      }
+      .planned {
+        color: #52616f;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 12px;
+      }
+      .box {
+        background: #fff;
+        border: 1px solid #d7dee6;
+        border-radius: 8px;
+        padding: 16px;
+      }
+      strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>FlowAI Operating Map</h1>
+      <p>Current priority: operating pack and task discipline before additional product implementation.</p>
+
+      <section class="flow">
+        <div class="step active">Operating Pack</div>
+        <div>→</div>
+        <div class="step">TASK-000 Setup</div>
+        <div>→</div>
+        <div class="step">TASK-001 DSL</div>
+        <div>→</div>
+        <div class="step">TASK-002 Runtime</div>
+        <div>→</div>
+        <div class="step">TASK-003 API Test Loop</div>
+        <div>→</div>
+        <div class="step planned">TASK-004 Telegram</div>
+      </section>
+
+      <section class="grid">
+        <div class="box">
+          <strong>Required Start</strong>
+          Read AGENTS, project context, active task, and relevant shard.
+        </div>
+        <div class="box">
+          <strong>Scope Control</strong>
+          One task at a time. Plan before code. Ask before architecture or security changes.
+        </div>
+        <div class="box">
+          <strong>Safety Rules</strong>
+          Strict JSON workflows, no executable strings, no secrets in workflow JSON.
+        </div>
+        <div class="box">
+          <strong>Handoff</strong>
+          Every task ends with changed files, commands, tests, risks, and next task.
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+
