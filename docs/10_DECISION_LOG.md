@@ -69,3 +69,10 @@ Decision: Require a lightweight Skill/MCP Readiness Check before implementation.
 Reason: Agents should use available high-leverage capabilities when useful and recommend missing ones before they become blockers.
 Consequences: Every task must document expected tools, available tools, missing recommended tools, and whether work can proceed.
 Revisit trigger: The check becomes too heavy, blocks simple work, or misses important tool/security decisions.
+
+## 2026-06-28: Accept Workflow DSL Prototype After Revision
+
+Decision: Accept the existing `packages/workflow-dsl` prototype as TASK-001 product code after strengthening validation and tests.
+Reason: The prototype matched the intended DSL direction, and targeted revisions closed the main safety gaps without requiring a rebuild or new dependency.
+Consequences: Workflow DSL is now the accepted source-of-truth package for future runtime/API tasks. Runtime and API remain provisional until their tasks are reviewed.
+Revisit trigger: DSL expands enough that manual validation becomes brittle, external JSON Schema is needed, or importer/exporter compatibility requires stricter schema tooling.
