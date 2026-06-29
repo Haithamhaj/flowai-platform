@@ -104,3 +104,10 @@ Decision: Scope TASK-005A to BusinessUnderstanding schema plus deterministic dir
 Reason: Direct interview understanding can be validated locally without AI providers, crawling, RAG, persistence, or changes to runtime/workflow DSL. Workflow generation needs its own mapping contract and acceptance checks.
 Consequences: `packages/business-understanding` should become the next package-first implementation target. `packages/workflow-generator` remains placeholder-only until BusinessUnderstanding output is accepted.
 Revisit trigger: BusinessUnderstanding v0 is accepted and a follow-up task explicitly starts workflow draft generation.
+
+## 2026-06-29: Plan TASK-005B As Deterministic Package-First Generator
+
+Decision: TASK-005B should implement a deterministic package-first `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` generator before any API endpoint, AI provider, crawler, RAG, persistence, or channel-specific behavior is added.
+Reason: The accepted BusinessUnderstanding and Workflow DSL contracts are strong enough to plan a narrow generator, but safe generation needs an explainable intermediate plan, validator-backed output, and source/confidence blockers before user-facing API or UI work.
+Consequences: `packages/workflow-generator` should be revised from placeholder status into deterministic generator code in the next implementation task. The first templates should be clinic booking and service lead capture. API wiring should wait for a later TASK-005C or explicitly approved task.
+Revisit trigger: TASK-005B implementation proves the package contract, or generator requirements require DSL changes, API state, provider calls, or source pipeline data.
