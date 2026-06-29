@@ -2,13 +2,13 @@
 
 ## Current Goal
 
-Finish TASK-001 by accepting the revised Workflow DSL prototype as product code.
+Prepare for `TASK-003_API_TEST_LOOP` review after completing the Workflow DSL and Runtime Core foundations.
 
 ## Current Reality
 
-`flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. The current accepted operating mode is task-first.
+`flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. The current accepted operating mode is task-first.
 
-Runtime and API prototype files still exist from prior setup. Treat them as provisional until TASK-002 and TASK-003 are reviewed and accepted.
+API prototype files still exist from prior setup. Treat them as provisional until TASK-003 is reviewed and accepted.
 
 ## Active Decisions
 
@@ -16,19 +16,23 @@ Runtime and API prototype files still exist from prior setup. Treat them as prov
 - Old backend is reference-only.
 - Skill/MCP Readiness Check is required before every task.
 - Workflow JSON DSL is source of truth.
+- Runtime core interprets validated Workflow JSON safely and channel-neutrally.
 - Runtime proof comes before generator/crawling/UI.
 - Telegram preview comes before WhatsApp.
 - Channels are adapters, not workflow owners.
 - No executable workflow code.
 - No unsafe OSS copying.
 - Workflow DSL validator is dependency-free for now.
+- `handoff` and `end` are terminal runtime nodes.
+- Runtime `ai_response` and `rag_answer` are deterministic placeholders only.
 
 ## Active Risks
 
-- Runtime/API prototype code can create confusion if future agents skip task files.
+- API prototype code can create confusion if future agents skip task files.
 - Agents may overbuild without following task files.
 - Future AI/RAG/channel work may be claimed before it is tested.
 - Manual DSL validation may become harder to maintain if DSL scope expands.
+- Runtime is in-memory only and not yet connected through an accepted API test loop.
 
 ## Protected Areas
 
@@ -38,7 +42,7 @@ Runtime and API prototype files still exist from prior setup. Treat them as prov
 
 ## Next Recommended Action
 
-Start `TASK-002_RUNTIME_CORE` with a review-only pass first. Do not assume the runtime prototype is accepted until reviewed.
+Start `TASK-003_API_TEST_LOOP` with a review-only pass first. Do not assume the API prototype is accepted until reviewed.
 
 ## Critical References
 
@@ -51,3 +55,5 @@ Start `TASK-002_RUNTIME_CORE` with a review-only pass first. Do not assume the r
 - `docs/shards/`
 - `docs/16_PROJECT_SETUP.md`
 - `packages/workflow-dsl/src/validator.ts`
+- `packages/runtime-core/src/runtime.ts`
+- `packages/runtime-core/src/condition-evaluator.ts`
