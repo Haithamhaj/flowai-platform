@@ -2,13 +2,13 @@
 
 ## Current Goal
 
-Prepare for `TASK-003_API_TEST_LOOP` review after completing the Workflow DSL and Runtime Core foundations.
+Prepare for `TASK-004_TELEGRAM_PREVIEW` review after completing the Workflow DSL, Runtime Core, and API Test Loop foundations.
 
 ## Current Reality
 
-`flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. The current accepted operating mode is task-first.
+`flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. TASK-003 is done for the API test loop after implementation revision and verification. The current accepted operating mode is task-first.
 
-API prototype files still exist from prior setup. Treat them as provisional until TASK-003 is reviewed and accepted.
+Telegram, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, and exporters are not accepted or implemented by TASK-003.
 
 ## Active Decisions
 
@@ -25,14 +25,15 @@ API prototype files still exist from prior setup. Treat them as provisional unti
 - Workflow DSL validator is dependency-free for now.
 - `handoff` and `end` are terminal runtime nodes.
 - Runtime `ai_response` and `rag_answer` are deterministic placeholders only.
+- API test loop exposes only health, workflow validation, in-memory runtime start/message/trace/reset.
+- API test loop uses `stateSummary` and safe structured errors for test/debug flows.
 
 ## Active Risks
 
-- API prototype code can create confusion if future agents skip task files.
 - Agents may overbuild without following task files.
 - Future AI/RAG/channel work may be claimed before it is tested.
 - Manual DSL validation may become harder to maintain if DSL scope expands.
-- Runtime is in-memory only and not yet connected through an accepted API test loop.
+- API runtime test sessions are process-local, temporary, capped in memory, lost on restart, not tenant-safe, and not horizontally scalable.
 
 ## Protected Areas
 
@@ -42,7 +43,7 @@ API prototype files still exist from prior setup. Treat them as provisional unti
 
 ## Next Recommended Action
 
-Start `TASK-003_API_TEST_LOOP` with a review-only pass first. Do not assume the API prototype is accepted until reviewed.
+Start `TASK-004_TELEGRAM_PREVIEW` with a review-only pass first. Do not assume any Telegram/channel prototype is accepted until reviewed.
 
 ## Critical References
 
@@ -57,3 +58,5 @@ Start `TASK-003_API_TEST_LOOP` with a review-only pass first. Do not assume the 
 - `packages/workflow-dsl/src/validator.ts`
 - `packages/runtime-core/src/runtime.ts`
 - `packages/runtime-core/src/condition-evaluator.ts`
+- `apps/api/src/services/runtime-test.service.ts`
+- `apps/api/src/routes/runtime.controller.ts`

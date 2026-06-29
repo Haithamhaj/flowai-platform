@@ -1,7 +1,7 @@
 # TASK-003 API Test Loop
 
-Status: ready
-Owner/Agent: unassigned
+Status: done
+Owner/Agent: Codex
 Context shard: `architecture.md`, `runtime-core.md`
 
 ## Goal
@@ -59,4 +59,46 @@ In-memory behavior mistaken for production persistence.
 
 ## Handoff Notes
 
-Pending.
+Completed on 2026-06-29.
+
+Implemented the minimal API test loop revision in `apps/api` only.
+
+Endpoints accepted:
+
+- `GET /health`
+- `POST /workflows/validate`
+- `POST /runtime/test/start`
+- `POST /runtime/test/:sessionId/message`
+- `GET /runtime/test/:sessionId/trace`
+- `POST /runtime/test/:sessionId/reset`
+
+What changed:
+
+- Workflow validation still delegates to `@flowai/workflow-dsl`.
+- Runtime execution still delegates to `@flowai/runtime-core`.
+- API responses now return `stateSummary` and `traceDelta` instead of exposing full runtime state as an unnamed production shape.
+- Runtime messages now accept `{ "message": string }`.
+- Missing, non-string, and blank messages return safe `400 INVALID_REQUEST` errors.
+- Unknown sessions return safe `404 UNKNOWN_SESSION` errors.
+- Ended sessions return safe `409 SESSION_ENDED` errors and do not mutate runtime state.
+- Invalid workflows return safe `400 INVALID_WORKFLOW` errors with validation issues.
+- Trace responses include `sessionId`, `workflowId`, and ordered runtime trace.
+- In-memory test sessions remain process-local and temporary, capped at 100 sessions, with per-session reset support.
+
+Verification:
+
+- `pnpm --filter @flowai/api test` passed.
+- `pnpm --filter @flowai/api typecheck` passed.
+- `pnpm test` passed.
+- `pnpm build` passed.
+
+Risks remaining:
+
+- In-memory sessions are not production persistence.
+- Sessions are process-local, lost on restart, not tenant-safe, and not horizontally scalable.
+- API test loop intentionally does not implement auth, tenants, billing, Telegram, WhatsApp, crawling, RAG, AI providers, Studio UI, exporters, or durable storage.
+- Controller tests avoid opening a network listener because the local sandbox blocks listening on `127.0.0.1`; they still exercise route/controller behavior and service boundaries.
+
+Next recommended task:
+
+Start `TASK-004_TELEGRAM_PREVIEW` only after reviewing/accepting this API test loop.

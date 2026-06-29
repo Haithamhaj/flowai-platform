@@ -83,3 +83,10 @@ Decision: Accept `packages/runtime-core` as TASK-002 product code after revising
 Reason: The runtime now validates DSL input before execution, tracks pending user input explicitly, interprets safe condition AST only, emits replay-ready traces, and keeps channel/provider logic out of the core.
 Consequences: `handoff` and `end` are terminal runtime nodes; `question` and required `field_collection` nodes pause across turns; `ai_response` and `rag_answer` stay deterministic placeholders with no external calls.
 Revisit trigger: Runtime needs durable persistence, action/webhook execution, real AI/RAG provider integration, or channel-specific behavior.
+
+## 2026-06-29: Accept API Test Loop As Test-Only Runtime Surface
+
+Decision: Accept `apps/api` as TASK-003 product code after revising it into a minimal test-only API around Workflow DSL validation and Runtime Core sessions.
+Reason: The API now delegates validation and execution to the accepted packages, uses predictable safe error shapes, returns explicit `stateSummary`/`traceDelta` debug responses, and avoids channel/provider/persistence scope.
+Consequences: Runtime test sessions are temporary, process-local, capped in memory, resettable, and not production persistence. Ended sessions return `409 SESSION_ENDED` instead of silently mutating or returning empty output.
+Revisit trigger: API needs auth, tenants, durable storage, production session semantics, channel delivery, or public client contracts beyond this local test loop.
