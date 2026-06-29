@@ -94,6 +94,12 @@ export function buildClinicBookingTemplate(context: TemplateBuildContext): Templ
       input: ["something else"],
       expectedPath: ["start", "welcome", "route_intent", "unsupported", "handoff_staff"]
     },
+    {
+      id: "test_clinic_missing_field_retry",
+      name: "Clinic booking missing field retry",
+      input: ["book", ""],
+      expectedPath: ["start", "welcome", "route_intent", "collect_appointment", "collect_appointment"]
+    },
     ...(faq
       ? [
           {

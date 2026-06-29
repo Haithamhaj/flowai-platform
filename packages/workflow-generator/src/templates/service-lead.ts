@@ -113,6 +113,12 @@ export function buildServiceLeadTemplate(context: TemplateBuildContext): Templat
       input: ["unknown request"],
       expectedPath: ["start", "welcome", "route_intent", "unsupported", "handoff_sales"]
     },
+    {
+      id: "test_service_missing_field_retry",
+      name: "Service lead missing field retry",
+      input: ["lead", businessUnderstanding.services[0]?.id ?? "service", ""],
+      expectedPath: ["start", "welcome", "route_intent", "ask_service_interest", "collect_lead", "collect_lead"]
+    },
     ...(faq
       ? [
           {

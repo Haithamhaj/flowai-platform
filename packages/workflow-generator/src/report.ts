@@ -7,17 +7,34 @@ export function buildGenerationReport(options: {
   plan: WorkflowGenerationPlan;
   validation: ValidationResult;
   warnings?: PlanIssue[];
+  capabilitiesUsed?: string[];
 }): WorkflowGenerationReport {
   const warnings = [...options.plan.warnings, ...(options.warnings ?? [])];
 
   return {
     businessUnderstandingId: options.understanding.id,
     templateUsed: options.plan.selectedTemplate,
-    capabilitiesUsed: options.plan.selectedCapabilities,
+    capabilitiesUsed: options.capabilitiesUsed ?? options.plan.selectedCapabilities,
     assumptions: options.plan.assumptions,
     warnings,
     missingQuestionsBlockingPublish: options.understanding.missingQuestions.filter((question) => question.blocksWorkflow),
     sourceCoverage: buildSourceCoverage(options.understanding),
+    validation: options.validation
+  };
+}
+
+export function buildInvalidInputGenerationReport(options: {
+  plan: WorkflowGenerationPlan;
+  validation: ValidationResult;
+}): WorkflowGenerationReport {
+  return {
+    businessUnderstandingId: options.plan.businessUnderstandingId,
+    templateUsed: null,
+    capabilitiesUsed: [],
+    assumptions: [],
+    warnings: options.plan.warnings,
+    missingQuestionsBlockingPublish: options.plan.missingBlockers.map(missingQuestionFromIssue),
+    sourceCoverage: {},
     validation: options.validation
   };
 }
@@ -71,6 +88,6 @@ export function missingQuestionFromIssue(issue: PlanIssue): MissingQuestion {
     question: issue.message,
     reason: issue.message,
     blocksWorkflow: issue.severity === "blocking",
-    category: "handoff"
+    category: "source_restrictions"
   };
 }

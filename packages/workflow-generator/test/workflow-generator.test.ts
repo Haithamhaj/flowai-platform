@@ -63,6 +63,23 @@ function serviceUnderstanding(): BusinessUnderstanding {
   });
 }
 
+function clinicWithoutFaqUnderstanding(): BusinessUnderstanding {
+  return analyzeBusinessInterview({
+    businessDescription: "Business name: No FAQ Clinic. A clinic for appointment requests.",
+    targetBotGoal: "Book appointments.",
+    knownServices: [
+      {
+        name: "Consultation",
+        description: "General consultation request.",
+        requiredFields: ["name", "phone"]
+      }
+    ],
+    constraints: ["Do not provide medical diagnosis."],
+    preferredLanguage: "en",
+    businessCategoryHint: "clinic"
+  });
+}
+
 describe("Workflow draft generator", () => {
   it("generates a valid channel-neutral clinic booking workflow draft", () => {
     const result = generateWorkflowDraft({
@@ -187,12 +204,11 @@ describe("Workflow draft generator", () => {
   });
 
   it("uses exact known FAQ answers and sends unsupported requests to handoff", () => {
-    const workflow = expectWorkflow(
-      generateWorkflowDraft({
-        businessUnderstanding: clinicUnderstanding(),
-        templateHint: "clinic_booking"
-      }).workflow
-    );
+    const result = generateWorkflowDraft({
+      businessUnderstanding: clinicUnderstanding(),
+      templateHint: "clinic_booking"
+    });
+    const workflow = expectWorkflow(result.workflow);
 
     expect(workflow.nodes).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: "answer_faq", type: "message", message: clinicFaqAnswer })])
@@ -200,6 +216,36 @@ describe("Workflow draft generator", () => {
     expect(workflow.edges).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: "edge_route_unsupported", fallback: true, target: "unsupported" })])
     );
+    expect(result.generationReport.capabilitiesUsed).toContain("answer_faq");
+  });
+
+  it("does not report answer_faq when no deterministic FAQ node is generated", () => {
+    const result = generateWorkflowDraft({
+      businessUnderstanding: clinicWithoutFaqUnderstanding(),
+      templateHint: "clinic_booking"
+    });
+    const workflow = expectWorkflow(result.workflow);
+
+    expect(workflow.nodes.some((node) => node.id === "answer_faq")).toBe(false);
+    expect(result.generationReport.capabilitiesUsed).toEqual(["book_appointments", "handoff_to_human"]);
+    expect(result.generationPlan.selectedCapabilities).toEqual(["book_appointments", "handoff_to_human"]);
+    expect(result.generationPlan.knowledgeNeeds).toEqual([]);
+  });
+
+  it("returns a safe blocking report for malformed BusinessUnderstanding input", () => {
+    const malformed = { id: "bu_bad" } as unknown as BusinessUnderstanding;
+
+    expect(() => generateWorkflowDraft({ businessUnderstanding: malformed, templateHint: "service_lead" })).not.toThrow();
+
+    const result = generateWorkflowDraft({ businessUnderstanding: malformed, templateHint: "service_lead" });
+    expect(result.workflow).toBeUndefined();
+    expect(result.tests).toEqual([]);
+    expect(result.generationPlan.businessUnderstandingId).toBe("bu_bad");
+    expect(result.generationPlan.selectedTemplate).toBeNull();
+    expect(result.generationPlan.missingBlockers.length).toBeGreaterThan(0);
+    expect(result.generationReport.validation.valid).toBe(false);
+    expect(result.generationReport.validation.issues).toEqual(expect.arrayContaining([expect.objectContaining({ path: "businessName" })]));
+    expect(result.generationReport.capabilitiesUsed).toEqual([]);
   });
 
   it("preserves assumptions, source refs, confidence metadata, and generated tests", () => {
@@ -222,6 +268,54 @@ describe("Workflow draft generator", () => {
     expect(result.generationPlan.edgePlan.length).toBeGreaterThan(0);
     expect(result.generationReport.sourceCoverage).toHaveProperty("source_business_interview");
     expect(result.tests.length).toBeGreaterThan(0);
+  });
+
+  it("generates stable missing-field retry test cases for field collection workflows", () => {
+    const clinicResult = generateWorkflowDraft({
+      businessUnderstanding: clinicUnderstanding(),
+      templateHint: "clinic_booking"
+    });
+    const serviceResult = generateWorkflowDraft({
+      businessUnderstanding: serviceUnderstanding(),
+      templateHint: "service_lead"
+    });
+
+    expect(clinicResult.tests).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "test_clinic_missing_field_retry",
+          name: "Clinic booking missing field retry",
+          input: ["book", ""],
+          expectedPath: expect.arrayContaining(["collect_appointment"])
+        })
+      ])
+    );
+    expect(clinicResult.tests.find((test) => test.id === "test_clinic_missing_field_retry")?.expectedPath).toEqual([
+      "start",
+      "welcome",
+      "route_intent",
+      "collect_appointment",
+      "collect_appointment"
+    ]);
+
+    expect(serviceResult.tests).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "test_service_missing_field_retry",
+          name: "Service lead missing field retry",
+          input: ["lead", serviceUnderstanding().services[0]?.id ?? "service", ""],
+          expectedPath: expect.arrayContaining(["collect_lead"])
+        })
+      ])
+    );
+    expect(serviceResult.tests.find((test) => test.id === "test_service_missing_field_retry")?.expectedPath).toEqual([
+      "start",
+      "welcome",
+      "route_intent",
+      "ask_service_interest",
+      "collect_lead",
+      "collect_lead"
+    ]);
   });
 
   it("declares variables referenced by question and field nodes", () => {

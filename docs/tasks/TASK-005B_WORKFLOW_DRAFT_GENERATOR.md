@@ -136,6 +136,8 @@ Implemented behavior:
 - Strict generation returns no workflow when blocking questions remain unresolved.
 - Unsupported templates, missing generation-critical facts, invalid BusinessUnderstanding input, and unresolved conflicts return no workflow plus a blocking report.
 - Generated workflow JSON is validated with `validateWorkflow()` before being returned.
+- `capabilitiesUsed` reflects actual generated workflow behavior; `answer_faq` is reported only when a deterministic FAQ node is generated from exact known FAQs.
+- Malformed `BusinessUnderstanding` input returns a safe blocking report and no workflow rather than throwing.
 
 ## WorkflowGenerationPlan
 
@@ -410,6 +412,7 @@ Implementation status:
 - FAQ-only generation is explicitly deferred; exact known FAQs can appear only as deterministic message paths inside supported templates.
 - Ecommerce/product recommendation generation is not implemented.
 - API wiring is not implemented.
+- Generated workflow tests include happy path, unsupported/handoff, optional FAQ, and missing-field retry cases for field collection templates.
 
 ## Required Tests For Future Implementation
 

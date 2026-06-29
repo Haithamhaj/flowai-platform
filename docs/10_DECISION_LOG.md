@@ -118,3 +118,10 @@ Decision: TASK-005B generator supports non-strict draft generation with publish 
 Reason: TASK-005A always surfaces missing handoff/refusal rules as blocking questions, but FlowAI still needs a reviewable draft workflow before publish approval. Separating draft validity from publish readiness keeps generated Workflow JSON validator-backed without pretending unresolved business approvals are complete.
 Consequences: Clinic booking and service lead templates can produce draft `WorkflowDefinition` output when source-backed services and fields exist. Unresolved conflicts, invalid BusinessUnderstanding input, unsupported templates, and missing generation-critical facts still block draft generation. API exposure, ecommerce recommendations, FAQ-only generation, RAG, actions, and webhooks remain deferred.
 Revisit trigger: CapabilityMap, BusinessGraph, or API review introduces a richer publish-readiness model separate from workflow validation.
+
+## 2026-06-29: Keep TASK-005B Reports Behavior-Actual
+
+Decision: `capabilitiesUsed` in TASK-005B reports only behavior present in the generated workflow, and invalid BusinessUnderstanding input returns a blocking report before planning.
+Reason: Reviewers need reports to distinguish actual generated capability from possible template support, and malformed input must not crash the safe generation boundary.
+Consequences: FAQ capability appears only with an actual deterministic FAQ node. Invalid input returns no workflow, no tests, empty capabilities, validation issues, and a minimal safe generation plan.
+Revisit trigger: A later CapabilityMap introduces separate fields for possible, deferred, and generated capabilities.

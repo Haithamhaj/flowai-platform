@@ -51,6 +51,30 @@ export function buildWorkflowGenerationPlan(input: WorkflowGeneratorInput): Work
   };
 }
 
+export function buildInvalidInputGenerationPlan(input: WorkflowGeneratorInput, issues: Array<{ path: string; message: string }>): WorkflowGenerationPlan {
+  const businessUnderstandingId = readBusinessUnderstandingId(input.businessUnderstanding);
+  const missingBlockers = issues.map((issue, index) => ({
+    id: `invalid_business_understanding_${normalizeId(issue.path) || index + 1}`,
+    message: issue.message,
+    severity: "blocking" as const
+  }));
+
+  return {
+    businessUnderstandingId,
+    selectedTemplate: null,
+    selectedScenarios: [],
+    selectedCapabilities: [],
+    requiredFields: [],
+    knowledgeNeeds: [],
+    handoffNeeds: [],
+    missingBlockers,
+    nodePlan: [],
+    edgePlan: [],
+    assumptions: [],
+    warnings: []
+  };
+}
+
 export function blocksDraftGeneration(issue: PlanIssue): boolean {
   if (
     issue.id === "missing_handoff_rules" ||
@@ -254,4 +278,13 @@ function normalizeId(value: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
+}
+
+function readBusinessUnderstandingId(understanding: unknown): string {
+  if (understanding && typeof understanding === "object" && !Array.isArray(understanding) && typeof (understanding as { id?: unknown }).id === "string") {
+    const id = (understanding as { id: string }).id.trim();
+    if (id) return id;
+  }
+
+  return "invalid_business_understanding";
 }
