@@ -97,3 +97,10 @@ Decision: Implement TASK-004 Telegram Preview v0 with pure adapter mapping and a
 Reason: The first Telegram preview proof only needs safe update mapping, runtime session orchestration, Telegram-formatted descriptors, reset, and trace lookup. Adding a Telegram SDK before live polling would create unused dependency and token-handling surface.
 Consequences: No real Telegram network calls, polling, webhook verification, or bot token is required for TASK-004 tests. `grammy@1.44.0` was verified as MIT licensed and remains the recommended dependency for a future live polling task.
 Revisit trigger: A follow-up task explicitly adds live Telegram polling or production webhook handling.
+
+## 2026-06-29: Split Business Understanding From Workflow Draft Generation
+
+Decision: Scope TASK-005A to BusinessUnderstanding schema plus deterministic direct-interview extraction, and defer Workflow JSON draft generation to TASK-005B or a later approved task.
+Reason: Direct interview understanding can be validated locally without AI providers, crawling, RAG, persistence, or changes to runtime/workflow DSL. Workflow generation needs its own mapping contract and acceptance checks.
+Consequences: `packages/business-understanding` should become the next package-first implementation target. `packages/workflow-generator` remains placeholder-only until BusinessUnderstanding output is accepted.
+Revisit trigger: BusinessUnderstanding v0 is accepted and a follow-up task explicitly starts workflow draft generation.
