@@ -9,3 +9,4 @@ export const plannedChannelAdapters: ChannelAdapterDescriptor[] = [
   { id: "web-widget", status: "planned" }
 ];
 
+export * from "./telegram/index.js";

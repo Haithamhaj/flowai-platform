@@ -90,3 +90,10 @@ Decision: Accept `apps/api` as TASK-003 product code after revising it into a mi
 Reason: The API now delegates validation and execution to the accepted packages, uses predictable safe error shapes, returns explicit `stateSummary`/`traceDelta` debug responses, and avoids channel/provider/persistence scope.
 Consequences: Runtime test sessions are temporary, process-local, capped in memory, resettable, and not production persistence. Ended sessions return `409 SESSION_ENDED` instead of silently mutating or returning empty output.
 Revisit trigger: API needs auth, tenants, durable storage, production session semantics, channel delivery, or public client contracts beyond this local test loop.
+
+## 2026-06-29: Telegram Preview Starts With Mock Update Endpoint
+
+Decision: Implement TASK-004 Telegram Preview v0 with pure adapter mapping and a mock/local update API endpoint, while deferring grammY and live polling.
+Reason: The first Telegram preview proof only needs safe update mapping, runtime session orchestration, Telegram-formatted descriptors, reset, and trace lookup. Adding a Telegram SDK before live polling would create unused dependency and token-handling surface.
+Consequences: No real Telegram network calls, polling, webhook verification, or bot token is required for TASK-004 tests. `grammy@1.44.0` was verified as MIT licensed and remains the recommended dependency for a future live polling task.
+Revisit trigger: A follow-up task explicitly adds live Telegram polling or production webhook handling.

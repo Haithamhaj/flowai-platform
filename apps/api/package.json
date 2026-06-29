@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@flowai/channel-adapters": "workspace:*",
     "@flowai/runtime-core": "workspace:*",
     "@flowai/workflow-dsl": "workspace:*",
     "@nestjs/common": "^10.4.15",
@@ -26,4 +27,3 @@
     "vitest": "^2.1.8"
   }
 }
-
