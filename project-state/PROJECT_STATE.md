@@ -2,13 +2,13 @@
 
 ## Current Goal
 
-Prepare TASK-005A BusinessUnderstanding implementation for review.
+Prepare Business Understanding v1 architecture planning for review.
 
 ## Current Reality
 
 `flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. TASK-003 is done for the API test loop after implementation revision and verification. TASK-004 is merged into `main` as Telegram preview mock adapter. The current accepted operating mode is task-first.
 
-Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is implemented locally on `task-005a-business-understanding` and needs review. Live Telegram polling, production webhooks, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, and exporters are not accepted or implemented yet.
+Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning now defines BusinessGraph, source pipeline, product catalog, capability gating, source conflicts, and recommendation policy as docs only. Live Telegram polling, production webhooks, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, and exporters are not accepted or implemented yet.
 
 ## Active Decisions
 
@@ -33,6 +33,8 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - TASK-005 should start with BusinessUnderstanding schema plus deterministic direct-interview analysis.
 - Workflow draft generation from BusinessUnderstanding should be split into TASK-005B or a later approved task.
 - TASK-005A uses deterministic local analysis only; it does not call AI providers and does not generate Workflow JSON.
+- Business Understanding v1 should separate source-backed BusinessGraph facts from CapabilityMap decisions before any WorkflowGenerator consumes them.
+- Product/catalog recommendations require sourceRefs, freshness, confidence, and conflict status.
 
 ## Active Risks
 
@@ -45,6 +47,8 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - TASK-005 may overpromise AI generation if provider calls are added before explicit approval.
 - BusinessUnderstanding may become too coupled to channels/runtime/API if the package boundary is not kept clean.
 - Deterministic TASK-005A extraction is intentionally conservative and should not be treated as production AI extraction quality.
+- BusinessGraph planning may be mistaken for implemented crawling, catalog extraction, or recommendations unless follow-up tasks stay explicit.
+- Catalog facts such as prices, availability, listings, and menu items are high-risk when stale or conflicted.
 
 ## Protected Areas
 
@@ -54,10 +58,12 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - Do not put Telegram bot tokens or webhook secrets in workflow JSON, logs, or runtime traces.
 - Do not store secrets or private chain-of-thought in BusinessUnderstanding JSON.
 - Do not generate Workflow JSON in TASK-005A unless a follow-up task explicitly approves that scope.
+- Do not claim crawling, catalog extraction, source priority resolution, recommendation ranking, or BusinessGraph persistence works until implementation tasks prove it.
+- Do not recommend products, compare listings, show prices, or answer policy questions without source-backed facts and conflict handling.
 
 ## Next Recommended Action
 
-Review TASK-005A implementation. If accepted, merge it before starting TASK-005B workflow draft generation. Do not implement provider calls, crawling, PDFs, RAG, API endpoints, or workflow generation as part of TASK-005A.
+Review the Business Understanding v1 planning docs. Recommended next task is TASK-005B planning: define how accepted BusinessUnderstanding and reviewed BusinessGraph/CapabilityMap inputs should map to a minimal Workflow JSON draft generator, without implementing generation yet.
 
 ## Critical References
 
@@ -87,3 +93,9 @@ Review TASK-005A implementation. If accepted, merge it before starting TASK-005B
 - `packages/business-understanding/src/redaction.ts`
 - `packages/business-understanding/test/business-understanding.test.ts`
 - `packages/workflow-generator/src/index.ts`
+- `docs/business-understanding/BUSINESS_GRAPH_V1.md`
+- `docs/business-understanding/CRAWLING_AND_SOURCE_PIPELINE.md`
+- `docs/business-understanding/PRODUCT_CATALOG_MODEL.md`
+- `docs/business-understanding/CAPABILITY_MAP.md`
+- `docs/business-understanding/SOURCE_PRIORITY_AND_CONFLICTS.md`
+- `docs/business-understanding/DECISION_AND_RECOMMENDATION_POLICY.md`
