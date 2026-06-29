@@ -1,0 +1,105 @@
+{
+  "id": "bu_example_clinic",
+  "businessName": "Bright Dental Clinic",
+  "category": "clinic",
+  "summary": "Bright Dental Clinic in clinic: Business name: Bright Dental Clinic. A clinic that offers dental checkups, emergency appointments, and teeth cleaning for families.",
+  "sources": [
+    {
+      "sourceId": "source_business_interview",
+      "sourceType": "business_interview",
+      "label": "Direct business interview",
+      "locator": "businessDescription",
+      "excerpt": "Business name: Bright Dental Clinic. A clinic that offers dental checkups, emergency appointments, and teeth cleaning for families.",
+      "confidence": 0.85
+    }
+  ],
+  "services": [
+    {
+      "id": "service_dental_checkup",
+      "name": "Dental checkup",
+      "description": "Routine dental examination.",
+      "requiredFields": ["name", "phone", "preferred date"],
+      "sourceRefs": ["source_business_interview"],
+      "confidence": 0.9,
+      "notes": "Provided as a known service in the direct interview input."
+    },
+    {
+      "id": "service_emergency_appointment",
+      "name": "Emergency appointment",
+      "description": "Urgent dental consultation request.",
+      "requiredFields": ["name", "phone", "symptoms"],
+      "sourceRefs": ["source_business_interview"],
+      "confidence": 0.9,
+      "notes": "Provided as a known service in the direct interview input."
+    }
+  ],
+  "faqs": [
+    {
+      "id": "faq_1",
+      "question": "Do you accept emergency appointments?",
+      "answer": "Yes, emergency appointment requests can be collected for staff follow-up.",
+      "sourceRefs": ["source_business_interview"],
+      "confidence": 0.9,
+      "notes": "Provided as a known FAQ in the direct interview input."
+    }
+  ],
+  "policies": [
+    {
+      "id": "policy_1",
+      "title": "Do not provide medical diagnosis.",
+      "description": "Do not provide medical diagnosis.",
+      "sourceRefs": ["source_business_interview"],
+      "confidence": 0.82,
+      "notes": "Mapped from a direct interview constraint."
+    }
+  ],
+  "forms": [
+    {
+      "id": "form_customer_request",
+      "name": "Customer request",
+      "fields": [
+        { "key": "name", "label": "name", "type": "text", "required": true },
+        { "key": "phone", "label": "phone", "type": "phone", "required": true },
+        { "key": "preferred_date", "label": "preferred date", "type": "date", "required": true }
+      ],
+      "sourceRefs": ["source_business_interview"],
+      "confidence": 0.75,
+      "notes": "Created from required fields attached to known services."
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "scenario_booking_or_reservation",
+      "name": "booking_or_reservation",
+      "triggerPhrases": ["book", "appointment", "reservation", "schedule"],
+      "steps": ["Identify requested service.", "Collect required customer fields.", "Confirm handoff or next step."],
+      "requiredFields": ["name", "phone", "preferred date", "symptoms"],
+      "handoffRule": "Handoff rule must be confirmed before workflow generation.",
+      "sourceRefs": ["source_business_interview"],
+      "confidence": 0.78,
+      "notes": "Created because the target bot goal mentions booking, appointment, reservation, or scheduling."
+    }
+  ],
+  "missingQuestions": [
+    {
+      "id": "missing_handoff_rules",
+      "question": "When should the bot hand off to a human?",
+      "reason": "Escalation rules prevent the bot from handling unsupported or sensitive cases.",
+      "blocksWorkflow": true,
+      "category": "handoff"
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "assumption_wait_for_handoff_rules",
+      "text": "Workflow generation should wait until handoff rules are clarified.",
+      "confidence": 0.55,
+      "sourceRefs": ["source_business_interview"],
+      "notes": "Handoff rules are commonly needed before a safe customer workflow can be generated."
+    }
+  ],
+  "unknowns": [],
+  "conflicts": [],
+  "confidence": 0.78,
+  "createdAt": "1970-01-01T00:00:00.000Z"
+}

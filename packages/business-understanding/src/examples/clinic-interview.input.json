@@ -1,0 +1,29 @@
+{
+  "businessDescription": "Business name: Bright Dental Clinic. A clinic that offers dental checkups, emergency appointments, and teeth cleaning for families.",
+  "targetBotGoal": "Answer common questions and collect appointment requests.",
+  "knownServices": [
+    {
+      "name": "Dental checkup",
+      "description": "Routine dental examination.",
+      "requiredFields": ["name", "phone", "preferred date"]
+    },
+    {
+      "name": "Emergency appointment",
+      "description": "Urgent dental consultation request.",
+      "requiredFields": ["name", "phone", "symptoms"]
+    }
+  ],
+  "knownFaqs": [
+    {
+      "question": "Do you accept emergency appointments?",
+      "answer": "Yes, emergency appointment requests can be collected for staff follow-up."
+    },
+    {
+      "question": "What information is needed to book?",
+      "answer": "Name, phone number, preferred date, and requested service."
+    }
+  ],
+  "constraints": ["Do not provide medical diagnosis.", "Escalate severe pain or emergency symptoms to staff."],
+  "preferredLanguage": "en",
+  "businessCategoryHint": "clinic"
+}

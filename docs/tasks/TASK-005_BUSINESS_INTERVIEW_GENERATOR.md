@@ -1,6 +1,6 @@
 # TASK-005 Business Interview Generator
 
-Status: ready
+Status: review
 Owner/Agent: unassigned
 Context shard: `business-understanding.md`
 
@@ -270,4 +270,40 @@ CI=true pnpm build
 
 ## Handoff Notes
 
-Planning pass completed after PR #4 merge. TASK-005 is ready for a narrow implementation prompt as TASK-005A: BusinessUnderstanding schema plus direct interview deterministic analyzer/tests. Workflow draft generation should be handled in TASK-005B or a later approved task.
+TASK-005A implementation completed on branch `task-005a-business-understanding`.
+
+What changed:
+
+- Added BusinessUnderstanding v0 types.
+- Added direct interview input types.
+- Added deterministic `analyzeBusinessInterview` implementation.
+- Added explicit validator functions for interview input and BusinessUnderstanding output.
+- Added simple secret redaction for obvious secret-like text.
+- Added synthetic clinic input/output examples.
+- Added unit tests for services, FAQs, policies, scenarios, missing questions, assumptions, unknowns, conflicts, confidence, validation, Arabic input, secret redaction, and no accidental Workflow JSON output.
+
+Files changed:
+
+- `packages/business-understanding/src/types.ts`
+- `packages/business-understanding/src/analyzer.ts`
+- `packages/business-understanding/src/validator.ts`
+- `packages/business-understanding/src/redaction.ts`
+- `packages/business-understanding/src/index.ts`
+- `packages/business-understanding/src/examples/clinic-interview.input.json`
+- `packages/business-understanding/src/examples/clinic-business-understanding.json`
+- `packages/business-understanding/test/business-understanding.test.ts`
+- `docs/tasks/TASK-005_BUSINESS_INTERVIEW_GENERATOR.md`
+- `project-state/PROJECT_STATE.md`
+
+Commands run:
+
+- `CI=true pnpm --filter @flowai/business-understanding test`
+- `CI=true pnpm --filter @flowai/business-understanding typecheck`
+- `CI=true pnpm test`
+- `CI=true pnpm build`
+- `git diff --check`
+
+Remaining before acceptance:
+
+- Review deterministic extraction quality as a v0 baseline, not AI-grade understanding.
+- Keep Workflow JSON draft generation deferred to TASK-005B or later.
