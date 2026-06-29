@@ -66,5 +66,81 @@ describe("validateWorkflow", () => {
     expect(result.valid).toBe(false);
     expect(result.issues.map((issue) => issue.message).join("\n")).toContain("unknown node type");
   });
-});
 
+  it("rejects malformed workflow input without throwing", () => {
+    const result = validateWorkflow(null);
+    expect(result.valid).toBe(false);
+    expect(result.issues[0]?.message).toContain("workflow must be an object");
+  });
+
+  it("rejects missing required node fields", () => {
+    const workflow = cloneWorkflow();
+    const welcome = workflow.nodes.find((node) => node.id === "welcome");
+    if (welcome?.type === "message") {
+      welcome.message = "" as never;
+    }
+
+    const result = validateWorkflow(workflow);
+    expect(result.valid).toBe(false);
+    expect(result.issues.map((issue) => issue.path).join("\n")).toContain("message");
+  });
+
+  it("rejects condition operands that are missing or malformed", () => {
+    const workflow = cloneWorkflow();
+    workflow.edges[2] = {
+      ...workflow.edges[2],
+      condition: { op: "equals", left: { var: "missingVariable" } } as never
+    };
+
+    const result = validateWorkflow(workflow);
+    const messages = result.issues.map((issue) => issue.message).join("\n");
+    expect(result.valid).toBe(false);
+    expect(messages).toContain("condition variable 'missingVariable' is not declared");
+    expect(messages).toContain("condition value is required");
+  });
+
+  it("rejects duplicate variable, tool, and knowledge source ids", () => {
+    const workflow = cloneWorkflow();
+    workflow.variables.push({ ...workflow.variables[0] });
+    workflow.tools.push({ ...workflow.tools[0] });
+    workflow.knowledgeSources.push({ ...workflow.knowledgeSources[0] });
+
+    const result = validateWorkflow(workflow);
+    const messages = result.issues.map((issue) => issue.message).join("\n");
+    expect(result.valid).toBe(false);
+    expect(messages).toContain("duplicate variable key");
+    expect(messages).toContain("duplicate tool id");
+    expect(messages).toContain("duplicate knowledge source id");
+  });
+
+  it("rejects duplicate outgoing fallback edges and priorities", () => {
+    const workflow = cloneWorkflow();
+    workflow.edges.push({
+      id: "e_route_second_fallback",
+      source: "route_intent",
+      target: "done",
+      priority: 3,
+      fallback: true
+    });
+
+    const result = validateWorkflow(workflow);
+    const messages = result.issues.map((issue) => issue.message).join("\n");
+    expect(result.valid).toBe(false);
+    expect(messages).toContain("must not have more than one fallback edge");
+    expect(messages).toContain("duplicate outgoing priority");
+  });
+
+  it("rejects channel secrets and raw URLs", () => {
+    const workflow = cloneWorkflow();
+    workflow.channels.telegram.settings = {
+      tokenSecret: "abc",
+      webhookUrl: "https://example.com/telegram"
+    };
+
+    const result = validateWorkflow(workflow);
+    const messages = result.issues.map((issue) => issue.message).join("\n");
+    expect(result.valid).toBe(false);
+    expect(messages).toContain("channel settings must not include secrets");
+    expect(messages).toContain("channel settings must not include raw URLs");
+  });
+});

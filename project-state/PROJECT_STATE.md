@@ -2,13 +2,13 @@
 
 ## Current Goal
 
-Accept and document the FlowAI project skeleton under TASK-000 after operating pack approval.
+Finish TASK-001 by accepting the revised Workflow DSL prototype as product code.
 
 ## Current Reality
 
-`flowai-platform` exists. TASK-000 is documented as done for skeleton/setup only. The current accepted operating mode is task-first. Product work should not continue unless a task explicitly permits it and the plan is approved.
+`flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. The current accepted operating mode is task-first.
 
-Some early prototype files exist from prior setup. Treat them as provisional until TASK-001, TASK-002, and TASK-003 are reviewed and accepted.
+Runtime and API prototype files still exist from prior setup. Treat them as provisional until TASK-002 and TASK-003 are reviewed and accepted.
 
 ## Active Decisions
 
@@ -21,12 +21,14 @@ Some early prototype files exist from prior setup. Treat them as provisional unt
 - Channels are adapters, not workflow owners.
 - No executable workflow code.
 - No unsafe OSS copying.
+- Workflow DSL validator is dependency-free for now.
 
 ## Active Risks
 
-- Existing prototype code can create confusion with the current “operating pack first” instruction.
+- Runtime/API prototype code can create confusion if future agents skip task files.
 - Agents may overbuild without following task files.
 - Future AI/RAG/channel work may be claimed before it is tested.
+- Manual DSL validation may become harder to maintain if DSL scope expands.
 
 ## Protected Areas
 
@@ -36,7 +38,7 @@ Some early prototype files exist from prior setup. Treat them as provisional unt
 
 ## Next Recommended Action
 
-Start `TASK-001_WORKFLOW_DSL`. First decide whether to accept the existing prototype as the base or rebuild it under task review.
+Start `TASK-002_RUNTIME_CORE` with a review-only pass first. Do not assume the runtime prototype is accepted until reviewed.
 
 ## Critical References
 
@@ -48,3 +50,4 @@ Start `TASK-001_WORKFLOW_DSL`. First decide whether to accept the existing proto
 - `docs/tasks/`
 - `docs/shards/`
 - `docs/16_PROJECT_SETUP.md`
+- `packages/workflow-dsl/src/validator.ts`
