@@ -2,13 +2,13 @@
 
 ## Current Goal
 
-Prepare TASK-004 Telegram Preview implementation for review.
+Prepare TASK-005 Business Interview Generator for a narrow implementation prompt.
 
 ## Current Reality
 
-`flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. TASK-003 is done for the API test loop after implementation revision and verification. TASK-004 implementation is complete locally and ready for review. The current accepted operating mode is task-first.
+`flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. TASK-003 is done for the API test loop after implementation revision and verification. TASK-004 is merged into `main` as Telegram preview mock adapter. The current accepted operating mode is task-first.
 
-Telegram mock/update preview is implemented locally for TASK-004. Live Telegram polling, production webhooks, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, and exporters are not accepted or implemented yet.
+Telegram mock/update preview is implemented and merged. TASK-005 planning is ready for a package-first direct business interview path. Live Telegram polling, production webhooks, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, and exporters are not accepted or implemented yet.
 
 ## Active Decisions
 
@@ -30,6 +30,8 @@ Telegram mock/update preview is implemented locally for TASK-004. Live Telegram 
 - TASK-004 preview uses a mock Telegram update endpoint first.
 - grammY remains the recommended future dependency for live polling, but no external Telegram SDK has been added yet.
 - Production webhook work is later and must include verification.
+- TASK-005 should start with BusinessUnderstanding schema plus deterministic direct-interview analysis.
+- Workflow draft generation from BusinessUnderstanding should be split into TASK-005B or a later approved task.
 
 ## Active Risks
 
@@ -39,6 +41,8 @@ Telegram mock/update preview is implemented locally for TASK-004. Live Telegram 
 - API runtime test sessions are process-local, temporary, capped in memory, lost on restart, not tenant-safe, and not horizontally scalable.
 - Telegram preview may accidentally grow into production channel infrastructure if endpoints, token handling, and persistence are not kept minimal.
 - TASK-004 Telegram preview sessions are also process-local and preview-only.
+- TASK-005 may overpromise AI generation if provider calls are added before explicit approval.
+- BusinessUnderstanding may become too coupled to channels/runtime/API if the package boundary is not kept clean.
 
 ## Protected Areas
 
@@ -46,10 +50,12 @@ Telegram mock/update preview is implemented locally for TASK-004. Live Telegram 
 - Do not add `eval`, `new Function`, arbitrary workflow expressions, or secrets in workflow JSON.
 - Do not implement crawling, WhatsApp, Studio UI, RAG, or AI generation without explicit task approval.
 - Do not put Telegram bot tokens or webhook secrets in workflow JSON, logs, or runtime traces.
+- Do not store secrets or private chain-of-thought in BusinessUnderstanding JSON.
+- Do not generate Workflow JSON in TASK-005A unless a follow-up task explicitly approves that scope.
 
 ## Next Recommended Action
 
-Review `TASK-004_TELEGRAM_PREVIEW` implementation. Do not treat it as production Telegram deployment; live polling/webhook work needs a separate task.
+Start TASK-005A implementation only after approval: BusinessUnderstanding schema, direct interview input schema, deterministic analyzer, examples, and tests. Do not implement provider calls, crawling, PDFs, RAG, API endpoints, or workflow generation.
 
 ## Critical References
 
@@ -71,3 +77,6 @@ Review `TASK-004_TELEGRAM_PREVIEW` implementation. Do not treat it as production
 - `apps/api/src/services/telegram-preview.service.ts`
 - `apps/api/src/routes/telegram-preview.controller.ts`
 - `docs/tasks/TASK-004_TELEGRAM_PREVIEW.md`
+- `docs/tasks/TASK-005_BUSINESS_INTERVIEW_GENERATOR.md`
+- `packages/business-understanding/src/index.ts`
+- `packages/workflow-generator/src/index.ts`
