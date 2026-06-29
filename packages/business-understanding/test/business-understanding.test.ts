@@ -130,6 +130,22 @@ describe("BusinessUnderstanding analyzer", () => {
     expect(understanding.confidence).toBeLessThanOrEqual(1);
   });
 
+  it("does not include Telegram-specific assumptions by default", () => {
+    const understanding = analyzeBusinessInterview(clinicInput);
+    const assumptions = JSON.stringify(understanding.assumptions).toLowerCase();
+
+    expect(assumptions).not.toContain("telegram");
+  });
+
+  it("does not include channel-specific default assumptions", () => {
+    const understanding = analyzeBusinessInterview(clinicInput);
+    const assumptions = JSON.stringify(understanding.assumptions).toLowerCase();
+
+    expect(assumptions).not.toContain("whatsapp");
+    expect(assumptions).not.toContain("first test channel");
+    expect(assumptions).not.toContain("preview channel");
+  });
+
   it("detects an obvious deterministic conflict", () => {
     const understanding = analyzeBusinessInterview({
       businessDescription: "Business name: Booking Test Clinic. A clinic for consultations.",
@@ -212,6 +228,41 @@ describe("BusinessUnderstanding validation", () => {
       valid: false,
       issues: [{ path: "confidence", message: "confidence must be between 0 and 1." }]
     });
+  });
+
+  it("rejects missing businessName key", () => {
+    const understanding = analyzeBusinessInterview(clinicInput) as Record<string, unknown>;
+    const missingBusinessName = { ...understanding };
+    delete missingBusinessName.businessName;
+
+    expect(validateBusinessUnderstanding(missingBusinessName)).toEqual({
+      valid: false,
+      issues: [{ path: "businessName", message: "businessName is required." }]
+    });
+  });
+
+  it("accepts businessName null", () => {
+    const understanding = analyzeBusinessInterview(clinicInput);
+
+    expect(validateBusinessUnderstanding({ ...understanding, businessName: null })).toEqual({ valid: true, issues: [] });
+  });
+
+  it("rejects missing category key", () => {
+    const understanding = analyzeBusinessInterview(clinicInput) as Record<string, unknown>;
+    const missingCategory = { ...understanding };
+    delete missingCategory.category;
+
+    expect(validateBusinessUnderstanding(missingCategory)).toEqual({
+      valid: false,
+      issues: [{ path: "category", message: "category is required." }]
+    });
+  });
+
+  it("accepts category null or unknown", () => {
+    const understanding = analyzeBusinessInterview(clinicInput);
+
+    expect(validateBusinessUnderstanding({ ...understanding, category: null })).toEqual({ valid: true, issues: [] });
+    expect(validateBusinessUnderstanding({ ...understanding, category: "unknown" })).toEqual({ valid: true, issues: [] });
   });
 
   it("catches workflow-only keys in BusinessUnderstanding output", () => {

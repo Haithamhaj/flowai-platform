@@ -70,6 +70,8 @@ export function validateBusinessUnderstanding(understanding: unknown): Validatio
 
   for (const key of [
     "id",
+    "businessName",
+    "category",
     "summary",
     "createdAt",
     "sources",

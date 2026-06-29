@@ -374,19 +374,9 @@ function buildAssumptions(input: BusinessInterviewInput): Assumption[] {
       text: "Business understanding should remain channel-neutral until a preview or deployment task consumes it.",
       confidence: 0.75,
       sourceRefs: [SOURCE_ID],
-      notes: "TASK-005A is scoped to business understanding, not Telegram or WhatsApp behavior."
+      notes: "TASK-005A is scoped to business understanding, not channel behavior."
     }
   ];
-
-  if (!input.targetBotGoal?.toLowerCase().includes("telegram")) {
-    assumptions.push({
-      id: "assumption_telegram_first_preview",
-      text: "Telegram preview is the first test channel unless changed.",
-      confidence: 0.45,
-      sourceRefs: [SOURCE_ID],
-      notes: "This follows the current accepted project path, not the interview input itself."
-    });
-  }
 
   return assumptions;
 }
