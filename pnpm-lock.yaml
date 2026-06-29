@@ -20,6 +20,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@flowai/channel-adapters':
+        specifier: workspace:*
+        version: link:../../packages/channel-adapters
       '@flowai/runtime-core':
         specifier: workspace:*
         version: link:../../packages/runtime-core
@@ -71,6 +74,10 @@ importers:
         version: 2.1.9(@types/node@22.20.0)
 
   packages/channel-adapters:
+    dependencies:
+      '@flowai/runtime-core':
+        specifier: workspace:*
+        version: link:../runtime-core
     devDependencies:
       typescript:
         specifier: ^5.7.2

@@ -2,13 +2,13 @@
 
 ## Current Goal
 
-Prepare for `TASK-004_TELEGRAM_PREVIEW` review after completing the Workflow DSL, Runtime Core, and API Test Loop foundations.
+Prepare TASK-004 Telegram Preview implementation for review.
 
 ## Current Reality
 
-`flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. TASK-003 is done for the API test loop after implementation revision and verification. The current accepted operating mode is task-first.
+`flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. TASK-003 is done for the API test loop after implementation revision and verification. TASK-004 implementation is complete locally and ready for review. The current accepted operating mode is task-first.
 
-Telegram, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, and exporters are not accepted or implemented by TASK-003.
+Telegram mock/update preview is implemented locally for TASK-004. Live Telegram polling, production webhooks, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, and exporters are not accepted or implemented yet.
 
 ## Active Decisions
 
@@ -27,6 +27,9 @@ Telegram, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tena
 - Runtime `ai_response` and `rag_answer` are deterministic placeholders only.
 - API test loop exposes only health, workflow validation, in-memory runtime start/message/trace/reset.
 - API test loop uses `stateSummary` and safe structured errors for test/debug flows.
+- TASK-004 preview uses a mock Telegram update endpoint first.
+- grammY remains the recommended future dependency for live polling, but no external Telegram SDK has been added yet.
+- Production webhook work is later and must include verification.
 
 ## Active Risks
 
@@ -34,16 +37,19 @@ Telegram, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tena
 - Future AI/RAG/channel work may be claimed before it is tested.
 - Manual DSL validation may become harder to maintain if DSL scope expands.
 - API runtime test sessions are process-local, temporary, capped in memory, lost on restart, not tenant-safe, and not horizontally scalable.
+- Telegram preview may accidentally grow into production channel infrastructure if endpoints, token handling, and persistence are not kept minimal.
+- TASK-004 Telegram preview sessions are also process-local and preview-only.
 
 ## Protected Areas
 
 - Do not copy code from legacy backend, Dify, Typebot, Firecrawl, or unsafe-license projects.
 - Do not add `eval`, `new Function`, arbitrary workflow expressions, or secrets in workflow JSON.
-- Do not implement crawling, Telegram, WhatsApp, Studio UI, RAG, or AI generation without explicit task approval.
+- Do not implement crawling, WhatsApp, Studio UI, RAG, or AI generation without explicit task approval.
+- Do not put Telegram bot tokens or webhook secrets in workflow JSON, logs, or runtime traces.
 
 ## Next Recommended Action
 
-Start `TASK-004_TELEGRAM_PREVIEW` with a review-only pass first. Do not assume any Telegram/channel prototype is accepted until reviewed.
+Review `TASK-004_TELEGRAM_PREVIEW` implementation. Do not treat it as production Telegram deployment; live polling/webhook work needs a separate task.
 
 ## Critical References
 
@@ -60,3 +66,8 @@ Start `TASK-004_TELEGRAM_PREVIEW` with a review-only pass first. Do not assume a
 - `packages/runtime-core/src/condition-evaluator.ts`
 - `apps/api/src/services/runtime-test.service.ts`
 - `apps/api/src/routes/runtime.controller.ts`
+- `packages/channel-adapters/src/index.ts`
+- `packages/channel-adapters/src/telegram/`
+- `apps/api/src/services/telegram-preview.service.ts`
+- `apps/api/src/routes/telegram-preview.controller.ts`
+- `docs/tasks/TASK-004_TELEGRAM_PREVIEW.md`
