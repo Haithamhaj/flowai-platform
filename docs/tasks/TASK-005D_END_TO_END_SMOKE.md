@@ -1,6 +1,6 @@
 # TASK-005D: End-to-End FlowAI Smoke
 
-Status: review
+Status: done
 Owner/Agent: Codex
 Context shards: `testing.md`, `business-understanding.md`, `workflow-dsl.md`, `runtime-core.md`, `telegram-preview.md`, `security.md`
 
@@ -112,6 +112,23 @@ The smoke file covers:
 
 ## Handoff Notes
 
-TASK-005D is ready for review.
+TASK-005D was accepted and merged through PR #11.
 
-Do not treat this as production orchestration. The proved path is internal and test-only. TASK-006 must not start until this PR is accepted.
+Final main HEAD after merge:
+
+```text
+f2e44819757a0ef015b2674323feac4391ea0d8e
+```
+
+Do not treat this as production orchestration. The proved path is internal and test-only:
+
+```text
+BusinessUnderstanding
+-> Workflow Draft API
+-> Runtime Test Loop
+-> Telegram Preview Mock
+```
+
+This does not prove production HTTP routing, persistence, auth/tenants, live Telegram, crawling, RAG, AI providers, Studio UI, WhatsApp, or exporters.
+
+Next recommended task: TASK-006_DOCUMENT_INGESTION planning only.
