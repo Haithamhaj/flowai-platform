@@ -2,13 +2,13 @@
 
 ## Current Goal
 
-Prepare TASK-006 document ingestion planning after TASK-005D acceptance.
+Prepare TASK-006 document ingestion planning for review.
 
 ## Current Reality
 
 `flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. TASK-003 is done for the API test loop after implementation revision and verification. TASK-004 is merged into `main` as Telegram preview mock adapter. The current accepted operating mode is task-first.
 
-Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning and implementation are merged into `main`; `packages/workflow-generator` now provides deterministic package-local `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` draft generation for clinic booking and service lead templates. TASK-005C planning and implementation are merged into `main`; `POST /workflow-drafts/from-business-understanding` is the accepted narrow API wrapper around the generator. TASK-005D end-to-end smoke tests are accepted and merged through PR #11 at final main HEAD `f2e44819757a0ef015b2674323feac4391ea0d8e`. The internal vertical slice is smoke-tested only: `BusinessUnderstanding -> Workflow Draft API -> Runtime Test Loop -> Telegram Preview Mock`. This does not prove production HTTP routing, persistence, auth/tenants, live Telegram, crawling, RAG, AI providers, Studio UI, WhatsApp, or exporters. Live Telegram polling, production webhooks, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, and exporters are not accepted or implemented yet.
+Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning and implementation are merged into `main`; `packages/workflow-generator` now provides deterministic package-local `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` draft generation for clinic booking and service lead templates. TASK-005C planning and implementation are merged into `main`; `POST /workflow-drafts/from-business-understanding` is the accepted narrow API wrapper around the generator. TASK-005D end-to-end smoke tests are accepted and merged through PR #11 at final main HEAD `f2e44819757a0ef015b2674323feac4391ea0d8e`. The internal vertical slice is smoke-tested only: `BusinessUnderstanding -> Workflow Draft API -> Runtime Test Loop -> Telegram Preview Mock`. This does not prove production HTTP routing, persistence, auth/tenants, live Telegram, crawling, RAG, AI providers, Studio UI, WhatsApp, or exporters. The current branch plans TASK-006 document ingestion only; it adds no upload endpoints, parsers, dependencies, storage, RAG, AI providers, crawling, persistence, auth, Studio UI, WhatsApp, or exporters.
 
 ## Active Decisions
 
@@ -50,6 +50,7 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - TASK-005C request validation rejects malformed bodies and obvious provider/secret request fields, while valid request shapes with generator blockers return `workflow: null` and a report.
 - TASK-005D proves the first internal vertical slice through tests only; production orchestration, persistence, and external integrations remain deferred.
 - TASK-005D is accepted and merged via PR #11 at `f2e44819757a0ef015b2674323feac4391ea0d8e`.
+- TASK-006 planning should start with SourceDocument plus text/markdown ingestion only in a later implementation task; PDF requires a separate parser/security review.
 
 ## Active Risks
 
@@ -68,6 +69,7 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - Future API or UI work could accidentally weaken unsupported-template blockers or auto-start runtime/channel preview sessions if the draft/review boundary is not kept narrow.
 - TASK-005C endpoint output is a draft/review surface; callers still need to inspect `generationReport` before treating a workflow as publish-ready.
 - TASK-005D smoke tests are controller/service-level integration tests, not production HTTP, persistence, auth, or live-channel tests.
+- Document ingestion can create upload, parser, privacy, PII, and source-conflict risks if implemented before the safety boundary is accepted.
 
 ## Protected Areas
 
@@ -81,10 +83,11 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - Do not recommend products, compare listings, show prices, or answer policy questions without source-backed facts and conflict handling.
 - Do not generate action or webhook nodes unless configured tools exist in a later approved task.
 - Do not let workflow generation embed secrets, executable expressions, channel-specific semantics, or product/price claims without source-backed evidence.
+- Do not add document upload endpoints, parser dependencies, PDF parsing, durable storage, RAG, embeddings, or AI extraction during TASK-006 planning.
 
 ## Next Recommended Action
 
-Start TASK-006_DOCUMENT_INGESTION planning only. Do not implement upload endpoints, parsers, dependencies, storage, RAG, crawling, AI providers, persistence, auth, Studio UI, WhatsApp, or exporters.
+Review TASK-006_DOCUMENT_INGESTION planning PR. If accepted, the next recommended task is TASK-006A_SOURCE_DOCUMENT_TEXT_INGESTION.
 
 ## Critical References
 
@@ -134,4 +137,8 @@ Start TASK-006_DOCUMENT_INGESTION planning only. Do not implement upload endpoin
 - `docs/workflow-generator/WORKFLOW_GENERATOR_V0_PLAN.md`
 - `docs/tasks/TASK-005C_API_WORKFLOW_DRAFT_ENDPOINT.md`
 - `docs/tasks/TASK-005D_END_TO_END_SMOKE.md`
+- `docs/tasks/TASK-006_DOCUMENT_INGESTION.md`
+- `docs/document-ingestion/DOCUMENT_INGESTION_V0_PLAN.md`
+- `docs/document-ingestion/UPLOAD_SECURITY.md`
+- `docs/document-ingestion/PARSER_BOUNDARY.md`
 - `docs/api/WORKFLOW_DRAFT_ENDPOINT_PLAN.md`
