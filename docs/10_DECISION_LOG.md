@@ -125,3 +125,10 @@ Decision: `capabilitiesUsed` in TASK-005B reports only behavior present in the g
 Reason: Reviewers need reports to distinguish actual generated capability from possible template support, and malformed input must not crash the safe generation boundary.
 Consequences: FAQ capability appears only with an actual deterministic FAQ node. Invalid input returns no workflow, no tests, empty capabilities, validation issues, and a minimal safe generation plan.
 Revisit trigger: A later CapabilityMap introduces separate fields for possible, deferred, and generated capabilities.
+
+## 2026-06-30: Plan TASK-005C As API Wrapper Around Workflow Generator
+
+Decision: TASK-005C should expose workflow draft generation through a narrow API endpoint that validates request shape, applies safe defaults, delegates to `@flowai/workflow-generator`, and returns the generator plan/report with `workflow: null` when blocked.
+Reason: TASK-005B already owns deterministic template selection, unsupported-hint blocking, Workflow DSL validation, and generated tests. The API should make that package behavior reachable without creating a second generator or adding side effects.
+Consequences: `POST /workflow-drafts/from-business-understanding` should default to strict generation, return generator blockers as safe response data for valid request shapes, and provide only an informational `runtimePreviewHint`. Runtime sessions, Telegram preview connections, persistence, crawling, RAG, AI providers, ecommerce, and restaurant workflows remain deferred.
+Revisit trigger: API review proves the response contract is insufficient for Studio review, runtime preview handoff, or publish-readiness modeling.
