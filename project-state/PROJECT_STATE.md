@@ -2,13 +2,13 @@
 
 ## Current Goal
 
-Implement TASK-005B deterministic workflow draft generator for review.
+Plan TASK-005C API workflow draft endpoint after safely merging accepted PR #8.
 
 ## Current Reality
 
 `flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. TASK-003 is done for the API test loop after implementation revision and verification. TASK-004 is merged into `main` as Telegram preview mock adapter. The current accepted operating mode is task-first.
 
-Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning is merged, and the current branch implements a deterministic package-first `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` draft generator in `packages/workflow-generator`. Live Telegram polling, production webhooks, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, exporters, and API draft-generation endpoints are not accepted or implemented yet.
+Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning and implementation are merged into `main`; `packages/workflow-generator` now provides deterministic package-local `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` draft generation for clinic booking and service lead templates. The current branch is docs-only TASK-005C planning for an API endpoint that would expose the package generator. Live Telegram polling, production webhooks, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, exporters, and API draft-generation endpoints are not accepted or implemented yet.
 
 ## Active Decisions
 
@@ -44,6 +44,9 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - TASK-005B `capabilitiesUsed` must describe actual generated workflow behavior, not theoretical template support.
 - Invalid `BusinessUnderstanding` input must return a blocking generation report, not throw during planning.
 - FAQ-only generation, ecommerce/product recommendations, RAG, actions, and webhook nodes remain deferred.
+- TASK-005C should expose workflow draft generation through a narrow API wrapper that validates request shape, delegates to `@flowai/workflow-generator`, and returns reports without side effects.
+- TASK-005C API strict mode should default to `true`; draft generation blockers should remain generation reports rather than template reinterpretation.
+- TASK-005C may return `runtimePreviewHint`, but must not automatically create runtime test sessions or Telegram preview sessions.
 
 ## Active Risks
 
@@ -60,6 +63,8 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - Catalog facts such as prices, availability, listings, and menu items are high-risk when stale or conflicted.
 - Workflow generation may over-infer services, handoff routes, FAQs, or product recommendations if future tasks weaken blockers and source-backed mappings.
 - TASK-005B generator behavior is package-local and not exposed through an API or UI yet.
+- TASK-005C endpoint planning may be mistaken for an implemented endpoint unless the implementation task remains explicit.
+- An API wrapper could accidentally duplicate generator template logic, weaken unsupported-template blockers, or auto-start runtime/channel preview sessions if its boundary is not kept narrow.
 
 ## Protected Areas
 
@@ -76,7 +81,7 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 
 ## Next Recommended Action
 
-Review TASK-005B implementation PR. If accepted, recommended next task is TASK-005C API draft-generation endpoint planning, or TASK-006 only if explicitly approved.
+Review TASK-005C API workflow draft endpoint planning. If accepted, the next recommended task is exactly: TASK-005C implementation: API workflow draft endpoint.
 
 ## Critical References
 
@@ -120,3 +125,5 @@ Review TASK-005B implementation PR. If accepted, recommended next task is TASK-0
 - `docs/business-understanding/DECISION_AND_RECOMMENDATION_POLICY.md`
 - `docs/tasks/TASK-005B_WORKFLOW_DRAFT_GENERATOR.md`
 - `docs/workflow-generator/WORKFLOW_GENERATOR_V0_PLAN.md`
+- `docs/tasks/TASK-005C_API_WORKFLOW_DRAFT_ENDPOINT.md`
+- `docs/api/WORKFLOW_DRAFT_ENDPOINT_PLAN.md`
