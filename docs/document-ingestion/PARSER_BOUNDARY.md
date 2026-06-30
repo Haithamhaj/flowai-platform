@@ -84,6 +84,8 @@ Allowed first parser behavior:
 
 Markdown should be treated as source text, not rendered HTML. Links may be preserved as text metadata later, but no fetching should occur.
 
+TASK-006A implements this text/markdown boundary in `packages/source-ingestion` without external parser dependencies.
+
 ## PDF Later
 
 PDF support should be a separate review or spike because PDF parsing can involve:

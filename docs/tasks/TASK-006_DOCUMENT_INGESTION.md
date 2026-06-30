@@ -1,6 +1,6 @@
 # TASK-006 Document Ingestion
 
-Status: planning
+Status: done
 Owner/Agent: Codex
 Context shards: `business-understanding.md`, `security.md`
 
@@ -126,6 +126,6 @@ Full tests/build are optional because this task does not modify source files.
 
 ## Handoff Notes
 
-TASK-006 is planning-only. Do not implement document ingestion until the planning PR is accepted.
+TASK-006 planning was accepted and followed by TASK-006A source document text ingestion.
 
-Recommended next task: TASK-006A_SOURCE_DOCUMENT_TEXT_INGESTION.
+Recommended next task: TASK-006B_SOURCE_DOCUMENT_REVIEW_INTEGRATION.
