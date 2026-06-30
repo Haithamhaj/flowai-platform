@@ -40,6 +40,7 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - `targetChannel` can be an optional hint later, but must not change core workflow semantics.
 - TASK-005B non-strict mode may create a draft workflow while reporting publish blockers; strict mode returns no workflow when blocking questions remain unresolved.
 - Clinic booking and service lead capture are the only implemented generator templates in TASK-005B.
+- Explicit unsupported template hints must return blocking reports; inference is allowed only when `templateHint` is absent.
 - TASK-005B `capabilitiesUsed` must describe actual generated workflow behavior, not theoretical template support.
 - Invalid `BusinessUnderstanding` input must return a blocking generation report, not throw during planning.
 - FAQ-only generation, ecommerce/product recommendations, RAG, actions, and webhook nodes remain deferred.

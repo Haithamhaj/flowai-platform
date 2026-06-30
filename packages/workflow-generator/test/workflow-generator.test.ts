@@ -370,6 +370,86 @@ describe("Workflow draft generator", () => {
     expect(JSON.stringify(result).toLowerCase()).not.toContain("rag_answer");
   });
 
+  it("blocks explicit ecommerce_assistant hint instead of inferring service lead", () => {
+    const result = generateWorkflowDraft({
+      businessUnderstanding: serviceUnderstanding(),
+      templateHint: "ecommerce_assistant",
+      strict: true
+    });
+    const serializedWorkflow = JSON.stringify(result.workflow ?? {}).toLowerCase();
+
+    expect(result.workflow).toBeUndefined();
+    expect(result.tests).toEqual([]);
+    expect(result.generationPlan.selectedTemplate).toBeNull();
+    expect(result.generationReport.templateUsed).toBeNull();
+    expect(result.generationReport.capabilitiesUsed).toEqual([]);
+    expect(result.generationReport.validation.valid).toBe(false);
+    expect(result.generationReport.validation.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: "unsupported_ecommerce_assistant_template",
+          message: expect.stringMatching(/ProductCatalog|ecommerce/i)
+        })
+      ])
+    );
+    expect(serializedWorkflow).not.toContain("recommend");
+    expect(serializedWorkflow).not.toContain("compare");
+    expect(serializedWorkflow).not.toContain("price");
+    expect(serializedWorkflow).not.toContain("availability");
+  });
+
+  it("blocks explicit restaurant_inquiry hint in TASK-005B", () => {
+    const result = generateWorkflowDraft({
+      businessUnderstanding: serviceUnderstanding(),
+      templateHint: "restaurant_inquiry",
+      strict: true
+    });
+
+    expect(result.workflow).toBeUndefined();
+    expect(result.tests).toEqual([]);
+    expect(result.generationPlan.selectedTemplate).toBeNull();
+    expect(result.generationReport.capabilitiesUsed).toEqual([]);
+    expect(result.generationReport.validation.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: "unsupported_restaurant_inquiry_template",
+          message: expect.stringContaining("not implemented in TASK-005B")
+        })
+      ])
+    );
+  });
+
+  it("blocks unknown explicit template hints", () => {
+    const result = generateWorkflowDraft({
+      businessUnderstanding: serviceUnderstanding(),
+      templateHint: "custom_future_template",
+      strict: true
+    });
+
+    expect(result.workflow).toBeUndefined();
+    expect(result.tests).toEqual([]);
+    expect(result.generationPlan.selectedTemplate).toBeNull();
+    expect(result.generationReport.capabilitiesUsed).toEqual([]);
+    expect(result.generationReport.validation.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: "unsupported_template_hint",
+          message: expect.stringContaining("Unsupported templateHint")
+        })
+      ])
+    );
+  });
+
+  it("still infers a safe supported template when templateHint is absent", () => {
+    const result = generateWorkflowDraft({
+      businessUnderstanding: serviceUnderstanding()
+    });
+
+    expect(result.workflow).toBeDefined();
+    expect(result.generationPlan.selectedTemplate).toBe("service_lead");
+    expect(result.generationReport.templateUsed).toBe("service_lead");
+  });
+
   it("does not include product recommendations, provider keys, raw secrets, or network configuration", () => {
     const result = generateWorkflowDraft({
       businessUnderstanding: analyzeBusinessInterview({

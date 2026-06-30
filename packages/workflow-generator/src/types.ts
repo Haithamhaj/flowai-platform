@@ -7,8 +7,10 @@ import type {
 } from "@flowai/business-understanding";
 import type { ValidationResult, VariableType, WorkflowDefinition, WorkflowNodeType, WorkflowTestCase } from "@flowai/workflow-dsl";
 
-export type WorkflowTemplateHint = "clinic_booking" | "service_lead" | "faq_support";
 export type SupportedWorkflowTemplate = "clinic_booking" | "service_lead";
+export type PlanningOnlyWorkflowTemplateHint = "ecommerce_assistant" | "restaurant_inquiry";
+export type KnownWorkflowTemplateHint = SupportedWorkflowTemplate | "faq_support" | PlanningOnlyWorkflowTemplateHint;
+export type WorkflowTemplateHint = KnownWorkflowTemplateHint | (string & {});
 export type TargetChannelHint = "channel_agnostic" | "telegram_preview" | "web_preview";
 export type WorkflowGenerationMode = "deterministic_v0";
 
@@ -120,8 +122,20 @@ export interface BlockingInputResult {
 
 export type SafeInputResult = { valid: true } | BlockingInputResult;
 
-export function isSupportedTemplate(template: WorkflowTemplateHint | undefined): template is SupportedWorkflowTemplate {
+export function isSupportedTemplateHint(template: WorkflowTemplateHint | undefined): template is SupportedWorkflowTemplate {
   return template === "clinic_booking" || template === "service_lead";
+}
+
+export function isPlanningOnlyTemplateHint(template: WorkflowTemplateHint | undefined): template is PlanningOnlyWorkflowTemplateHint {
+  return template === "ecommerce_assistant" || template === "restaurant_inquiry";
+}
+
+export function isKnownTemplateHint(template: WorkflowTemplateHint | undefined): template is KnownWorkflowTemplateHint {
+  return isSupportedTemplateHint(template) || template === "faq_support" || isPlanningOnlyTemplateHint(template);
+}
+
+export function isSupportedTemplate(template: WorkflowTemplateHint | undefined): template is SupportedWorkflowTemplate {
+  return isSupportedTemplateHint(template);
 }
 
 export function mapFieldType(field: ExtractedField): VariableType {

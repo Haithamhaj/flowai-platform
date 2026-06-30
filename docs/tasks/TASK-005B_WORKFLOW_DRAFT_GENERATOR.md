@@ -99,7 +99,9 @@ Rules:
 - `targetChannel` must be optional.
 - `targetChannel` must not change core workflow semantics.
 - Channel-specific formatting belongs to channel adapters.
+- If `templateHint` is explicitly provided, the generator must either use that supported template or return a blocking report; it must not fall through to inference.
 - If no `templateHint` is provided, the generator should choose the safest supported template from `category`, `scenarios`, `services`, `forms`, and `missingQuestions`.
+- `ecommerce_assistant`, `restaurant_inquiry`, and unknown future hints are planning-only/unsupported in TASK-005B and must return no workflow.
 - `generationMode` starts as `deterministic_v0` only.
 
 ## Outputs
@@ -410,7 +412,9 @@ Implementation status:
 - `packages/workflow-generator` now contains deterministic generator code.
 - Clinic booking and service lead templates are implemented.
 - FAQ-only generation is explicitly deferred; exact known FAQs can appear only as deterministic message paths inside supported templates.
-- Ecommerce/product recommendation generation is not implemented.
+- Ecommerce/product recommendation generation is not implemented; explicit `ecommerce_assistant` hints require future ProductCatalog evidence and return a blocking report.
+- Restaurant inquiry generation is not implemented; explicit `restaurant_inquiry` hints return a blocking report.
+- Unknown explicit `templateHint` values return a blocking report instead of falling through to inferred templates.
 - API wiring is not implemented.
 - Generated workflow tests include happy path, unsupported/handoff, optional FAQ, and missing-field retry cases for field collection templates.
 

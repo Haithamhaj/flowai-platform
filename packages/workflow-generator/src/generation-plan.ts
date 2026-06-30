@@ -8,7 +8,7 @@ import type {
   WorkflowGenerationPlan,
   WorkflowGeneratorInput
 } from "./types.js";
-import { isSupportedTemplate, mapFieldType, unresolvedConflict } from "./types.js";
+import { isSupportedTemplateHint, mapFieldType, unresolvedConflict } from "./types.js";
 
 export function validateGeneratorInput(input: WorkflowGeneratorInput): SafeInputResult {
   const validation = validateBusinessUnderstanding(input.businessUnderstanding);
@@ -88,11 +88,12 @@ export function blocksDraftGeneration(issue: PlanIssue): boolean {
 }
 
 export function selectTemplate(input: WorkflowGeneratorInput): SupportedWorkflowTemplate | null {
-  if (input.templateHint === "faq_support") {
-    return null;
-  }
-  if (isSupportedTemplate(input.templateHint)) {
+  if (isSupportedTemplateHint(input.templateHint)) {
     return input.templateHint;
+  }
+
+  if (input.templateHint !== undefined) {
+    return null;
   }
 
   const understanding = input.businessUnderstanding;
@@ -172,14 +173,7 @@ function collectMissingBlockers(
   }
 
   if (!selectedTemplate) {
-    blockers.push({
-      id: input.templateHint === "faq_support" ? "unsupported_faq_support_template" : "unsupported_template",
-      message:
-        input.templateHint === "faq_support"
-          ? "FAQ support generation is deferred until deterministic exact-answer routing is implemented safely."
-          : "No supported deterministic workflow template could be selected.",
-      severity: "blocking"
-    });
+    blockers.push(unsupportedTemplateIssue(input.templateHint));
   }
 
   if (selectedTemplate === "clinic_booking" && requiredFields.length === 0) {
@@ -207,6 +201,46 @@ function collectMissingBlockers(
   }
 
   return uniqueIssues(blockers);
+}
+
+function unsupportedTemplateIssue(templateHint: WorkflowGeneratorInput["templateHint"] | undefined): PlanIssue {
+  if (templateHint === "faq_support") {
+    return {
+      id: "unsupported_faq_support_template",
+      message: "FAQ support generation is deferred until deterministic exact-answer routing is implemented safely.",
+      severity: "blocking"
+    };
+  }
+
+  if (templateHint === "ecommerce_assistant") {
+    return {
+      id: "unsupported_ecommerce_assistant_template",
+      message: "ecommerce_assistant generation requires ProductCatalog evidence; TASK-005B does not implement ecommerce workflows.",
+      severity: "blocking"
+    };
+  }
+
+  if (templateHint === "restaurant_inquiry") {
+    return {
+      id: "unsupported_restaurant_inquiry_template",
+      message: "restaurant_inquiry template is not implemented in TASK-005B.",
+      severity: "blocking"
+    };
+  }
+
+  if (templateHint !== undefined) {
+    return {
+      id: "unsupported_template_hint",
+      message: `Unsupported templateHint '${templateHint}'. TASK-005B only supports clinic_booking and service_lead generation.`,
+      severity: "blocking"
+    };
+  }
+
+  return {
+    id: "unsupported_template",
+    message: "No supported deterministic workflow template could be selected.",
+    severity: "blocking"
+  };
 }
 
 function collectWarnings(input: WorkflowGeneratorInput, selectedTemplate: SupportedWorkflowTemplate | null): PlanIssue[] {
