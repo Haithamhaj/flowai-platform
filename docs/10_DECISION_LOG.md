@@ -132,3 +132,10 @@ Decision: TASK-005C should expose workflow draft generation through a narrow API
 Reason: TASK-005B already owns deterministic template selection, unsupported-hint blocking, Workflow DSL validation, and generated tests. The API should make that package behavior reachable without creating a second generator or adding side effects.
 Consequences: `POST /workflow-drafts/from-business-understanding` should default to strict generation, return generator blockers as safe response data for valid request shapes, and provide only an informational `runtimePreviewHint`. Runtime sessions, Telegram preview connections, persistence, crawling, RAG, AI providers, ecommerce, and restaurant workflows remain deferred.
 Revisit trigger: API review proves the response contract is insufficient for Studio review, runtime preview handoff, or publish-readiness modeling.
+
+## 2026-06-30: Prove First Internal Vertical Slice With Smoke Tests
+
+Decision: TASK-005D should prove `BusinessUnderstanding -> workflow draft API -> Runtime Test Loop -> Telegram Preview Mock` through deterministic smoke tests only.
+Reason: The accepted package and API boundaries now exist, and a vertical proof reduces integration risk without adding product orchestration or external services.
+Consequences: The smoke can assert manual chaining, blocked-generation behavior, session isolation, traces, and no required provider/channel/database keys. Production orchestration, persistence, crawling, RAG, AI providers, live Telegram, auth, Studio UI, and exporters remain deferred.
+Revisit trigger: A later task adds production orchestration, durable state, real channels, or UI-driven preview.
