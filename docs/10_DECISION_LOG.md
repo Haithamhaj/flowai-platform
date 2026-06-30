@@ -139,3 +139,10 @@ Decision: TASK-005D should prove `BusinessUnderstanding -> workflow draft API ->
 Reason: The accepted package and API boundaries now exist, and a vertical proof reduces integration risk without adding product orchestration or external services.
 Consequences: The smoke can assert manual chaining, blocked-generation behavior, session isolation, traces, and no required provider/channel/database keys. Production orchestration, persistence, crawling, RAG, AI providers, live Telegram, auth, Studio UI, and exporters remain deferred.
 Revisit trigger: A later task adds production orchestration, durable state, real channels, or UI-driven preview.
+
+## 2026-06-30: Plan Document Ingestion With Text/Markdown First
+
+Decision: TASK-006 should remain planning-only and recommend TASK-006A as `SourceDocument` model plus text/markdown ingestion before PDF, upload endpoints, parser dependencies, durable storage, RAG, crawling, or AI extraction.
+Reason: Document ingestion introduces untrusted input, parser, privacy, PII, source-reference, and conflict risks. Text and markdown provide a narrow first implementation path with lower parser surface.
+Consequences: PDF parsing requires a separate parser/security review. Document ingestion should produce source-backed evidence and sourceRefs for later BusinessUnderstanding/BusinessGraph extraction, not Workflow JSON, runtime sessions, Telegram adapters, RAG indexes, or provider calls.
+Revisit trigger: TASK-006A text/markdown ingestion is accepted, or a customer requirement justifies a PDF parser spike with documented dependency and security evaluation.
