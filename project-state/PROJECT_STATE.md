@@ -2,13 +2,13 @@
 
 ## Current Goal
 
-Implement TASK-005D end-to-end FlowAI smoke tests for review.
+Prepare TASK-006 document ingestion planning after TASK-005D acceptance.
 
 ## Current Reality
 
 `flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. TASK-003 is done for the API test loop after implementation revision and verification. TASK-004 is merged into `main` as Telegram preview mock adapter. The current accepted operating mode is task-first.
 
-Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning and implementation are merged into `main`; `packages/workflow-generator` now provides deterministic package-local `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` draft generation for clinic booking and service lead templates. TASK-005C planning and implementation are merged into `main`; `POST /workflow-drafts/from-business-understanding` is the accepted narrow API wrapper around the generator. The current branch adds TASK-005D smoke tests proving the accepted internal path from BusinessUnderstanding through workflow draft, runtime test loop, and Telegram preview mock. Live Telegram polling, production webhooks, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, and exporters are not accepted or implemented yet.
+Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning and implementation are merged into `main`; `packages/workflow-generator` now provides deterministic package-local `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` draft generation for clinic booking and service lead templates. TASK-005C planning and implementation are merged into `main`; `POST /workflow-drafts/from-business-understanding` is the accepted narrow API wrapper around the generator. TASK-005D end-to-end smoke tests are accepted and merged through PR #11 at final main HEAD `f2e44819757a0ef015b2674323feac4391ea0d8e`. The internal vertical slice is smoke-tested only: `BusinessUnderstanding -> Workflow Draft API -> Runtime Test Loop -> Telegram Preview Mock`. This does not prove production HTTP routing, persistence, auth/tenants, live Telegram, crawling, RAG, AI providers, Studio UI, WhatsApp, or exporters. Live Telegram polling, production webhooks, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, and exporters are not accepted or implemented yet.
 
 ## Active Decisions
 
@@ -49,6 +49,7 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - TASK-005C may return `runtimePreviewHint`, but must not automatically create runtime test sessions or Telegram preview sessions.
 - TASK-005C request validation rejects malformed bodies and obvious provider/secret request fields, while valid request shapes with generator blockers return `workflow: null` and a report.
 - TASK-005D proves the first internal vertical slice through tests only; production orchestration, persistence, and external integrations remain deferred.
+- TASK-005D is accepted and merged via PR #11 at `f2e44819757a0ef015b2674323feac4391ea0d8e`.
 
 ## Active Risks
 
@@ -83,7 +84,7 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 
 ## Next Recommended Action
 
-Review TASK-005D smoke test PR. Do not start TASK-006 until the end-to-end smoke proof is accepted.
+Start TASK-006_DOCUMENT_INGESTION planning only. Do not implement upload endpoints, parsers, dependencies, storage, RAG, crawling, AI providers, persistence, auth, Studio UI, WhatsApp, or exporters.
 
 ## Critical References
 
