@@ -122,6 +122,19 @@ importers:
 
   packages/source-ingestion: {}
 
+  packages/source-review:
+    dependencies:
+      '@flowai/business-understanding':
+        specifier: workspace:*
+        version: link:../business-understanding
+      '@flowai/source-ingestion':
+        specifier: workspace:*
+        version: link:../source-ingestion
+    devDependencies:
+      '@flowai/workflow-generator':
+        specifier: workspace:*
+        version: link:../workflow-generator
+
   packages/workflow-dsl:
     devDependencies:
       typescript:

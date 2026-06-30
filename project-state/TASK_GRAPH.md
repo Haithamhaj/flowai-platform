@@ -12,17 +12,18 @@
 - TASK-005C workflow draft API endpoint.
 - TASK-005D internal vertical slice smoke.
 - TASK-006 document ingestion planning.
+- TASK-006A source document text ingestion.
 
 ## Current Phase
 
-- PHASE-006 Source Brain Foundation.
-- Current implementation target: TASK-006A_SOURCE_DOCUMENT_TEXT_INGESTION.
-- Boundary: `packages/source-ingestion` only, with docs and tests.
+- Visible MVP demo.
+- Current implementation target: source review/facts plus `pnpm demo:flowai`.
+- Boundary: deterministic text/markdown examples only; no upload endpoint, parser dependency, AI, persistence, crawling, RAG, Studio UI, WhatsApp, or production channel work.
 
 ## Next
 
-- Review TASK-006A implementation PR.
-- After acceptance, the next recommended task is TASK-006B_SOURCE_DOCUMENT_REVIEW_INTEGRATION.
+- Review and run the visible local MVP demo.
+- After acceptance, the next recommended task is TASK-006C_OWNER_REVIEW_AND_AI_EXTRACTION_DECISION.
 
 ## Later
 

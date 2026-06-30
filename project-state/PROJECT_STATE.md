@@ -2,13 +2,15 @@
 
 ## Current Goal
 
-Implement TASK-006A source document text ingestion for review.
+Produce a visible local MVP demo that proves the FlowAI product path.
 
 ## Current Reality
 
 `flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. TASK-003 is done for the API test loop after implementation revision and verification. TASK-004 is merged into `main` as Telegram preview mock adapter. The current accepted operating mode is task-first.
 
-Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning and implementation are merged into `main`; `packages/workflow-generator` now provides deterministic package-local `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` draft generation for clinic booking and service lead templates. TASK-005C planning and implementation are merged into `main`; `POST /workflow-drafts/from-business-understanding` is the accepted narrow API wrapper around the generator. TASK-005D end-to-end smoke tests are accepted and merged through PR #11 at final main HEAD `f2e44819757a0ef015b2674323feac4391ea0d8e`. TASK-006 document ingestion planning is merged into `main`. The current branch implements TASK-006A source document text ingestion in `packages/source-ingestion` for text/markdown input objects only. It adds no upload endpoints, parser dependencies, PDF parsing, storage, RAG, AI providers, crawling, persistence, auth, Studio UI, WhatsApp, live Telegram, or exporters.
+Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning and implementation are merged into `main`; `packages/workflow-generator` now provides deterministic package-local `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` draft generation for clinic booking and service lead templates. TASK-005C planning and implementation are merged into `main`; `POST /workflow-drafts/from-business-understanding` is the accepted narrow API wrapper around the generator. TASK-005D end-to-end smoke tests are accepted and merged through PR #11 at final main HEAD `f2e44819757a0ef015b2674323feac4391ea0d8e`. TASK-006 document ingestion planning is merged into `main`. TASK-006A source document text ingestion is merged into `main` through PR #14 at `5d388ff79e84f42cf302b347590b703a8f3602b0`.
+
+The current branch adds visible local MVP demo support: `packages/source-review` converts accepted text/markdown `SourceDocument` records into deterministic review facts and `BusinessUnderstanding` drafts, and `pnpm demo:flowai` shows clinic appointment, service lead, FAQ, and Arabic examples through workflow generation, runtime test conversation, and Telegram preview mock. It adds no upload endpoints, parser dependencies, PDF parsing, storage, RAG, AI providers, crawling, persistence, auth, Studio UI, WhatsApp, live Telegram, or exporters.
 
 ## Active Decisions
 
@@ -52,6 +54,7 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - TASK-005D is accepted and merged via PR #11 at `f2e44819757a0ef015b2674323feac4391ea0d8e`.
 - TASK-006 planning should start with SourceDocument plus text/markdown ingestion only in a later implementation task; PDF requires a separate parser/security review.
 - TASK-006A implements `packages/source-ingestion` as the text/markdown-only SourceDocument foundation without external parser dependencies.
+- Visible MVP review should prioritize observable demo output over additional invisible infrastructure.
 
 ## Active Risks
 
@@ -89,7 +92,7 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 
 ## Next Recommended Action
 
-Review TASK-006A source document text ingestion PR. Do not start upload endpoints, PDF parsing, persistence, RAG, crawling, AI extraction, or API wiring until this package boundary is accepted.
+Review and run the visible local MVP demo with `pnpm demo:flowai`. Use owner feedback on the visible flow before adding AI, persistence, upload endpoints, crawling, RAG, Studio UI, or additional templates.
 
 ## Critical References
 
@@ -148,4 +151,8 @@ Review TASK-006A source document text ingestion PR. Do not start upload endpoint
 - `packages/source-ingestion/src/index.ts`
 - `packages/source-ingestion/src/types.ts`
 - `packages/source-ingestion/test/source-ingestion.test.ts`
+- `packages/source-review/src/index.ts`
+- `packages/source-review/test/source-review.test.ts`
+- `examples/flowai-demo/visible-mvp-demo.mjs`
+- `docs/demo/FLOWAI_VISIBLE_MVP_DEMO.md`
 - `docs/api/WORKFLOW_DRAFT_ENDPOINT_PLAN.md`
