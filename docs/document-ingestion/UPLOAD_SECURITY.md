@@ -17,6 +17,8 @@ TASK-006A should avoid real multipart upload. It should use local fixtures or ex
 
 Real upload endpoints should wait for a separate approved task with auth, limits, storage, and operational controls.
 
+TASK-006A implementation follows this boundary. It accepts text/markdown input objects in `packages/source-ingestion`; it does not create an upload endpoint or store files.
+
 ## File Type Controls
 
 First accepted implementation:

@@ -239,6 +239,21 @@ Future implementation tests should cover:
 - does not create workflows, runtime sessions, Telegram adapters, RAG indexes, or provider calls;
 - produces safe rejection reports.
 
+## TASK-006A Implementation Status
+
+`packages/source-ingestion` implements the text/markdown-only source document foundation:
+
+- `.txt` with `text/plain`;
+- `.md` and `.markdown` with `text/markdown`;
+- deterministic normalization;
+- filename, MIME, extension, and size validation;
+- SHA-256 content hashes;
+- stable document IDs;
+- document, line-range, and markdown-heading sourceRefs;
+- safe rejection reports.
+
+The package does not implement upload endpoints, PDF parsing, DOCX parsing, OCR, crawling, RAG, embeddings, AI extraction, persistence, auth, Studio UI, WhatsApp, live Telegram, or exporters.
+
 ## Next Recommended Task
 
-TASK-006A_SOURCE_DOCUMENT_TEXT_INGESTION.
+TASK-006B_SOURCE_DOCUMENT_REVIEW_INTEGRATION.

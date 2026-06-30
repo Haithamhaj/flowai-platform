@@ -26,12 +26,12 @@ importers:
       '@flowai/runtime-core':
         specifier: workspace:*
         version: link:../../packages/runtime-core
-      '@flowai/workflow-generator':
-        specifier: workspace:*
-        version: link:../../packages/workflow-generator
       '@flowai/workflow-dsl':
         specifier: workspace:*
         version: link:../../packages/workflow-dsl
+      '@flowai/workflow-generator':
+        specifier: workspace:*
+        version: link:../../packages/workflow-generator
       '@nestjs/common':
         specifier: ^10.4.15
         version: 10.4.22(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -119,6 +119,8 @@ importers:
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.0)
+
+  packages/source-ingestion: {}
 
   packages/workflow-dsl:
     devDependencies:

@@ -146,3 +146,10 @@ Decision: TASK-006 should remain planning-only and recommend TASK-006A as `Sourc
 Reason: Document ingestion introduces untrusted input, parser, privacy, PII, source-reference, and conflict risks. Text and markdown provide a narrow first implementation path with lower parser surface.
 Consequences: PDF parsing requires a separate parser/security review. Document ingestion should produce source-backed evidence and sourceRefs for later BusinessUnderstanding/BusinessGraph extraction, not Workflow JSON, runtime sessions, Telegram adapters, RAG indexes, or provider calls.
 Revisit trigger: TASK-006A text/markdown ingestion is accepted, or a customer requirement justifies a PDF parser spike with documented dependency and security evaluation.
+
+## 2026-06-30: Implement SourceDocument Text/Markdown Foundation
+
+Decision: TASK-006A should introduce `packages/source-ingestion` as the package-local SourceDocument boundary for text and markdown input objects only.
+Reason: A dedicated package keeps untrusted source handling separate from workflow DSL, runtime, generator, API routes, and channel adapters while preserving sourceRefs for later BusinessUnderstanding/BusinessGraph extraction.
+Consequences: The package supports `.txt`, `.md`, and `.markdown` validation, normalization, content hashes, sourceRefs, and safe rejection reports. Upload endpoints, PDF/DOCX parsing, parser dependencies, durable storage, RAG, crawling, AI extraction, and API wiring remain deferred.
+Revisit trigger: TASK-006A is accepted and a follow-up explicitly starts review integration, upload API design, or parser evaluation.
