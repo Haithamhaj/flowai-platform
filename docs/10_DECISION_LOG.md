@@ -153,3 +153,10 @@ Decision: TASK-006A should introduce `packages/source-ingestion` as the package-
 Reason: A dedicated package keeps untrusted source handling separate from workflow DSL, runtime, generator, API routes, and channel adapters while preserving sourceRefs for later BusinessUnderstanding/BusinessGraph extraction.
 Consequences: The package supports `.txt`, `.md`, and `.markdown` validation, normalization, content hashes, sourceRefs, and safe rejection reports. Upload endpoints, PDF/DOCX parsing, parser dependencies, durable storage, RAG, crawling, AI extraction, and API wiring remain deferred.
 Revisit trigger: TASK-006A is accepted and a follow-up explicitly starts review integration, upload API design, or parser evaluation.
+
+## 2026-06-30: Prioritize Visible MVP Demo
+
+Decision: The next delivery should prove the visible product path with `pnpm demo:flowai`, not continue adding invisible infrastructure.
+Reason: The owner needs to see whether FlowAI is on the right product path through real local output: source document, sourceRefs, extracted facts, workflow plan, workflow summary, runtime conversation, and Telegram mock output.
+Consequences: `packages/source-review` stays deterministic and narrow. AI extraction, upload endpoints, PDF parsing, crawling, RAG, persistence, Studio UI, WhatsApp, production Telegram, and exporters remain deferred until the visible flow is reviewed.
+Revisit trigger: Owner reviews the visible MVP demo and decides whether deterministic extraction should be expanded, simplified, or replaced with AI-assisted extraction.
