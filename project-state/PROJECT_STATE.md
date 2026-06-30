@@ -2,13 +2,13 @@
 
 ## Current Goal
 
-Prepare TASK-005B deterministic workflow draft generator planning for review.
+Implement TASK-005B deterministic workflow draft generator for review.
 
 ## Current Reality
 
 `flowai-platform` exists. TASK-000 is done for skeleton/setup. TASK-001 is done for workflow-dsl after review and revision. TASK-002 is done for runtime-core after implementation revision and verification. TASK-003 is done for the API test loop after implementation revision and verification. TASK-004 is merged into `main` as Telegram preview mock adapter. The current accepted operating mode is task-first.
 
-Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning now defines the future deterministic BusinessUnderstanding to Workflow JSON draft generator boundary. Live Telegram polling, production webhooks, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, and exporters are not accepted or implemented yet.
+Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning is merged, and the current branch implements a deterministic package-first `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` draft generator in `packages/workflow-generator`. Live Telegram polling, production webhooks, WhatsApp, crawling, RAG, AI providers, durable persistence, auth, tenants, billing, Studio UI, exporters, and API draft-generation endpoints are not accepted or implemented yet.
 
 ## Active Decisions
 
@@ -38,6 +38,12 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - TASK-005B should be package-first, deterministic, and validator-backed before any API endpoint is added.
 - Workflow generation should pass through a `WorkflowGenerationPlan` before producing Workflow JSON.
 - `targetChannel` can be an optional hint later, but must not change core workflow semantics.
+- TASK-005B non-strict mode may create a draft workflow while reporting publish blockers; strict mode returns no workflow when blocking questions remain unresolved.
+- Clinic booking and service lead capture are the only implemented generator templates in TASK-005B.
+- Explicit unsupported template hints must return blocking reports; inference is allowed only when `templateHint` is absent.
+- TASK-005B `capabilitiesUsed` must describe actual generated workflow behavior, not theoretical template support.
+- Invalid `BusinessUnderstanding` input must return a blocking generation report, not throw during planning.
+- FAQ-only generation, ecommerce/product recommendations, RAG, actions, and webhook nodes remain deferred.
 
 ## Active Risks
 
@@ -52,8 +58,8 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - Deterministic TASK-005A extraction is intentionally conservative and should not be treated as production AI extraction quality.
 - BusinessGraph planning may be mistaken for implemented crawling, catalog extraction, or recommendations unless follow-up tasks stay explicit.
 - Catalog facts such as prices, availability, listings, and menu items are high-risk when stale or conflicted.
-- Workflow generation may over-infer services, handoff routes, FAQs, or product recommendations if TASK-005B does not enforce blockers and source-backed mappings.
-- The existing `packages/workflow-generator` package is placeholder-only and must be revised before any generator behavior is accepted.
+- Workflow generation may over-infer services, handoff routes, FAQs, or product recommendations if future tasks weaken blockers and source-backed mappings.
+- TASK-005B generator behavior is package-local and not exposed through an API or UI yet.
 
 ## Protected Areas
 
@@ -62,7 +68,7 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 - Do not implement crawling, WhatsApp, Studio UI, RAG, or AI generation without explicit task approval.
 - Do not put Telegram bot tokens or webhook secrets in workflow JSON, logs, or runtime traces.
 - Do not store secrets or private chain-of-thought in BusinessUnderstanding JSON.
-- Do not generate Workflow JSON in TASK-005A unless a follow-up task explicitly approves that scope.
+- Do not generate Workflow JSON in TASK-005A; TASK-005B owns the package-local draft generator boundary.
 - Do not claim crawling, catalog extraction, source priority resolution, recommendation ranking, or BusinessGraph persistence works until implementation tasks prove it.
 - Do not recommend products, compare listings, show prices, or answer policy questions without source-backed facts and conflict handling.
 - Do not generate action or webhook nodes unless configured tools exist in a later approved task.
@@ -70,7 +76,7 @@ Telegram mock/update preview is implemented and merged. TASK-005A package-first 
 
 ## Next Recommended Action
 
-Review TASK-005B planning docs. Recommended next task is TASK-005B implementation: deterministic `BusinessUnderstanding -> Workflow JSON` draft generator, package-first, with clinic booking and service lead templates first.
+Review TASK-005B implementation PR. If accepted, recommended next task is TASK-005C API draft-generation endpoint planning, or TASK-006 only if explicitly approved.
 
 ## Critical References
 
@@ -100,6 +106,12 @@ Review TASK-005B planning docs. Recommended next task is TASK-005B implementatio
 - `packages/business-understanding/src/redaction.ts`
 - `packages/business-understanding/test/business-understanding.test.ts`
 - `packages/workflow-generator/src/index.ts`
+- `packages/workflow-generator/src/generation-plan.ts`
+- `packages/workflow-generator/src/generator.ts`
+- `packages/workflow-generator/src/report.ts`
+- `packages/workflow-generator/src/templates/clinic-booking.ts`
+- `packages/workflow-generator/src/templates/service-lead.ts`
+- `packages/workflow-generator/test/workflow-generator.test.ts`
 - `docs/business-understanding/BUSINESS_GRAPH_V1.md`
 - `docs/business-understanding/CRAWLING_AND_SOURCE_PIPELINE.md`
 - `docs/business-understanding/PRODUCT_CATALOG_MODEL.md`

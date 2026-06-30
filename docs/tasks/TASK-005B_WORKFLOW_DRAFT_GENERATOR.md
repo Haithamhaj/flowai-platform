@@ -1,7 +1,7 @@
 # TASK-005B Workflow Draft Generator
 
-Status: planned
-Owner/Agent: unassigned
+Status: implemented
+Owner/Agent: Codex
 Context shards: `business-understanding.md`, `workflow-dsl.md`, `runtime-core.md`, `security.md`
 
 ## Goal
@@ -20,7 +20,7 @@ The next useful step is a narrow WorkflowGenerator planning and implementation p
 
 ## Current Prototype Review
 
-`packages/workflow-generator` exists and contains only placeholder code:
+Historical context: before TASK-005B implementation, `packages/workflow-generator` existed and contained only placeholder code:
 
 - `packages/workflow-generator/src/index.ts`
 - `packages/workflow-generator/package.json`
@@ -33,7 +33,7 @@ Prototype verdict:
 - No existing generator behavior should be treated as accepted product behavior.
 - The future implementation should be rebuilt around deterministic `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` generation.
 
-Do not modify the package during this planning task.
+TASK-005B implementation replaced that placeholder with deterministic package code. The planning review remains useful as the accepted boundary for this implementation.
 
 ## Implementation Boundary
 
@@ -99,7 +99,9 @@ Rules:
 - `targetChannel` must be optional.
 - `targetChannel` must not change core workflow semantics.
 - Channel-specific formatting belongs to channel adapters.
+- If `templateHint` is explicitly provided, the generator must either use that supported template or return a blocking report; it must not fall through to inference.
 - If no `templateHint` is provided, the generator should choose the safest supported template from `category`, `scenarios`, `services`, `forms`, and `missingQuestions`.
+- `ecommerce_assistant`, `restaurant_inquiry`, and unknown future hints are planning-only/unsupported in TASK-005B and must return no workflow.
 - `generationMode` starts as `deterministic_v0` only.
 
 ## Outputs
@@ -129,6 +131,15 @@ TASK-005B implementation should return:
 `workflow` must be a `WorkflowDefinition` that passes `validateWorkflow()`.
 
 If blockers prevent safe generation, the generator should return a clear report and either no workflow or a non-publishable draft, depending on the implementation mode approved in the future task. It must not silently create a confident workflow from incomplete business facts.
+
+Implemented behavior:
+
+- Non-strict generation may return a valid draft workflow while reporting publish blockers such as missing handoff/refusal approvals.
+- Strict generation returns no workflow when blocking questions remain unresolved.
+- Unsupported templates, missing generation-critical facts, invalid BusinessUnderstanding input, and unresolved conflicts return no workflow plus a blocking report.
+- Generated workflow JSON is validated with `validateWorkflow()` before being returned.
+- `capabilitiesUsed` reflects actual generated workflow behavior; `answer_faq` is reported only when a deterministic FAQ node is generated from exact known FAQs.
+- Malformed `BusinessUnderstanding` input returns a safe blocking report and no workflow rather than throwing.
 
 ## WorkflowGenerationPlan
 
@@ -396,6 +407,17 @@ TASK-005B implementation should be accepted only if:
 - It includes examples or fixtures for clinic booking and service lead capture.
 - `pnpm` package tests, typecheck, full tests, and build pass.
 
+Implementation status:
+
+- `packages/workflow-generator` now contains deterministic generator code.
+- Clinic booking and service lead templates are implemented.
+- FAQ-only generation is explicitly deferred; exact known FAQs can appear only as deterministic message paths inside supported templates.
+- Ecommerce/product recommendation generation is not implemented; explicit `ecommerce_assistant` hints require future ProductCatalog evidence and return a blocking report.
+- Restaurant inquiry generation is not implemented; explicit `restaurant_inquiry` hints return a blocking report.
+- Unknown explicit `templateHint` values return a blocking report instead of falling through to inferred templates.
+- API wiring is not implemented.
+- Generated workflow tests include happy path, unsupported/handoff, optional FAQ, and missing-field retry cases for field collection templates.
+
 ## Required Tests For Future Implementation
 
 - Clinic `BusinessUnderstanding` generates a valid workflow.
@@ -435,6 +457,6 @@ git diff --check
 
 ## Recommended Next Task
 
-TASK-005B implementation: deterministic `BusinessUnderstanding -> Workflow JSON` draft generator.
+Review TASK-005B implementation PR. If accepted, the next recommended task is TASK-005C API draft-generation endpoint planning or TASK-006 only if explicitly approved.
 
 Do not start TASK-006 until the generator boundary has been implemented or explicitly deferred.

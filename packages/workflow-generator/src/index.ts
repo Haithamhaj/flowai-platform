@@ -1,10 +1,4 @@
-export interface WorkflowGeneratorProvider {
-  id: string;
-  generate: (input: unknown) => Promise<unknown>;
-}
-
-export const workflowGeneratorStatus = {
-  status: "placeholder",
-  note: "AI workflow generation is intentionally deferred until the DSL and runtime are stable."
-};
-
+export * from "./types.js";
+export * from "./generation-plan.js";
+export * from "./generator.js";
+export * from "./report.js";
