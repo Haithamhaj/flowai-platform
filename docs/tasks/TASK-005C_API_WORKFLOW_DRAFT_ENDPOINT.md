@@ -1,12 +1,12 @@
 # TASK-005C: API Workflow Draft Endpoint
 
-Status: Planned
+Status: Implemented
 Owner: FlowAI task system
-Scope: API planning only until this task is explicitly accepted for implementation
+Scope: API endpoint wrapper around accepted deterministic workflow generator
 
 ## Goal
 
-Expose the accepted TASK-005B deterministic workflow draft generator through a small API endpoint after this plan is reviewed and accepted.
+Expose the accepted TASK-005B deterministic workflow draft generator through a small API endpoint.
 
 The endpoint should let a caller submit a validated `BusinessUnderstanding` object and receive:
 
@@ -22,7 +22,7 @@ The endpoint should let a caller submit a validated `BusinessUnderstanding` obje
 - `packages/workflow-generator` deterministically maps `BusinessUnderstanding` to a draft workflow for supported templates.
 - `packages/workflow-dsl` validates strict JSON workflow definitions.
 - `apps/api` already exposes workflow validation, in-memory runtime testing, and Telegram preview mock endpoints.
-- TASK-005B is package-local. There is no accepted API endpoint for draft generation yet.
+- TASK-005C adds an API wrapper that delegates to the package generator without starting runtime, Telegram preview, persistence, crawling, RAG, or provider calls.
 
 ## Non-Goals
 
@@ -52,6 +52,27 @@ TASK-005C must not implement:
 The API should validate only the HTTP/request boundary, then delegate generation to `generateWorkflowDraft` from `@flowai/workflow-generator`.
 
 The API must not duplicate template-selection rules or reinterpret unsupported template hints. Explicit unsupported hints such as `ecommerce_assistant`, `restaurant_inquiry`, and unknown strings must remain blocking reports with no workflow.
+
+## Implementation Status
+
+Implemented files:
+
+- `apps/api/src/routes/workflow-draft.controller.ts`
+- `apps/api/src/services/workflow-draft.service.ts`
+- `apps/api/src/module.ts`
+- `apps/api/test/workflow-draft.service.test.ts`
+- `apps/api/package.json`
+- `pnpm-lock.yaml`
+
+Implemented behavior:
+
+- `WorkflowDraftController` exposes `POST /workflow-drafts/from-business-understanding`.
+- `WorkflowDraftService` validates request shape, defaults `generationMode` to `deterministic_v0`, defaults `strict` to `true`, rejects obvious provider/secret request fields, delegates to `generateWorkflowDraft()`, normalizes missing workflow output to `workflow: null`, and returns `runtimePreviewHint`.
+- Valid generated workflows can be manually passed to `POST /runtime/test/start` by a caller.
+- The endpoint does not automatically start runtime sessions.
+- The endpoint does not automatically create Telegram preview adapters.
+- The endpoint does not persist workflow drafts.
+- The endpoint does not call AI providers, crawling, document ingestion, RAG, database, auth, Studio UI, exporters, or channel adapters.
 
 ## Planned Request Contract
 
@@ -143,8 +164,8 @@ git diff --check
 - Missing recommended capabilities: none for this planning task.
 - Proceed without installing dependencies or using external services.
 
-## Next Task
+## Handoff
 
-TASK-005C implementation: API workflow draft endpoint.
+TASK-005C is ready for implementation review.
 
 Do not start TASK-006 until the TASK-005C endpoint implementation is accepted and reviewed.

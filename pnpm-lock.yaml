@@ -26,6 +26,9 @@ importers:
       '@flowai/runtime-core':
         specifier: workspace:*
         version: link:../../packages/runtime-core
+      '@flowai/workflow-generator':
+        specifier: workspace:*
+        version: link:../../packages/workflow-generator
       '@flowai/workflow-dsl':
         specifier: workspace:*
         version: link:../../packages/workflow-dsl
