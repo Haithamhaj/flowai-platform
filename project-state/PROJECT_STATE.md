@@ -10,11 +10,13 @@ Rebuild the visible product path around an owner-first AI chatbot builder experi
 
 Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning and implementation are merged into `main`; `packages/workflow-generator` now provides deterministic package-local `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` draft generation for clinic booking and service lead templates. TASK-005C planning and implementation are merged into `main`; `POST /workflow-drafts/from-business-understanding` is the accepted narrow API wrapper around the generator. TASK-005D end-to-end smoke tests are accepted and merged through PR #11 at final main HEAD `f2e44819757a0ef015b2674323feac4391ea0d8e`. TASK-006 document ingestion planning is merged into `main`. TASK-006A source document text ingestion is merged into `main` through PR #14 at `5d388ff79e84f42cf302b347590b703a8f3602b0`.
 
-The current branch adds visible local MVP demo support: `packages/source-review` converts accepted text/markdown `SourceDocument` records into deterministic review facts and `BusinessUnderstanding` drafts, and `pnpm demo:flowai` shows clinic appointment, service lead, FAQ, and Arabic examples through workflow generation, runtime test conversation, and Telegram preview mock. It adds no upload endpoints, parser dependencies, PDF parsing, storage, RAG, AI providers, crawling, persistence, auth, Studio UI, WhatsApp, live Telegram, or exporters.
+The visible local MVP demo support is merged. `packages/source-review` converts accepted text/markdown `SourceDocument` records into deterministic review facts and `BusinessUnderstanding` drafts, and `pnpm demo:flowai` shows clinic appointment, service lead, FAQ, and Arabic examples through workflow generation, runtime test conversation, and Telegram preview mock. It adds no upload endpoints, parser dependencies, PDF parsing, storage, RAG, AI providers, crawling, persistence, auth, Studio UI, WhatsApp, live Telegram, or exporters.
 
-Owner review rejected the current visible surface as too technical and not the right user experience. The accepted direction is now owner-first: the business owner should talk naturally with FlowAI, provide business context/documents/website later, review what FlowAI understood, build a chatbot workflow, edit the decision tree on web, test channel previews, and export/integrate portable JSON/API mappings.
+Owner review rejected the original visible surface as too technical and not the right user experience. The accepted direction is now owner-first: the business owner should talk naturally with FlowAI, provide business context/documents/website later, review what FlowAI understood, build a chatbot workflow, edit the decision tree on web, test channel previews, and export/integrate portable JSON/API mappings.
 
-The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`. TASK-010 formalized AI builder agents, tools, prompt pack, data models, and UX flow before implementation. TASK-011 implemented `apps/studio` as an owner-first local builder UI shell backed by deterministic source ingestion, source review, BusinessUnderstanding draft, WorkflowGenerationPlan, Workflow JSON draft, runtime preview, and Telegram mock preview. TASK-012 added `packages/ai-builder-orchestrator` with prompt pack files, mocked provider tests, structured output validation, product catalog sourceRef blockers, and deterministic fallback. TASK-013 Product Catalog Workspace is merged into `main` at `df2c615`. TASK-014 Visual Workflow Editor is merged into `main` at `776208b`. TASK-015 Channel Preview Workspace is merged into `main` at `e718c70`. TASK-016 is the active implementation branch: Studio adds a local Export & Integration Hub with FlowAI Workflow JSON, CRM mapping, and ticketing mapping copy blocks. The ignored local `.flowai.local.json` may hold development model preferences and API key material, but application code must not read it until a later approved live provider task.
+The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`. TASK-010 formalized AI builder agents, tools, prompt pack, data models, and UX flow before implementation. TASK-011 implemented `apps/studio` as an owner-first local builder UI shell backed by deterministic source ingestion, source review, BusinessUnderstanding draft, WorkflowGenerationPlan, Workflow JSON draft, runtime preview, and Telegram mock preview. TASK-012 added `packages/ai-builder-orchestrator` with prompt pack files, mocked provider tests, structured output validation, product catalog sourceRef blockers, and deterministic fallback. TASK-013 Product Catalog Workspace is merged into `main` at `df2c615`. TASK-014 Visual Workflow Editor is merged into `main` at `776208b`. TASK-015 Channel Preview Workspace is merged into `main` at `e718c70`. TASK-016 Export & Integration Hub is merged into `main` at `8ccd895d4a995435bf74fb397b958fcdd81df8de`; Studio now shows local FlowAI Workflow JSON, CRM mapping, and ticketing mapping copy blocks. The ignored local `.flowai.local.json` may hold development model preferences and API key material, but application code must not read it until a later approved live provider task.
+
+TASK-017 is the active planning branch. It defines the live AI provider boundary for backend-only, disabled-by-default BusinessUnderstanding extraction/refinement. It does not implement provider calls, read keys, add dependencies, change runtime/DSL behavior, or allow AI to generate final Workflow JSON.
 
 ## Active Decisions
 
@@ -69,6 +71,7 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 - TASK-014 visual editor keeps Workflow JSON as the source of truth; UI edits must re-run validator/runtime preview rather than becoming a separate hidden workflow model.
 - TASK-015 channel preview workspace renders channel-specific previews from runtime output only; Telegram and WhatsApp remain mock previews, not live integrations.
 - TASK-016 export hub produces local copy-ready JSON and mapping plans only; it does not connect to CRM, ticketing, webhooks, or external platforms.
+- TASK-017 live AI work must start as backend-only BusinessUnderstanding extraction/refinement, disabled by default, with mocked tests first and no AI-generated final Workflow JSON.
 
 ## Active Risks
 
@@ -98,6 +101,7 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 - TASK-016 mapping plans may be mistaken for live integrations unless unsupported items and no-credential boundaries stay visible.
 - Owner-first UI may feel incomplete until TASK-012 adds mocked AI orchestration and prompt-pack behavior.
 - Mocked AI orchestration may be mistaken for live AI unless UI labels and PR notes stay explicit.
+- Live AI provider integration can leak secrets or overclaim facts unless TASK-017A keeps provider access backend-only, disabled by default, sourceRef-gated, mocked in CI, and sanitized in diagnostics.
 
 ## Protected Areas
 
@@ -114,10 +118,11 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 - Do not add document upload endpoints, parser dependencies, PDF parsing, durable storage, RAG, embeddings, or AI extraction during TASK-006 planning.
 - Do not use `.flowai.local.json` from application code until a provider-integration task explicitly approves backend-only secret handling.
 - Do not continue polishing the technical demo as the final product experience.
+- Do not read provider keys, call OpenAI, add provider SDKs, or change app/package source files during TASK-017 planning.
 
 ## Next Recommended Action
 
-Review TASK-016 Export And Integration Hub PR. After acceptance, start TASK-017_LIVE_AI_PROVIDER_PLANNING_OR_EXTRACTION_SPIKE.
+Review TASK-017 Live AI Provider Planning PR. After acceptance, start TASK-017A_BACKEND_ONLY_OPENAI_EXTRACTION_SPIKE only with explicit approval for backend-only provider work.
 
 ## Critical References
 
@@ -135,6 +140,8 @@ Review TASK-016 Export And Integration Hub PR. After acceptance, start TASK-017_
 - `docs/tasks/TASK-015_CHANNEL_PREVIEW_WORKSPACE.md`
 - `docs/tasks/TASK-016_EXPORT_AND_INTEGRATION_HUB.md`
 - `docs/exporters/EXPORT_AND_INTEGRATION_HUB.md`
+- `docs/tasks/TASK-017_LIVE_AI_PROVIDER_PLANNING_OR_EXTRACTION_SPIKE.md`
+- `docs/ai-provider/LIVE_AI_PROVIDER_BOUNDARY.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`
 - `docs/shards/`
 - `docs/16_PROJECT_SETUP.md`

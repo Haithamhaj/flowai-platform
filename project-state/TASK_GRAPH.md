@@ -20,21 +20,22 @@
 - TASK-013 product catalog workspace.
 - TASK-014 visual workflow editor.
 - TASK-015 channel preview workspace.
+- TASK-016 export and integration hub.
 
 ## Current Phase
 
 - Owner-first visible product rebuild.
-- Current implementation target: TASK-016 export and integration hub.
-- Boundary: local copy-ready export and mapping plans only; no live provider call, upload endpoint, parser dependency, persistence, crawling, RAG, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, or runtime semantic change.
+- Current planning target: TASK-017 live AI provider planning.
+- Boundary: docs-only live provider boundary; no live provider call, key read, SDK dependency, upload endpoint, parser dependency, persistence, crawling, RAG, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or app/package source change.
 
 ## Next
 
-- Review TASK-016 export and integration hub.
-- After acceptance, the next recommended task is TASK-017_LIVE_AI_PROVIDER_PLANNING_OR_EXTRACTION_SPIKE.
+- Review TASK-017 live AI provider planning PR.
+- After acceptance, the next recommended task is TASK-017A_BACKEND_ONLY_OPENAI_EXTRACTION_SPIKE.
 
 ## Later
 
-- TASK-017 live AI provider planning or extraction spike.
+- TASK-017A backend-only OpenAI extraction spike.
 - PDF parser review/spike.
 - Real upload API after auth, limits, storage, and operational controls are planned.
 - BusinessUnderstanding / BusinessGraph extraction from reviewed source documents.

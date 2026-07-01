@@ -209,3 +209,10 @@ Decision: TASK-016 implements FlowAI JSON, CRM mapping, and ticketing mapping as
 Reason: Owners and technical buyers need to see how generated workflows can leave FlowAI and fit CRM/ticketing/chatbot systems before live integrations or platform-specific exporters are added.
 Consequences: Exporters validate workflow JSON, sanitize secret-like channel settings, and report unsupported webhook/action/AI/RAG nodes. No CRM credentials, ticketing credentials, webhooks, external API calls, persistence, or deployment behavior is implemented.
 Revisit trigger: A later task explicitly adds a target-system exporter, live integration credentials, webhook delivery, or production publish semantics.
+
+## 2026-07-01: Plan Live AI Provider Before Calling It
+
+Decision: TASK-017 should define a backend-only live AI provider boundary before any provider implementation reads local keys, adds SDK dependencies, or calls OpenAI.
+Reason: The owner wants smarter AI behavior, but provider integration is security-sensitive and can weaken sourceRefs, Workflow JSON safety, and deterministic fallback if added directly inside the UI or generator.
+Consequences: The first live use case should be BusinessUnderstanding extraction/refinement only. AI may improve source-backed summaries, services, FAQs, missing questions, and product catalog drafts, but the deterministic generator still owns WorkflowGenerationPlan and final WorkflowDefinition creation. Provider access must be disabled by default, mocked in CI, sanitized in diagnostics, and configured only through backend-only secret handling after explicit implementation approval.
+Revisit trigger: TASK-017A proves backend-only OpenAI extraction with mocked tests and an optional local non-CI smoke test without leaking secrets or allowing AI-generated Workflow JSON.
