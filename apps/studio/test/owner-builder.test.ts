@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { buildOwnerFirstPreview } from "../src/index.js";
+import { buildOwnerFirstPreview, buildOwnerFirstPreviewWithAiReview } from "../src/index.js";
 
 const clinicText = [
   "# Bright Dental Clinic",
@@ -120,5 +120,64 @@ describe("owner-first builder preview", () => {
     expect(preview.productCatalog.items[0]?.sourceRefs.length).toBeGreaterThan(0);
     expect(preview.productCatalog.workflowPlan.status).toBe("review_required");
     expect(preview.productCatalog.workflowPlan.warnings).toContain("Some catalog items are missing source-backed prices.");
+  });
+
+  test("can run live AI review only when explicitly requested", async () => {
+    let providerCalled = false;
+    const preview = await buildOwnerFirstPreviewWithAiReview(
+      {
+        filename: "clinic.md",
+        mimeType: "text/markdown",
+        content: clinicText
+      },
+      {
+        useLiveAi: true,
+        providerDiagnostics: {
+          configured: true,
+          source: "local_config",
+          model: "gpt-5.5"
+        },
+        provider: {
+          async generateBusinessUnderstanding() {
+            providerCalled = true;
+            return {
+              businessUnderstandingPatch: {
+                summary: "AI-reviewed clinic summary with appointment safety handoff."
+              },
+              productCatalogDraft: null
+            };
+          }
+        }
+      }
+    );
+
+    expect(providerCalled).toBe(true);
+    expect(preview.aiMode.status).toBe("live_provider");
+    expect(preview.aiMode.label).toBe("Live AI review");
+    expect(preview.aiMode.note).toContain("gpt-5.5");
+    expect(preview.businessBrief.summary).toContain("AI-reviewed clinic summary");
+    expect(preview.safetyNotes).toContain("Live AI review is source-backed draft assistance only; Workflow JSON is still generated and validated deterministically.");
+  });
+
+  test("reports live AI unavailable without calling a provider", async () => {
+    const preview = await buildOwnerFirstPreviewWithAiReview(
+      {
+        filename: "clinic.md",
+        mimeType: "text/markdown",
+        content: clinicText
+      },
+      {
+        useLiveAi: true,
+        providerDiagnostics: {
+          configured: false,
+          source: "none",
+          model: null
+        }
+      }
+    );
+
+    expect(preview.aiMode.status).toBe("unconfigured");
+    expect(preview.aiMode.label).toBe("Live AI unavailable");
+    expect(preview.businessBrief.summary).not.toContain("AI-reviewed");
   });
 });
