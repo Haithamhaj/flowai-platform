@@ -181,3 +181,10 @@ Decision: Add `packages/ai-builder-orchestrator` with prompt pack files, provide
 Reason: FlowAI needs smart AI behavior, but live provider calls must not precede source-backed schemas, redaction, malformed-output fallback, and tests that prove AI cannot bypass WorkflowGenerationPlan, validation, or product-claim safety.
 Consequences: Studio can reference the AI builder orchestrator prompt pack while still using deterministic fallback. `.flowai.local.json` remains ignored and unread. Live OpenAI integration remains a later approved task.
 Revisit trigger: A live provider task is approved and implements backend-only secret loading, structured output parsing, provider error handling, and non-CI smoke checks.
+
+## 2026-07-01: Product Catalog Workspace Is Review-First
+
+Decision: TASK-013 exposes Product Catalog Review in Studio using deterministic source-backed catalog drafts and product inquiry guardrails, while keeping product recommendations, prices, and availability review-required unless sourceRefs exist.
+Reason: Businesses with many products or service packages need a visible catalog workspace before FlowAI can build trustworthy product-question workflows. The system must not invent product facts, current prices, stock, or recommendations.
+Consequences: Catalog items can be reviewed with sourceRefs, confidence labels, missing questions, and blockers. Deterministic extraction remains shallow and is not ecommerce parsing, live inventory, RAG, or AI recommendation behavior.
+Revisit trigger: A later task adds AI extraction, stronger source freshness/conflict handling, product editing persistence, or live inventory/API integrations.

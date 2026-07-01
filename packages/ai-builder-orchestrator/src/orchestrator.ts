@@ -2,7 +2,7 @@ import { containsSecretLikeValue, redactSecrets, safeExcerpt } from "@flowai/bus
 import { ingestSourceDocument } from "@flowai/source-ingestion";
 import { buildBusinessUnderstandingFromFacts, extractBusinessFactsDraft } from "@flowai/source-review";
 import { generateWorkflowDraft } from "@flowai/workflow-generator";
-import { createEmptyProductCatalog, validateProductCatalogDraft } from "./catalog.js";
+import { buildProductCatalogDraftFromBusinessUnderstanding, createEmptyProductCatalog, validateProductCatalogDraft } from "./catalog.js";
 import { loadPromptPack } from "./prompts.js";
 import type {
   AiBuilderOrchestrationResult,
@@ -127,7 +127,7 @@ function buildDeterministicFallback(input: AiBuilderTurnInput): AiBuilderOrchest
       }
     ],
     businessUnderstanding: understanding,
-    productCatalog: createEmptyProductCatalog(facts.language, facts.sourceRefs.map((ref) => ref.sourceId)),
+    productCatalog: buildProductCatalogDraftFromBusinessUnderstanding(understanding, facts.language),
     workflowPlan: {
       selectedTemplate: workflow.generationPlan.selectedTemplate,
       selectedCapabilities: workflow.generationPlan.selectedCapabilities,

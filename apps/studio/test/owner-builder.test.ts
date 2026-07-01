@@ -89,4 +89,31 @@ describe("owner-first builder preview", () => {
     expect(JSON.stringify(preview)).not.toContain("OPENAI_API_KEY=sk-test-secret-value");
     expect(preview.sourcePanel.warnings.length).toBeGreaterThan(0);
   });
+
+  test("shows a reviewable product catalog workspace for multi-service business input", () => {
+    const preview = buildOwnerFirstPreview({
+      filename: "catalog.md",
+      mimeType: "text/markdown",
+      content: [
+        "# Noura Home Store",
+        "Category: ecommerce",
+        "Goal: answer product questions and collect leads.",
+        "",
+        "## Services",
+        "- Sofa cleaning package: Deep sofa cleaning package. Price starts at 250 SAR. Availability is by appointment.",
+        "- Curtain installation: Curtain installation service.",
+        "",
+        "## Required fields",
+        "- name",
+        "- phone"
+      ].join("\n")
+    });
+
+    expect(preview.productCatalog.reviewStatus).toBe("review_required");
+    expect(preview.productCatalog.items.map((item) => item.name)).toContain("Sofa cleaning package");
+    expect(preview.productCatalog.items[0]?.priceConfidence).toBe("source_backed_review_required");
+    expect(preview.productCatalog.items[0]?.sourceRefs.length).toBeGreaterThan(0);
+    expect(preview.productCatalog.workflowPlan.status).toBe("review_required");
+    expect(preview.productCatalog.workflowPlan.warnings).toContain("Some catalog items are missing source-backed prices.");
+  });
 });

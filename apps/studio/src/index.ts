@@ -1,4 +1,8 @@
-import { loadPromptPack } from "@flowai/ai-builder-orchestrator";
+import {
+  buildProductCatalogDraftFromBusinessUnderstanding,
+  loadPromptPack,
+  planProductInquiryWorkflow
+} from "@flowai/ai-builder-orchestrator";
 import { redactSecrets, safeExcerpt } from "@flowai/business-understanding";
 import { formatRuntimeOutputForTelegram } from "@flowai/channel-adapters";
 import { WorkflowRuntime, type RuntimeMessage } from "@flowai/runtime-core";
@@ -50,6 +54,29 @@ export interface OwnerFirstPreview {
     requiredFields: string[];
     blockers: string[];
     warnings: string[];
+  };
+  productCatalog: {
+    reviewStatus: "draft" | "review_required" | "blocked";
+    items: Array<{
+      name: string;
+      type: string;
+      description: string | null;
+      price: string | null;
+      priceConfidence: "source_backed_review_required" | "unknown";
+      availability: string | null;
+      availabilityConfidence: "source_backed_review_required" | "unknown";
+      sourceRefs: string[];
+      questionsToAsk: string[];
+    }>;
+    unknowns: string[];
+    conflicts: string[];
+    workflowPlan: {
+      status: "blocked" | "review_required";
+      capabilities: string[];
+      blockers: string[];
+      warnings: string[];
+      suggestedQuestions: string[];
+    };
   };
   workflowSummary?: {
     workflowId: string;
@@ -131,6 +158,7 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
         blockers: ["Source document was rejected before business review."],
         warnings: []
       },
+      productCatalog: emptyProductCatalogPanel(),
       runtimeConversation: [],
       telegramPreview: [],
       safetyNotes: defaultSafetyNotes()
@@ -141,6 +169,8 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
   const review = reviewSourceDocument(document, { maxExcerptChars: 240 });
   const facts = extractBusinessFactsDraft(document);
   const understanding = buildBusinessUnderstandingFromFacts(facts);
+  const catalog = buildProductCatalogDraftFromBusinessUnderstanding(understanding, facts.language);
+  const productInquiryPlan = planProductInquiryWorkflow(catalog);
   const templateHint = inferTemplateHint(understanding.category);
   const workflowResult = generateWorkflowDraft({
     businessUnderstanding: understanding,
@@ -191,6 +221,23 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
       requiredFields: workflowResult.generationPlan.requiredFields.map((field) => field.key),
       blockers: workflowResult.generationPlan.missingBlockers.map((blocker) => blocker.message),
       warnings: workflowResult.generationPlan.warnings.map((warning) => warning.message)
+    },
+    productCatalog: {
+      reviewStatus: catalog.reviewStatus,
+      items: catalog.items.map((item) => ({
+        name: item.name,
+        type: item.type,
+        description: item.description,
+        price: item.price,
+        priceConfidence: item.price ? "source_backed_review_required" : "unknown",
+        availability: item.availability,
+        availabilityConfidence: item.availability ? "source_backed_review_required" : "unknown",
+        sourceRefs: item.sourceRefs,
+        questionsToAsk: item.questionsToAsk
+      })),
+      unknowns: catalog.unknowns,
+      conflicts: catalog.conflicts,
+      workflowPlan: productInquiryPlan
     },
     workflowSummary: workflow
       ? {
@@ -300,6 +347,22 @@ function emptyBusinessBrief(): OwnerFirstPreview["businessBrief"] {
     services: [],
     faqs: [],
     missingQuestions: []
+  };
+}
+
+function emptyProductCatalogPanel(): OwnerFirstPreview["productCatalog"] {
+  return {
+    reviewStatus: "blocked",
+    items: [],
+    unknowns: ["No reviewable catalog is available until the source document is accepted."],
+    conflicts: [],
+    workflowPlan: {
+      status: "blocked",
+      capabilities: [],
+      blockers: ["Product inquiry workflow needs at least one source-backed catalog item."],
+      warnings: [],
+      suggestedQuestions: ["Paste source-backed product or service details."]
+    }
   };
 }
 
