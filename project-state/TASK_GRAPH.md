@@ -14,17 +14,18 @@
 - TASK-006 document ingestion planning.
 - TASK-006A source document text ingestion.
 - Owner-first AI builder product plan.
+- TASK-010 owner-first AI builder orchestration planning.
 
 ## Current Phase
 
 - Owner-first visible product rebuild.
-- Current implementation target: TASK-010 owner-first AI builder orchestration planning.
-- Boundary: docs/spec only; no provider call, upload endpoint, parser dependency, persistence, crawling, RAG, Studio UI, WhatsApp, live channel, exporter, workflow DSL, or runtime semantic change.
+- Current implementation target: TASK-011 owner-first builder UI.
+- Boundary: local deterministic UI shell only; no provider call, upload endpoint, parser dependency, persistence, crawling, RAG, WhatsApp, live channel, exporter, visual editor dependency, workflow DSL, or runtime semantic change.
 
 ## Next
 
-- Complete TASK-010 owner-first AI builder orchestration.
-- After acceptance, the next recommended task is TASK-011_OWNER_FIRST_BUILDER_UI.
+- Review TASK-011 owner-first builder UI.
+- After acceptance, the next recommended task is TASK-012_AI_BUILDER_PROMPT_PACK_AND_MOCKED_ORCHESTRATOR.
 
 ## Later
 
