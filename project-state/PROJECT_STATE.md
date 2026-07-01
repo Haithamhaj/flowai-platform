@@ -14,7 +14,7 @@ The current branch adds visible local MVP demo support: `packages/source-review`
 
 Owner review rejected the current visible surface as too technical and not the right user experience. The accepted direction is now owner-first: the business owner should talk naturally with FlowAI, provide business context/documents/website later, review what FlowAI understood, build a chatbot workflow, edit the decision tree on web, test channel previews, and export/integrate portable JSON/API mappings.
 
-The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`. TASK-010 formalized AI builder agents, tools, prompt pack, data models, and UX flow before implementation. TASK-011 is the active implementation branch: `apps/studio` now provides an owner-first local builder UI shell backed by deterministic source ingestion, source review, BusinessUnderstanding draft, WorkflowGenerationPlan, Workflow JSON draft, runtime preview, and Telegram mock preview. The ignored local `.flowai.local.json` may hold development model preferences and API key material, but application code must not read it until a later approved provider task.
+The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`. TASK-010 formalized AI builder agents, tools, prompt pack, data models, and UX flow before implementation. TASK-011 implemented `apps/studio` as an owner-first local builder UI shell backed by deterministic source ingestion, source review, BusinessUnderstanding draft, WorkflowGenerationPlan, Workflow JSON draft, runtime preview, and Telegram mock preview. TASK-012 is the active implementation branch: `packages/ai-builder-orchestrator` adds prompt pack files, mocked provider tests, structured output validation, product catalog sourceRef blockers, and deterministic fallback. The ignored local `.flowai.local.json` may hold development model preferences and API key material, but application code must not read it until a later approved live provider task.
 
 ## Active Decisions
 
@@ -63,6 +63,8 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 - AI builder orchestration should be split into agents/tools/prompts with structured outputs and validation boundaries before any live provider call.
 - Model names should be configurable; do not hardcode a single future model as an architectural assumption.
 - TASK-011 owner-first UI uses deterministic fallback only and must label live AI as pending.
+- TASK-012 mocked AI orchestration does not call providers and does not let AI produce final Workflow JSON.
+- Product catalog price, availability, eligibility, and recommendation-like claims must remain sourceRef-gated.
 
 ## Active Risks
 
@@ -87,6 +89,7 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 - Live AI provider integration can leak secrets or overclaim facts unless backend-only config, sourceRefs, structured outputs, and redaction checks are enforced.
 - Product catalog extraction can overclaim prices, availability, or recommendations without source-backed evidence.
 - Owner-first UI may feel incomplete until TASK-012 adds mocked AI orchestration and prompt-pack behavior.
+- Mocked AI orchestration may be mistaken for live AI unless UI labels and PR notes stay explicit.
 
 ## Protected Areas
 
@@ -106,7 +109,7 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 
 ## Next Recommended Action
 
-Review TASK-011 owner-first builder UI locally with `pnpm dev:flowai-studio`, then start TASK-012_AI_BUILDER_PROMPT_PACK_AND_MOCKED_ORCHESTRATOR after acceptance.
+Review TASK-012 mocked AI builder orchestration, then start TASK-013_PRODUCT_CATALOG_WORKSPACE after acceptance.
 
 ## Critical References
 
@@ -118,6 +121,7 @@ Review TASK-011 owner-first builder UI locally with `pnpm dev:flowai-studio`, th
 - `docs/tasks/`
 - `docs/tasks/TASK-010_OWNER_FIRST_AI_BUILDER_ORCHESTRATION.md`
 - `docs/tasks/TASK-011_OWNER_FIRST_BUILDER_UI.md`
+- `docs/tasks/TASK-012_AI_BUILDER_PROMPT_PACK_AND_MOCKED_ORCHESTRATOR.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`
 - `docs/shards/`
 - `docs/16_PROJECT_SETUP.md`

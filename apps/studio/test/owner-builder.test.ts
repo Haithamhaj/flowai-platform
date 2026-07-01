@@ -30,6 +30,7 @@ describe("owner-first builder preview", () => {
 
     expect(preview.status).toBe("ready");
     expect(preview.aiMode.status).toBe("deterministic_fallback");
+    expect(preview.aiMode.note).toContain("orchestrator");
     expect(preview.assistantMessage).toContain("Bright Dental Clinic");
     expect(preview.businessBrief.businessName).toBe("Bright Dental Clinic");
     expect(preview.businessBrief.services.map((service) => service.name)).toContain("Dental checkup");

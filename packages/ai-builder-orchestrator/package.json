@@ -1,23 +1,19 @@
 {
-  "name": "@flowai/studio",
+  "name": "@flowai/ai-builder-orchestrator",
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js",
-    "dev": "pnpm build && node dist/server.js",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@flowai/ai-builder-orchestrator": "workspace:*",
     "@flowai/business-understanding": "workspace:*",
-    "@flowai/channel-adapters": "workspace:*",
-    "@flowai/runtime-core": "workspace:*",
     "@flowai/source-ingestion": "workspace:*",
     "@flowai/source-review": "workspace:*",
-    "@flowai/workflow-dsl": "workspace:*",
     "@flowai/workflow-generator": "workspace:*"
   },
   "devDependencies": {

@@ -1,3 +1,4 @@
+import { loadPromptPack } from "@flowai/ai-builder-orchestrator";
 import { redactSecrets, safeExcerpt } from "@flowai/business-understanding";
 import { formatRuntimeOutputForTelegram } from "@flowai/channel-adapters";
 import { WorkflowRuntime, type RuntimeMessage } from "@flowai/runtime-core";
@@ -94,6 +95,8 @@ export function getDefaultOwnerInput(): OwnerFirstPreviewInput {
 }
 
 export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirstPreview {
+  const promptPack = loadPromptPack();
+  const promptCount = Object.keys(promptPack).length;
   const filename = input.filename?.trim() || "owner-business.md";
   const mimeType = input.mimeType?.trim() || inferMimeType(filename);
   const ingested = ingestSourceDocument({
@@ -105,7 +108,7 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
   const aiMode = {
     status: "deterministic_fallback" as const,
     label: "Live AI pending",
-    note: "This local preview uses deterministic extraction. Provider-backed agents are planned for TASK-012."
+    note: `This local preview uses the AI builder orchestrator prompt pack (${promptCount} prompts) with deterministic fallback. Live provider calls are still disabled.`
   };
 
   if (!ingested.ok) {
