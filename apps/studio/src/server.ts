@@ -212,6 +212,7 @@ function renderHtml(): string {
       workspace.innerHTML = [
         renderStatus(preview),
         "<div class='grid'>" + renderBusiness(preview) + renderWorkflow(preview) + "</div>",
+        renderProductCatalog(preview),
         "<div class='grid'>" + renderSource(preview) + renderTelegram(preview) + "</div>",
         renderRuntime(preview),
         renderSafety(preview)
@@ -232,6 +233,12 @@ function renderHtml(): string {
       const proposal = preview.workflowProposal;
       const summary = preview.workflowSummary;
       return "<section><h2>Workflow Proposal</h2><p><strong>" + escapeHtml(proposal.selectedTemplate || "No template") + "</strong></p><div class='pill-row'>" + proposal.capabilities.map(c => "<span class='pill'>" + escapeHtml(c) + "</span>").join("") + "</div><h3>Required fields</h3><p>" + escapeHtml(proposal.requiredFields.join(", ") || "No fields") + "</p><h3>Generated workflow</h3><p>" + (summary ? escapeHtml(summary.name) + " · " + summary.nodeCount + " nodes · valid=" + summary.valid : "No workflow yet") + "</p><div class='mono'>" + (summary ? escapeHtml(summary.nodes.map(n => n.id + ":" + n.type).join("\\n")) : "") + "</div></section>";
+    }
+
+    function renderProductCatalog(preview) {
+      const catalog = preview.productCatalog;
+      const items = catalog.items.map(item => "<div class='panel'><h3>" + escapeHtml(item.name) + "</h3><p class='muted'>" + escapeHtml(item.type) + " · " + escapeHtml(item.sourceRefs.join(", ") || "no sourceRefs") + "</p><p>" + escapeHtml(item.description || "No description") + "</p><div class='pill-row'><span class='pill'>price: " + escapeHtml(item.priceConfidence) + "</span><span class='pill'>availability: " + escapeHtml(item.availabilityConfidence) + "</span></div><ul>" + item.questionsToAsk.map(q => "<li>" + escapeHtml(q) + "</li>").join("") + "</ul></div>").join("");
+      return "<section><h2>Product Catalog Review</h2><p><strong>" + escapeHtml(catalog.reviewStatus) + "</strong> · inquiry workflow: " + escapeHtml(catalog.workflowPlan.status) + "</p><div class='grid'>" + (items || "<p class='muted'>No catalog items yet.</p>") + "</div><h3>Workflow guardrails</h3><ul>" + catalog.workflowPlan.blockers.concat(catalog.workflowPlan.warnings).map(note => "<li>" + escapeHtml(note) + "</li>").join("") + "</ul><h3>Unknowns</h3><ul>" + catalog.unknowns.map(note => "<li>" + escapeHtml(note) + "</li>").join("") + "</ul></section>";
     }
 
     function renderSource(preview) {

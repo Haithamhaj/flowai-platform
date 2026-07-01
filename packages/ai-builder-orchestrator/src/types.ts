@@ -84,6 +84,14 @@ export interface ProductCatalogValidationResult {
   blockers: ProductCatalogValidationBlocker[];
 }
 
+export interface ProductInquiryWorkflowPlan {
+  status: "blocked" | "review_required";
+  capabilities: string[];
+  blockers: string[];
+  warnings: string[];
+  suggestedQuestions: string[];
+}
+
 export interface AiBuilderMessage {
   role: "assistant" | "system";
   text: string;

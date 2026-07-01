@@ -16,21 +16,21 @@
 - Owner-first AI builder product plan.
 - TASK-010 owner-first AI builder orchestration planning.
 - TASK-011 owner-first builder UI.
+- TASK-012 AI builder prompt pack and mocked orchestrator.
 
 ## Current Phase
 
 - Owner-first visible product rebuild.
-- Current implementation target: TASK-012 AI builder prompt pack and mocked orchestrator.
-- Boundary: prompt pack and mocked provider only; no live provider call, upload endpoint, parser dependency, persistence, crawling, RAG, WhatsApp, live channel, exporter, visual editor dependency, workflow DSL, or runtime semantic change.
+- Current implementation target: TASK-013 product catalog workspace.
+- Boundary: product catalog review and product inquiry planning only; no live provider call, upload endpoint, parser dependency, persistence, crawling, RAG, WhatsApp, live channel, exporter, visual editor dependency, workflow DSL, or runtime semantic change.
 
 ## Next
 
-- Review TASK-012 mocked AI builder orchestration.
-- After acceptance, the next recommended task is TASK-013_PRODUCT_CATALOG_WORKSPACE.
+- Review TASK-013 product catalog workspace.
+- After acceptance, the next recommended task is TASK-014_VISUAL_WORKFLOW_EDITOR.
 
 ## Later
 
-- TASK-013 product catalog workspace.
 - TASK-014 visual workflow editor.
 - TASK-015 channel preview workspace.
 - TASK-016 export and integration hub.
