@@ -45,7 +45,8 @@ const server = createServer(async (request, response) => {
         validation: edited.validation,
         runtimeConversation: editedPreview.runtimeConversation,
         telegramPreview: editedPreview.telegramPreview,
-        channelPreview: editedPreview.channelPreview
+        channelPreview: editedPreview.channelPreview,
+        integrationHub: editedPreview.integrationHub
       });
     } catch (error) {
       sendJson(response, 400, {
@@ -267,6 +268,7 @@ function renderHtml(): string {
         renderProductCatalog(preview),
         renderVisualWorkflow(preview),
         renderChannelWorkspace(preview),
+        renderIntegrationHub(preview),
         "<div class='grid'>" + renderSource(preview) + renderTelegram(preview) + "</div>",
         renderRuntime(preview),
         renderSafety(preview)
@@ -316,6 +318,13 @@ function renderHtml(): string {
       const channelPreview = preview.channelPreview || { channels: [], runtimeTrace: [] };
       const channels = channelPreview.channels.map(channel => "<div class='panel'><h3>" + escapeHtml(channel.label) + "</h3><p><strong>" + escapeHtml(channel.mockLabel) + "</strong></p><div class='preview-phone'>" + renderChannelMessages(channel.messages || []) + "</div><h3>Constraints</h3><ul>" + (channel.constraints || []).map(note => "<li>" + escapeHtml(note) + "</li>").join("") + "</ul></div>").join("");
       return "<section id='channelPreviewPanel'><h2>Channel Preview Workspace</h2><p class='muted'>Same runtime output rendered as web chat, Telegram mock, and WhatsApp mock. These are display previews only.</p><div class='grid'>" + (channels || "<p class='muted'>No channel previews yet.</p>") + "</div><h3>Runtime trace</h3><div class='mono'>" + escapeHtml((channelPreview.runtimeTrace || []).join("\\n") || "No trace yet.") + "</div></section>";
+    }
+
+    function renderIntegrationHub(preview) {
+      const hub = preview.integrationHub;
+      if (!hub) return "<section id='integrationHubPanel'><h2>Export & Integration Hub</h2><p class='muted'>No export package is available until a valid workflow exists.</p></section>";
+      const blocks = hub.copyBlocks.map(block => "<div class='panel'><h3>" + escapeHtml(block.label) + "</h3><textarea readonly>" + escapeHtml(block.content) + "</textarea></div>").join("");
+      return "<section id='integrationHubPanel'><h2>Export & Integration Hub</h2><p><strong>Valid export: " + escapeHtml(hub.summary.valid) + "</strong> · unsupported items: " + escapeHtml(hub.summary.unsupportedCount) + "</p><p class='muted'>Copy-ready local export data only. No CRM, ticketing, webhook, or external platform connection is active.</p><div class='grid'>" + blocks + "</div></section>";
     }
 
     function renderRuntime(preview) {
@@ -405,9 +414,11 @@ function renderHtml(): string {
       const runtimePanel = document.getElementById("runtimePanel");
       const telegramPanel = document.getElementById("telegramPanel");
       const channelPreviewPanel = document.getElementById("channelPreviewPanel");
+      const integrationHubPanel = document.getElementById("integrationHubPanel");
       if (runtimePanel) runtimePanel.innerHTML = "<h2>Runtime test conversation</h2><div class='conversation'>" + renderRuntimeTurns(data.runtimeConversation || []) + "</div>";
       if (telegramPanel) telegramPanel.innerHTML = "<h2>Telegram mock preview</h2><div class='preview-phone'>" + renderTelegramMessages(data.telegramPreview || []) + "</div><p class='muted'>Mock preview only. No Telegram bot is running.</p>";
       if (channelPreviewPanel) channelPreviewPanel.outerHTML = renderChannelWorkspace({ channelPreview: data.channelPreview || { channels: [], runtimeTrace: [] } });
+      if (integrationHubPanel) integrationHubPanel.outerHTML = renderIntegrationHub({ integrationHub: data.integrationHub });
     }
 
     function renderRuntimeTurns(turns) {

@@ -5,6 +5,7 @@ import {
 } from "@flowai/ai-builder-orchestrator";
 import { redactSecrets, safeExcerpt } from "@flowai/business-understanding";
 import { formatRuntimeOutputForChannelPreviews, formatRuntimeOutputForTelegram, type ChannelPreviewWorkspace } from "@flowai/channel-adapters";
+import { buildWorkflowIntegrationHub, type IntegrationHubPayload } from "@flowai/exporters";
 import { WorkflowRuntime, type RuntimeMessage } from "@flowai/runtime-core";
 import { ingestSourceDocument } from "@flowai/source-ingestion";
 import {
@@ -88,6 +89,7 @@ export interface OwnerFirstPreview {
     nodes: Array<{ id: string; type: string; name: string }>;
   };
   visualWorkflow?: WorkflowEditorModel;
+  integrationHub?: IntegrationHubPayload;
   runtimeConversation: Array<{ from: "owner" | "bot" | "state"; messages: string[] }>;
   telegramPreview: Array<{ text: string; buttons: string[] }>;
   channelPreview: ChannelPreviewWorkspace;
@@ -254,6 +256,7 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
         }
       : undefined,
     visualWorkflow: workflow ? buildWorkflowEditorModel(workflow) : undefined,
+    integrationHub: workflow ? buildWorkflowIntegrationHub({ workflow }) : undefined,
     runtimeConversation: workflow ? runRuntimePreview(workflow) : [],
     telegramPreview: workflow ? renderTelegramPreview(workflow) : [],
     channelPreview: workflow ? renderChannelPreview(workflow) : emptyChannelPreview(),
@@ -396,6 +399,6 @@ function defaultSafetyNotes(): string[] {
     "Live AI is not connected in this task.",
     "Workflow JSON remains strict JSON and validator-backed.",
     "Telegram output is a mock preview, not a production bot.",
-    "Upload, crawling, RAG, persistence, WhatsApp, and exporters remain deferred."
+    "Upload, crawling, RAG, persistence, and live WhatsApp remain deferred."
   ];
 }

@@ -42,6 +42,8 @@ describe("owner-first builder preview", () => {
     expect(preview.channelPreview.channels.map((channel) => channel.id)).toEqual(["web_chat", "telegram_mock", "whatsapp_mock"]);
     expect(preview.channelPreview.channels[1]?.mockLabel).toBe("Telegram mock preview, not production bot.");
     expect(preview.channelPreview.channels[2]?.mockLabel).toBe("WhatsApp mock preview, not production WhatsApp.");
+    expect(preview.integrationHub?.flowAiJson.format).toBe("flowai.workflow.export.v1");
+    expect(preview.integrationHub?.copyBlocks.map((block) => block.id)).toEqual(["flowai_json", "crm_mapping", "ticketing_mapping"]);
   });
 
   test("keeps Arabic business input reviewable", () => {

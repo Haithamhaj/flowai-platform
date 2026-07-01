@@ -202,3 +202,10 @@ Decision: TASK-015 renders web chat, Telegram mock, and WhatsApp mock previews f
 Reason: Owners need to compare how one chatbot workflow will feel across channels without introducing live channel credentials, webhooks, or channel-owned workflow logic.
 Consequences: Studio can show mock channel constraints and runtime trace side by side. Telegram and WhatsApp remain preview-only; no bot token, phone number, webhook, network delivery, or production channel behavior is implemented.
 Revisit trigger: A later task explicitly adds live Telegram, live WhatsApp, channel credential handling, or production publish semantics.
+
+## 2026-07-01: Export Hub Is Copy-Ready Mapping, Not Live Integration
+
+Decision: TASK-016 implements FlowAI JSON, CRM mapping, and ticketing mapping as local copy-ready artifacts.
+Reason: Owners and technical buyers need to see how generated workflows can leave FlowAI and fit CRM/ticketing/chatbot systems before live integrations or platform-specific exporters are added.
+Consequences: Exporters validate workflow JSON, sanitize secret-like channel settings, and report unsupported webhook/action/AI/RAG nodes. No CRM credentials, ticketing credentials, webhooks, external API calls, persistence, or deployment behavior is implemented.
+Revisit trigger: A later task explicitly adds a target-system exporter, live integration credentials, webhook delivery, or production publish semantics.

@@ -69,6 +69,9 @@ importers:
       '@flowai/channel-adapters':
         specifier: workspace:*
         version: link:../../packages/channel-adapters
+      '@flowai/exporters':
+        specifier: workspace:*
+        version: link:../../packages/exporters
       '@flowai/runtime-core':
         specifier: workspace:*
         version: link:../../packages/runtime-core
@@ -137,6 +140,10 @@ importers:
         version: 2.1.9(@types/node@22.20.0)
 
   packages/exporters:
+    dependencies:
+      '@flowai/workflow-dsl':
+        specifier: workspace:*
+        version: link:../workflow-dsl
     devDependencies:
       typescript:
         specifier: ^5.7.2
