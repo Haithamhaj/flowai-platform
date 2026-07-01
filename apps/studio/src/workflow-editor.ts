@@ -1,4 +1,5 @@
 import { formatRuntimeOutputForChannelPreviews, formatRuntimeOutputForTelegram, type ChannelPreviewWorkspace } from "@flowai/channel-adapters";
+import { buildWorkflowIntegrationHub, type IntegrationHubPayload } from "@flowai/exporters";
 import { WorkflowRuntime, type RuntimeMessage } from "@flowai/runtime-core";
 import { validateWorkflow, type ValidationResult, type WorkflowDefinition, type WorkflowEdge, type WorkflowNode } from "@flowai/workflow-dsl";
 
@@ -44,6 +45,7 @@ export interface EditedWorkflowPreview {
   runtimeConversation: Array<{ from: "owner" | "bot" | "state"; messages: string[] }>;
   telegramPreview: Array<{ text: string; buttons: string[] }>;
   channelPreview: ChannelPreviewWorkspace;
+  integrationHub?: IntegrationHubPayload;
 }
 
 export function buildWorkflowEditorModel(workflow: WorkflowDefinition): WorkflowEditorModel {
@@ -122,7 +124,8 @@ export function runEditedWorkflowPreview(workflow: WorkflowDefinition): EditedWo
     channelPreview: formatRuntimeOutputForChannelPreviews({
       output: runtimeOutput.output,
       trace: runtimeOutput.output.traceEvents.map((entry) => ({ nodeId: entry.nodeId, event: entry.type }))
-    })
+    }),
+    integrationHub: buildWorkflowIntegrationHub({ workflow })
   };
 }
 

@@ -126,5 +126,6 @@ describe("visual workflow editor", () => {
     expect(editedPreview.validation.valid).toBe(true);
     expect(JSON.stringify(editedPreview.runtimeConversation)).toContain("Edited welcome from visual workflow editor.");
     expect(JSON.stringify(editedPreview.telegramPreview)).toContain("Edited welcome from visual workflow editor.");
+    expect(JSON.stringify(editedPreview.integrationHub?.flowAiJson.workflow)).toContain("Edited welcome from visual workflow editor.");
   });
 });

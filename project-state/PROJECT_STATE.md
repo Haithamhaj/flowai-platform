@@ -14,7 +14,7 @@ The current branch adds visible local MVP demo support: `packages/source-review`
 
 Owner review rejected the current visible surface as too technical and not the right user experience. The accepted direction is now owner-first: the business owner should talk naturally with FlowAI, provide business context/documents/website later, review what FlowAI understood, build a chatbot workflow, edit the decision tree on web, test channel previews, and export/integrate portable JSON/API mappings.
 
-The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`. TASK-010 formalized AI builder agents, tools, prompt pack, data models, and UX flow before implementation. TASK-011 implemented `apps/studio` as an owner-first local builder UI shell backed by deterministic source ingestion, source review, BusinessUnderstanding draft, WorkflowGenerationPlan, Workflow JSON draft, runtime preview, and Telegram mock preview. TASK-012 added `packages/ai-builder-orchestrator` with prompt pack files, mocked provider tests, structured output validation, product catalog sourceRef blockers, and deterministic fallback. TASK-013 Product Catalog Workspace is merged into `main` at `df2c615`. TASK-014 Visual Workflow Editor is merged into `main` at `776208b`. TASK-015 is the active implementation branch: Studio adds a local Channel Preview Workspace that renders the same runtime output as web chat, Telegram mock, and WhatsApp mock previews with explicit mock-only labels and constraints. The ignored local `.flowai.local.json` may hold development model preferences and API key material, but application code must not read it until a later approved live provider task.
+The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`. TASK-010 formalized AI builder agents, tools, prompt pack, data models, and UX flow before implementation. TASK-011 implemented `apps/studio` as an owner-first local builder UI shell backed by deterministic source ingestion, source review, BusinessUnderstanding draft, WorkflowGenerationPlan, Workflow JSON draft, runtime preview, and Telegram mock preview. TASK-012 added `packages/ai-builder-orchestrator` with prompt pack files, mocked provider tests, structured output validation, product catalog sourceRef blockers, and deterministic fallback. TASK-013 Product Catalog Workspace is merged into `main` at `df2c615`. TASK-014 Visual Workflow Editor is merged into `main` at `776208b`. TASK-015 Channel Preview Workspace is merged into `main` at `e718c70`. TASK-016 is the active implementation branch: Studio adds a local Export & Integration Hub with FlowAI Workflow JSON, CRM mapping, and ticketing mapping copy blocks. The ignored local `.flowai.local.json` may hold development model preferences and API key material, but application code must not read it until a later approved live provider task.
 
 ## Active Decisions
 
@@ -68,6 +68,7 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 - TASK-013 Product Catalog Workspace is deterministic and review-first; price and availability labels are source-backed review markers, not publish-ready commerce evidence.
 - TASK-014 visual editor keeps Workflow JSON as the source of truth; UI edits must re-run validator/runtime preview rather than becoming a separate hidden workflow model.
 - TASK-015 channel preview workspace renders channel-specific previews from runtime output only; Telegram and WhatsApp remain mock previews, not live integrations.
+- TASK-016 export hub produces local copy-ready JSON and mapping plans only; it does not connect to CRM, ticketing, webhooks, or external platforms.
 
 ## Active Risks
 
@@ -94,6 +95,7 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 - TASK-013 deterministic catalog extraction is shallow and should not be treated as ecommerce parsing, live inventory, or AI recommendation quality.
 - TASK-014 visual editor is local preview-only; no persistence, publish flow, production graph layout, or external editor dependency exists yet.
 - TASK-015 WhatsApp preview may be mistaken for live WhatsApp unless mock labels and PR notes stay explicit.
+- TASK-016 mapping plans may be mistaken for live integrations unless unsupported items and no-credential boundaries stay visible.
 - Owner-first UI may feel incomplete until TASK-012 adds mocked AI orchestration and prompt-pack behavior.
 - Mocked AI orchestration may be mistaken for live AI unless UI labels and PR notes stay explicit.
 
@@ -115,7 +117,7 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 
 ## Next Recommended Action
 
-Review TASK-015 Channel Preview Workspace PR. After acceptance, start TASK-016_EXPORT_AND_INTEGRATION_HUB.
+Review TASK-016 Export And Integration Hub PR. After acceptance, start TASK-017_LIVE_AI_PROVIDER_PLANNING_OR_EXTRACTION_SPIKE.
 
 ## Critical References
 
@@ -131,6 +133,8 @@ Review TASK-015 Channel Preview Workspace PR. After acceptance, start TASK-016_E
 - `docs/tasks/TASK-013_PRODUCT_CATALOG_WORKSPACE.md`
 - `docs/tasks/TASK-014_VISUAL_WORKFLOW_EDITOR.md`
 - `docs/tasks/TASK-015_CHANNEL_PREVIEW_WORKSPACE.md`
+- `docs/tasks/TASK-016_EXPORT_AND_INTEGRATION_HUB.md`
+- `docs/exporters/EXPORT_AND_INTEGRATION_HUB.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`
 - `docs/shards/`
 - `docs/16_PROJECT_SETUP.md`

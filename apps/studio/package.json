@@ -14,6 +14,7 @@
     "@flowai/ai-builder-orchestrator": "workspace:*",
     "@flowai/business-understanding": "workspace:*",
     "@flowai/channel-adapters": "workspace:*",
+    "@flowai/exporters": "workspace:*",
     "@flowai/runtime-core": "workspace:*",
     "@flowai/source-ingestion": "workspace:*",
     "@flowai/source-review": "workspace:*",
