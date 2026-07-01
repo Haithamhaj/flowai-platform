@@ -39,6 +39,9 @@ describe("owner-first builder preview", () => {
     expect(preview.workflowSummary?.valid).toBe(true);
     expect(preview.runtimeConversation.length).toBeGreaterThan(1);
     expect(preview.telegramPreview.length).toBeGreaterThan(0);
+    expect(preview.channelPreview.channels.map((channel) => channel.id)).toEqual(["web_chat", "telegram_mock", "whatsapp_mock"]);
+    expect(preview.channelPreview.channels[1]?.mockLabel).toBe("Telegram mock preview, not production bot.");
+    expect(preview.channelPreview.channels[2]?.mockLabel).toBe("WhatsApp mock preview, not production WhatsApp.");
   });
 
   test("keeps Arabic business input reviewable", () => {

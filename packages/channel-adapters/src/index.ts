@@ -10,3 +10,4 @@ export const plannedChannelAdapters: ChannelAdapterDescriptor[] = [
 ];
 
 export * from "./telegram/index.js";
+export * from "./preview.js";

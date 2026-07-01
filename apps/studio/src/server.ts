@@ -44,7 +44,8 @@ const server = createServer(async (request, response) => {
         model: edited.model,
         validation: edited.validation,
         runtimeConversation: editedPreview.runtimeConversation,
-        telegramPreview: editedPreview.telegramPreview
+        telegramPreview: editedPreview.telegramPreview,
+        channelPreview: editedPreview.channelPreview
       });
     } catch (error) {
       sendJson(response, 400, {
@@ -265,6 +266,7 @@ function renderHtml(): string {
         "<div class='grid'>" + renderBusiness(preview) + renderWorkflow(preview) + "</div>",
         renderProductCatalog(preview),
         renderVisualWorkflow(preview),
+        renderChannelWorkspace(preview),
         "<div class='grid'>" + renderSource(preview) + renderTelegram(preview) + "</div>",
         renderRuntime(preview),
         renderSafety(preview)
@@ -308,6 +310,12 @@ function renderHtml(): string {
 
     function renderTelegram(preview) {
       return "<section id='telegramPanel'><h2>Telegram mock preview</h2><div class='preview-phone'>" + renderTelegramMessages(preview.telegramPreview) + "</div><p class='muted'>Mock preview only. No Telegram bot is running.</p></section>";
+    }
+
+    function renderChannelWorkspace(preview) {
+      const channelPreview = preview.channelPreview || { channels: [], runtimeTrace: [] };
+      const channels = channelPreview.channels.map(channel => "<div class='panel'><h3>" + escapeHtml(channel.label) + "</h3><p><strong>" + escapeHtml(channel.mockLabel) + "</strong></p><div class='preview-phone'>" + renderChannelMessages(channel.messages || []) + "</div><h3>Constraints</h3><ul>" + (channel.constraints || []).map(note => "<li>" + escapeHtml(note) + "</li>").join("") + "</ul></div>").join("");
+      return "<section id='channelPreviewPanel'><h2>Channel Preview Workspace</h2><p class='muted'>Same runtime output rendered as web chat, Telegram mock, and WhatsApp mock. These are display previews only.</p><div class='grid'>" + (channels || "<p class='muted'>No channel previews yet.</p>") + "</div><h3>Runtime trace</h3><div class='mono'>" + escapeHtml((channelPreview.runtimeTrace || []).join("\\n") || "No trace yet.") + "</div></section>";
     }
 
     function renderRuntime(preview) {
@@ -396,8 +404,10 @@ function renderHtml(): string {
     function updateEditedPreviewPanels(data) {
       const runtimePanel = document.getElementById("runtimePanel");
       const telegramPanel = document.getElementById("telegramPanel");
+      const channelPreviewPanel = document.getElementById("channelPreviewPanel");
       if (runtimePanel) runtimePanel.innerHTML = "<h2>Runtime test conversation</h2><div class='conversation'>" + renderRuntimeTurns(data.runtimeConversation || []) + "</div>";
       if (telegramPanel) telegramPanel.innerHTML = "<h2>Telegram mock preview</h2><div class='preview-phone'>" + renderTelegramMessages(data.telegramPreview || []) + "</div><p class='muted'>Mock preview only. No Telegram bot is running.</p>";
+      if (channelPreviewPanel) channelPreviewPanel.outerHTML = renderChannelWorkspace({ channelPreview: data.channelPreview || { channels: [], runtimeTrace: [] } });
     }
 
     function renderRuntimeTurns(turns) {
@@ -406,6 +416,10 @@ function renderHtml(): string {
 
     function renderTelegramMessages(messages) {
       return messages.map(m => "<div><p>" + escapeHtml(m.text) + "</p>" + m.buttons.map(b => "<span class='button-chip'>" + escapeHtml(b) + "</span>").join("") + "</div>").join("");
+    }
+
+    function renderChannelMessages(messages) {
+      return messages.map(m => "<div><p>" + escapeHtml(m.text) + "</p>" + (m.buttons || []).map(b => "<span class='button-chip'>" + escapeHtml(b) + "</span>").join("") + "</div>").join("");
     }
 
     function escapeHtml(value) {
