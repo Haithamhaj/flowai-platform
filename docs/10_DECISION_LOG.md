@@ -174,3 +174,10 @@ Decision: Implement TASK-011 as a local owner-first builder UI shell backed by t
 Reason: The owner needs a visible product experience immediately, but provider integration should not precede structured prompts, mocked orchestration, sourceRefs, validation, and secret-safety boundaries.
 Consequences: `apps/studio` can show the business-owner journey from pasted text to business brief, workflow proposal, runtime conversation, and Telegram mock preview. Live AI remains clearly labeled as pending. `.flowai.local.json` is still ignored and not read by application code.
 Revisit trigger: TASK-012 adds prompt pack and mocked AI orchestration, or owner review shows the UI shell still does not match the intended product path.
+
+## 2026-07-01: Mock AI Orchestration Before Live Provider Calls
+
+Decision: Add `packages/ai-builder-orchestrator` with prompt pack files, provider interface, mocked provider tests, structured output validation, deterministic fallback, and sourceRef-gated product catalog blockers before any live AI provider integration.
+Reason: FlowAI needs smart AI behavior, but live provider calls must not precede source-backed schemas, redaction, malformed-output fallback, and tests that prove AI cannot bypass WorkflowGenerationPlan, validation, or product-claim safety.
+Consequences: Studio can reference the AI builder orchestrator prompt pack while still using deterministic fallback. `.flowai.local.json` remains ignored and unread. Live OpenAI integration remains a later approved task.
+Revisit trigger: A live provider task is approved and implements backend-only secret loading, structured output parsing, provider error handling, and non-CI smoke checks.

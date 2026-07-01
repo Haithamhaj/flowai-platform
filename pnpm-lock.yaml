@@ -60,6 +60,9 @@ importers:
 
   apps/studio:
     dependencies:
+      '@flowai/ai-builder-orchestrator':
+        specifier: workspace:*
+        version: link:../../packages/ai-builder-orchestrator
       '@flowai/business-understanding':
         specifier: workspace:*
         version: link:../../packages/business-understanding
@@ -81,6 +84,28 @@ importers:
       '@flowai/workflow-generator':
         specifier: workspace:*
         version: link:../../packages/workflow-generator
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.0)
+
+  packages/ai-builder-orchestrator:
+    dependencies:
+      '@flowai/business-understanding':
+        specifier: workspace:*
+        version: link:../business-understanding
+      '@flowai/source-ingestion':
+        specifier: workspace:*
+        version: link:../source-ingestion
+      '@flowai/source-review':
+        specifier: workspace:*
+        version: link:../source-review
+      '@flowai/workflow-generator':
+        specifier: workspace:*
+        version: link:../workflow-generator
     devDependencies:
       typescript:
         specifier: ^5.7.2
