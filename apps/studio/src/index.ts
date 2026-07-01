@@ -15,6 +15,7 @@ import {
 import { validateWorkflow } from "@flowai/workflow-dsl";
 import { generateWorkflowDraft } from "@flowai/workflow-generator";
 import type { WorkflowDefinition } from "@flowai/workflow-dsl";
+import { buildWorkflowEditorModel, type WorkflowEditorModel } from "./workflow-editor.js";
 
 export interface OwnerFirstPreviewInput {
   filename?: string;
@@ -86,6 +87,7 @@ export interface OwnerFirstPreview {
     edgeCount: number;
     nodes: Array<{ id: string; type: string; name: string }>;
   };
+  visualWorkflow?: WorkflowEditorModel;
   runtimeConversation: Array<{ from: "owner" | "bot" | "state"; messages: string[] }>;
   telegramPreview: Array<{ text: string; buttons: string[] }>;
   safetyNotes: string[];
@@ -249,6 +251,7 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
           nodes: workflow.nodes.map((node) => ({ id: node.id, type: node.type, name: node.name }))
         }
       : undefined,
+    visualWorkflow: workflow ? buildWorkflowEditorModel(workflow) : undefined,
     runtimeConversation: workflow ? runRuntimePreview(workflow) : [],
     telegramPreview: workflow ? renderTelegramPreview(workflow) : [],
     safetyNotes: defaultSafetyNotes()

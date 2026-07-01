@@ -188,3 +188,10 @@ Decision: TASK-013 exposes Product Catalog Review in Studio using deterministic 
 Reason: Businesses with many products or service packages need a visible catalog workspace before FlowAI can build trustworthy product-question workflows. The system must not invent product facts, current prices, stock, or recommendations.
 Consequences: Catalog items can be reviewed with sourceRefs, confidence labels, missing questions, and blockers. Deterministic extraction remains shallow and is not ecommerce parsing, live inventory, RAG, or AI recommendation behavior.
 Revisit trigger: A later task adds AI extraction, stronger source freshness/conflict handling, product editing persistence, or live inventory/API integrations.
+
+## 2026-07-01: Visual Editor Uses Workflow JSON Directly
+
+Decision: TASK-014 implements a simple local visual workflow editor without adding a graph dependency, and every edit operates on strict Workflow JSON followed by validation and preview reruns.
+Reason: The owner needs visible tree editing now, but adding React Flow/Xyflow or persistence before the product shape is accepted would expand scope and dependency risk.
+Consequences: Studio can inspect, edit text, add/delete/connect preview nodes, show validation issues, and rerun runtime/Telegram mock previews from edited JSON. The editor is local preview-only and not a durable publish workflow.
+Revisit trigger: A later task requires production-grade graph layout, persisted edits, collaborative editing, or richer node/edge editing.

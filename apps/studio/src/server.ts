@@ -1,5 +1,7 @@
 import { createServer } from "node:http";
 import { buildOwnerFirstPreview, getDefaultOwnerInput, type OwnerFirstPreviewInput } from "./index.js";
+import { applyWorkflowEditorCommand, runEditedWorkflowPreview, type WorkflowEditorCommand } from "./workflow-editor.js";
+import type { WorkflowDefinition } from "@flowai/workflow-dsl";
 
 const port = Number.parseInt(process.env.PORT ?? "4177", 10);
 const host = process.env.HOST ?? "127.0.0.1";
@@ -31,6 +33,28 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "POST" && url.pathname === "/api/workflow-editor/command") {
+    try {
+      const body = await readJson(request);
+      const { workflow, command } = normalizeEditorCommand(body);
+      const edited = applyWorkflowEditorCommand(workflow, command);
+      const editedPreview = runEditedWorkflowPreview(edited.workflow);
+      sendJson(response, 200, {
+        workflow: edited.workflow,
+        model: edited.model,
+        validation: edited.validation,
+        runtimeConversation: editedPreview.runtimeConversation,
+        telegramPreview: editedPreview.telegramPreview
+      });
+    } catch (error) {
+      sendJson(response, 400, {
+        error: "invalid_editor_request",
+        message: error instanceof Error ? error.message : "Workflow editor request could not be processed."
+      });
+    }
+    return;
+  }
+
   send(response, 404, "text/plain; charset=utf-8", "Not found");
 });
 
@@ -48,6 +72,19 @@ function normalizeInput(value: unknown): OwnerFirstPreviewInput {
     filename: typeof record.filename === "string" ? record.filename : "owner-business.md",
     mimeType: typeof record.mimeType === "string" ? record.mimeType : "text/markdown",
     content: record.content
+  };
+}
+
+function normalizeEditorCommand(value: unknown): { workflow: WorkflowDefinition; command: WorkflowEditorCommand } {
+  if (!value || typeof value !== "object") throw new Error("Body must be a JSON object.");
+  const record = value as Record<string, unknown>;
+  if (!record.workflow || typeof record.workflow !== "object") throw new Error("workflow is required.");
+  if (!record.command || typeof record.command !== "object") throw new Error("command is required.");
+  const command = record.command as Record<string, unknown>;
+  if (typeof command.type !== "string") throw new Error("command.type is required.");
+  return {
+    workflow: record.workflow as WorkflowDefinition,
+    command: command as WorkflowEditorCommand
   };
 }
 
@@ -136,10 +173,22 @@ function renderHtml(): string {
     .turn.bot { border-color: #476582; }
     .preview-phone { background: #edf7f5; border: 1px solid #badbd5; border-radius: 8px; padding: 12px; display: grid; gap: 8px; }
     .button-chip { display: inline-block; padding: 5px 8px; border-radius: 6px; background: #d4ece7; margin: 4px 4px 0 0; font-size: 12px; }
+    .tree-editor { display: grid; grid-template-columns: minmax(420px, 1.5fr) minmax(260px, 0.8fr); gap: 12px; }
+    .tree-canvas { min-height: 430px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcfd; overflow: auto; }
+    .tree-canvas svg { min-width: 820px; min-height: 430px; display: block; }
+    .tree-node rect { fill: #fff; stroke: #b6c2cf; stroke-width: 1.5; rx: 8; }
+    .tree-node.selected rect { stroke: var(--accent); stroke-width: 3; }
+    .tree-node text { font-size: 12px; fill: var(--text); pointer-events: none; }
+    .tree-edge { stroke: #8fa1b3; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    .inspector { display: grid; gap: 10px; align-content: start; }
+    .inspector label { display: grid; gap: 5px; color: var(--muted); font-size: 12px; }
+    .inspector textarea { min-height: 96px; }
+    .mini-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     @media (max-width: 980px) {
       main { grid-template-columns: 1fr; }
       .chat { border-right: 0; border-bottom: 1px solid var(--line); min-height: auto; }
       .grid { grid-template-columns: 1fr; }
+      .tree-editor { grid-template-columns: 1fr; }
       .composer-row { grid-template-columns: 1fr; }
     }
   </style>
@@ -176,6 +225,8 @@ function renderHtml(): string {
     const content = document.getElementById("content");
     const build = document.getElementById("build");
     const loadSample = document.getElementById("loadSample");
+    let visualWorkflowModel = null;
+    let selectedWorkflowNodeId = null;
 
     async function loadDefault() {
       const res = await fetch("/api/default");
@@ -213,10 +264,12 @@ function renderHtml(): string {
         renderStatus(preview),
         "<div class='grid'>" + renderBusiness(preview) + renderWorkflow(preview) + "</div>",
         renderProductCatalog(preview),
+        renderVisualWorkflow(preview),
         "<div class='grid'>" + renderSource(preview) + renderTelegram(preview) + "</div>",
         renderRuntime(preview),
         renderSafety(preview)
       ].join("");
+      hydrateVisualWorkflow(preview.visualWorkflow);
     }
 
     function renderStatus(preview) {
@@ -241,21 +294,118 @@ function renderHtml(): string {
       return "<section><h2>Product Catalog Review</h2><p><strong>" + escapeHtml(catalog.reviewStatus) + "</strong> · inquiry workflow: " + escapeHtml(catalog.workflowPlan.status) + "</p><div class='grid'>" + (items || "<p class='muted'>No catalog items yet.</p>") + "</div><h3>Workflow guardrails</h3><ul>" + catalog.workflowPlan.blockers.concat(catalog.workflowPlan.warnings).map(note => "<li>" + escapeHtml(note) + "</li>").join("") + "</ul><h3>Unknowns</h3><ul>" + catalog.unknowns.map(note => "<li>" + escapeHtml(note) + "</li>").join("") + "</ul></section>";
     }
 
+    function renderVisualWorkflow(preview) {
+      if (!preview.visualWorkflow) {
+        return "<section><h2>Visual Workflow Editor</h2><p class='muted'>No editable workflow is available yet.</p></section>";
+      }
+      return "<section><h2>Visual Workflow Editor</h2><p class='muted'>Edits operate on strict Workflow JSON, then run validation, runtime test, and Telegram mock preview again.</p><div class='tree-editor'><div class='tree-canvas' id='treeCanvas'></div><div class='inspector'><div id='workflowInspector'></div><div class='mini-actions'><button type='button' id='addNode'>Add node</button><button class='secondary' type='button' id='deleteNode'>Delete node</button></div><label>Connect to<select id='connectTarget'></select></label><button class='secondary' type='button' id='connectNode'>Connect</button><div id='workflowValidation'></div></div></div></section>";
+    }
+
     function renderSource(preview) {
       const source = preview.sourcePanel;
       return "<section><h2>SourceDocument / sourceRefs</h2><p><strong>" + escapeHtml(source.filename) + "</strong></p><p class='muted'>" + escapeHtml(source.documentId || "No document id") + "</p><div class='mono'>" + escapeHtml(source.reviewExcerpt || "No excerpt") + "</div><h3>Refs</h3><ul>" + source.sourceRefs.map(r => "<li>" + escapeHtml(r.label) + " · " + escapeHtml(r.locator) + "</li>").join("") + "</ul><h3>Warnings</h3><ul>" + source.warnings.map(w => "<li>" + escapeHtml(w) + "</li>").join("") + "</ul></section>";
     }
 
     function renderTelegram(preview) {
-      return "<section><h2>Telegram mock preview</h2><div class='preview-phone'>" + preview.telegramPreview.map(m => "<div><p>" + escapeHtml(m.text) + "</p>" + m.buttons.map(b => "<span class='button-chip'>" + escapeHtml(b) + "</span>").join("") + "</div>").join("") + "</div><p class='muted'>Mock preview only. No Telegram bot is running.</p></section>";
+      return "<section id='telegramPanel'><h2>Telegram mock preview</h2><div class='preview-phone'>" + renderTelegramMessages(preview.telegramPreview) + "</div><p class='muted'>Mock preview only. No Telegram bot is running.</p></section>";
     }
 
     function renderRuntime(preview) {
-      return "<section><h2>Runtime test conversation</h2><div class='conversation'>" + preview.runtimeConversation.map(t => "<div class='turn " + escapeHtml(t.from) + "'><strong>" + escapeHtml(t.from) + "</strong><div>" + t.messages.map(escapeHtml).join("<br>") + "</div></div>").join("") + "</div></section>";
+      return "<section id='runtimePanel'><h2>Runtime test conversation</h2><div class='conversation'>" + renderRuntimeTurns(preview.runtimeConversation) + "</div></section>";
     }
 
     function renderSafety(preview) {
       return "<section><h2>Safety boundaries</h2><ul>" + preview.safetyNotes.map(note => "<li>" + escapeHtml(note) + "</li>").join("") + "</ul></section>";
+    }
+
+    function hydrateVisualWorkflow(model) {
+      visualWorkflowModel = model || null;
+      selectedWorkflowNodeId = model?.nodes?.[0]?.id || null;
+      drawVisualWorkflow();
+      const add = document.getElementById("addNode");
+      const del = document.getElementById("deleteNode");
+      const connect = document.getElementById("connectNode");
+      if (add) add.addEventListener("click", () => sendWorkflowCommand({
+        type: "add_message_node",
+        sourceNodeId: selectedWorkflowNodeId || "start",
+        nodeId: "owner_note_" + Date.now().toString(36),
+        name: "Owner note",
+        message: "New owner-edited message.",
+        edgeLabel: "Owner edit"
+      }));
+      if (del) del.addEventListener("click", () => {
+        if (!selectedWorkflowNodeId || selectedWorkflowNodeId === "start") return;
+        sendWorkflowCommand({ type: "delete_node_only", nodeId: selectedWorkflowNodeId });
+      });
+      if (connect) connect.addEventListener("click", () => {
+        const target = document.getElementById("connectTarget")?.value;
+        if (!selectedWorkflowNodeId || !target || target === selectedWorkflowNodeId) return;
+        sendWorkflowCommand({ type: "connect_nodes", sourceNodeId: selectedWorkflowNodeId, targetNodeId: target, label: "Owner route" });
+      });
+    }
+
+    function drawVisualWorkflow() {
+      const canvas = document.getElementById("treeCanvas");
+      const inspector = document.getElementById("workflowInspector");
+      const validation = document.getElementById("workflowValidation");
+      const target = document.getElementById("connectTarget");
+      if (!canvas || !inspector || !validation || !visualWorkflowModel) return;
+      const nodesById = new Map(visualWorkflowModel.nodes.map(node => [node.id, node]));
+      canvas.innerHTML = "<svg viewBox='0 0 860 460' role='img' aria-label='Workflow tree'><defs><marker id='arrow' markerWidth='8' markerHeight='8' refX='7' refY='3' orient='auto'><path d='M0,0 L0,6 L7,3 z' fill='#8fa1b3'></path></marker></defs>" + visualWorkflowModel.edges.map(edge => {
+        const source = nodesById.get(edge.source);
+        const targetNode = nodesById.get(edge.target);
+        if (!source || !targetNode) return "";
+        return "<path class='tree-edge' d='M" + (source.x + 190) + " " + (source.y + 42) + " C" + (source.x + 235) + " " + (source.y + 42) + "," + (targetNode.x - 45) + " " + (targetNode.y + 42) + "," + targetNode.x + " " + (targetNode.y + 42) + "'></path>";
+      }).join("") + visualWorkflowModel.nodes.map(node => "<g class='tree-node " + (node.id === selectedWorkflowNodeId ? "selected" : "") + "' data-node-id='" + escapeHtml(node.id) + "' tabindex='0' role='button'><rect x='" + node.x + "' y='" + node.y + "' width='190' height='84'></rect><text x='" + (node.x + 12) + "' y='" + (node.y + 24) + "'>" + escapeHtml(node.name.slice(0, 22)) + "</text><text x='" + (node.x + 12) + "' y='" + (node.y + 46) + "'>" + escapeHtml(node.type) + "</text><text x='" + (node.x + 12) + "' y='" + (node.y + 66) + "'>" + escapeHtml(node.id.slice(0, 24)) + "</text></g>").join("") + "</svg>";
+      canvas.querySelectorAll(".tree-node").forEach(node => node.addEventListener("click", () => {
+        selectedWorkflowNodeId = node.getAttribute("data-node-id");
+        drawVisualWorkflow();
+      }));
+      const selected = visualWorkflowModel.nodes.find(node => node.id === selectedWorkflowNodeId) || visualWorkflowModel.nodes[0];
+      inspector.innerHTML = selected ? "<h3>Node inspector</h3><p><strong>" + escapeHtml(selected.name) + "</strong></p><p class='muted'>" + escapeHtml(selected.id) + " · " + escapeHtml(selected.type) + "</p><label>Text<textarea id='nodeText' " + (selected.editable ? "" : "disabled") + ">" + escapeHtml(selected.text) + "</textarea></label><button class='secondary' type='button' id='saveNodeText'>Save text</button>" : "<p class='muted'>Select a node.</p>";
+      const save = document.getElementById("saveNodeText");
+      if (save && selected?.editable) save.addEventListener("click", () => {
+        const text = document.getElementById("nodeText")?.value || "";
+        sendWorkflowCommand({ type: "edit_node_text", nodeId: selected.id, text });
+      });
+      if (target) {
+        target.innerHTML = visualWorkflowModel.nodes.map(node => "<option value='" + escapeHtml(node.id) + "'>" + escapeHtml(node.name) + "</option>").join("");
+      }
+      validation.innerHTML = "<h3>Validation</h3>" + (visualWorkflowModel.validation.valid ? "<p class='ok'>Workflow JSON is valid.</p>" : "<ul>" + visualWorkflowModel.validation.issues.map(issue => "<li class='danger'>" + escapeHtml(issue.path + ': ' + issue.message) + "</li>").join("") + "</ul>");
+    }
+
+    async function sendWorkflowCommand(command) {
+      if (!visualWorkflowModel?.workflowJson) return;
+      const res = await fetch("/api/workflow-editor/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workflow: visualWorkflowModel.workflowJson, command })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const validation = document.getElementById("workflowValidation");
+        if (validation) validation.innerHTML = "<p class='danger'>" + escapeHtml(data.message || "Editor command failed.") + "</p>";
+        return;
+      }
+      visualWorkflowModel = data.model;
+      selectedWorkflowNodeId = command.nodeId || selectedWorkflowNodeId;
+      drawVisualWorkflow();
+      updateEditedPreviewPanels(data);
+    }
+
+    function updateEditedPreviewPanels(data) {
+      const runtimePanel = document.getElementById("runtimePanel");
+      const telegramPanel = document.getElementById("telegramPanel");
+      if (runtimePanel) runtimePanel.innerHTML = "<h2>Runtime test conversation</h2><div class='conversation'>" + renderRuntimeTurns(data.runtimeConversation || []) + "</div>";
+      if (telegramPanel) telegramPanel.innerHTML = "<h2>Telegram mock preview</h2><div class='preview-phone'>" + renderTelegramMessages(data.telegramPreview || []) + "</div><p class='muted'>Mock preview only. No Telegram bot is running.</p>";
+    }
+
+    function renderRuntimeTurns(turns) {
+      return turns.map(t => "<div class='turn " + escapeHtml(t.from) + "'><strong>" + escapeHtml(t.from) + "</strong><div>" + t.messages.map(escapeHtml).join("<br>") + "</div></div>").join("");
+    }
+
+    function renderTelegramMessages(messages) {
+      return messages.map(m => "<div><p>" + escapeHtml(m.text) + "</p>" + m.buttons.map(b => "<span class='button-chip'>" + escapeHtml(b) + "</span>").join("") + "</div>").join("");
     }
 
     function escapeHtml(value) {
