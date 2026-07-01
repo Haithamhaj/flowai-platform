@@ -23,21 +23,22 @@
 - TASK-016 export and integration hub.
 - TASK-017 live AI provider planning.
 - TASK-017A backend-only OpenAI extraction spike.
+- TASK-018 Studio live AI review toggle.
 
 ## Current Phase
 
 - Owner-first visible product rebuild.
-- Current implementation target: TASK-018 Studio live AI review toggle.
-- Boundary: explicit owner toggle and backend-only provider access only; no browser key access, upload endpoint, parser dependency, persistence, crawling, RAG, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
+- Current implementation target: TASK-019 owner review demo with live AI.
+- Boundary: reviewable demo artifact only; no browser key access, upload endpoint, parser dependency, persistence, crawling, RAG, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
 
 ## Next
 
-- Review TASK-018 Studio live AI review toggle PR.
-- After acceptance, the next recommended task is TASK-019_OWNER_REVIEW_DEMO_WITH_LIVE_AI.
+- Review TASK-019 owner review demo with live AI PR.
+- After acceptance, the next recommended task is TASK-020_OWNER_UI_POLISH_FOR_REVIEW.
 
 ## Later
 
-- TASK-019 owner review demo with live AI.
+- TASK-020 owner UI polish for review.
 - PDF parser review/spike.
 - Real upload API after auth, limits, storage, and operational controls are planned.
 - BusinessUnderstanding / BusinessGraph extraction from reviewed source documents.

@@ -10,6 +10,7 @@
     "lint": "pnpm -r typecheck",
     "typecheck": "pnpm -r typecheck",
     "demo:flowai": "pnpm build && node examples/flowai-demo/visible-mvp-demo.mjs",
+    "demo:flowai:live": "pnpm build && node examples/flowai-demo/live-ai-owner-review-demo.mjs --write",
     "smoke:flowai-ai": "pnpm --filter @flowai/ai-builder-orchestrator build && node examples/flowai-demo/live-ai-extraction-smoke.mjs",
     "dev:api": "pnpm --filter @flowai/api dev",
     "dev:flowai-studio": "pnpm --filter @flowai/studio dev"
