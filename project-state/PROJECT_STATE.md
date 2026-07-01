@@ -14,7 +14,7 @@ The current branch adds visible local MVP demo support: `packages/source-review`
 
 Owner review rejected the current visible surface as too technical and not the right user experience. The accepted direction is now owner-first: the business owner should talk naturally with FlowAI, provide business context/documents/website later, review what FlowAI understood, build a chatbot workflow, edit the decision tree on web, test channel previews, and export/integrate portable JSON/API mappings.
 
-The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`. TASK-010 formalized AI builder agents, tools, prompt pack, data models, and UX flow before implementation. TASK-011 implemented `apps/studio` as an owner-first local builder UI shell backed by deterministic source ingestion, source review, BusinessUnderstanding draft, WorkflowGenerationPlan, Workflow JSON draft, runtime preview, and Telegram mock preview. TASK-012 added `packages/ai-builder-orchestrator` with prompt pack files, mocked provider tests, structured output validation, product catalog sourceRef blockers, and deterministic fallback. TASK-013 is the active implementation branch: Product Catalog Review is visible in Studio, derives conservative source-backed catalog drafts from BusinessUnderstanding services, and blocks or warns product inquiry planning when catalog evidence is missing. The ignored local `.flowai.local.json` may hold development model preferences and API key material, but application code must not read it until a later approved live provider task.
+The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`. TASK-010 formalized AI builder agents, tools, prompt pack, data models, and UX flow before implementation. TASK-011 implemented `apps/studio` as an owner-first local builder UI shell backed by deterministic source ingestion, source review, BusinessUnderstanding draft, WorkflowGenerationPlan, Workflow JSON draft, runtime preview, and Telegram mock preview. TASK-012 added `packages/ai-builder-orchestrator` with prompt pack files, mocked provider tests, structured output validation, product catalog sourceRef blockers, and deterministic fallback. TASK-013 Product Catalog Workspace is merged into `main` at `df2c615`. TASK-014 is the active implementation branch: Studio adds a local visual workflow editor that renders generated Workflow JSON as a node/edge tree, supports preview edits, revalidates strict Workflow JSON, and reruns runtime and Telegram mock previews from the edited workflow. The ignored local `.flowai.local.json` may hold development model preferences and API key material, but application code must not read it until a later approved live provider task.
 
 ## Active Decisions
 
@@ -66,6 +66,7 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 - TASK-012 mocked AI orchestration does not call providers and does not let AI produce final Workflow JSON.
 - Product catalog price, availability, eligibility, and recommendation-like claims must remain sourceRef-gated.
 - TASK-013 Product Catalog Workspace is deterministic and review-first; price and availability labels are source-backed review markers, not publish-ready commerce evidence.
+- TASK-014 visual editor keeps Workflow JSON as the source of truth; UI edits must re-run validator/runtime preview rather than becoming a separate hidden workflow model.
 
 ## Active Risks
 
@@ -90,6 +91,7 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 - Live AI provider integration can leak secrets or overclaim facts unless backend-only config, sourceRefs, structured outputs, and redaction checks are enforced.
 - Product catalog extraction can overclaim prices, availability, or recommendations without source-backed evidence.
 - TASK-013 deterministic catalog extraction is shallow and should not be treated as ecommerce parsing, live inventory, or AI recommendation quality.
+- TASK-014 visual editor is local preview-only; no persistence, publish flow, production graph layout, or external editor dependency exists yet.
 - Owner-first UI may feel incomplete until TASK-012 adds mocked AI orchestration and prompt-pack behavior.
 - Mocked AI orchestration may be mistaken for live AI unless UI labels and PR notes stay explicit.
 
@@ -111,7 +113,7 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 
 ## Next Recommended Action
 
-Review TASK-013 Product Catalog Workspace PR. After acceptance, start TASK-014_VISUAL_WORKFLOW_EDITOR.
+Review TASK-014 Visual Workflow Editor PR. After acceptance, start TASK-015_CHANNEL_PREVIEW_WORKSPACE.
 
 ## Critical References
 
@@ -125,6 +127,7 @@ Review TASK-013 Product Catalog Workspace PR. After acceptance, start TASK-014_V
 - `docs/tasks/TASK-011_OWNER_FIRST_BUILDER_UI.md`
 - `docs/tasks/TASK-012_AI_BUILDER_PROMPT_PACK_AND_MOCKED_ORCHESTRATOR.md`
 - `docs/tasks/TASK-013_PRODUCT_CATALOG_WORKSPACE.md`
+- `docs/tasks/TASK-014_VISUAL_WORKFLOW_EDITOR.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`
 - `docs/shards/`
 - `docs/16_PROJECT_SETUP.md`
