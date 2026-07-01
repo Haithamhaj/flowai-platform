@@ -13,20 +13,26 @@
 - TASK-005D internal vertical slice smoke.
 - TASK-006 document ingestion planning.
 - TASK-006A source document text ingestion.
+- Owner-first AI builder product plan.
 
 ## Current Phase
 
-- Visible MVP demo.
-- Current implementation target: source review/facts plus `pnpm demo:flowai`.
-- Boundary: deterministic text/markdown examples only; no upload endpoint, parser dependency, AI, persistence, crawling, RAG, Studio UI, WhatsApp, or production channel work.
+- Owner-first visible product rebuild.
+- Current implementation target: TASK-010 owner-first AI builder orchestration planning.
+- Boundary: docs/spec only; no provider call, upload endpoint, parser dependency, persistence, crawling, RAG, Studio UI, WhatsApp, live channel, exporter, workflow DSL, or runtime semantic change.
 
 ## Next
 
-- Review and run the visible local MVP demo.
-- After acceptance, the next recommended task is TASK-006C_OWNER_REVIEW_AND_AI_EXTRACTION_DECISION.
+- Complete TASK-010 owner-first AI builder orchestration.
+- After acceptance, the next recommended task is TASK-011_OWNER_FIRST_BUILDER_UI.
 
 ## Later
 
+- TASK-012 AI builder prompt pack and mocked orchestrator.
+- TASK-013 product catalog workspace.
+- TASK-014 visual workflow editor.
+- TASK-015 channel preview workspace.
+- TASK-016 export and integration hub.
 - PDF parser review/spike.
 - Real upload API after auth, limits, storage, and operational controls are planned.
 - BusinessUnderstanding / BusinessGraph extraction from reviewed source documents.
@@ -52,7 +58,7 @@
 - AI/provider calls.
 - Persistence/database.
 - Auth, tenants, or billing.
-- Studio UI.
+- Studio UI or visual workflow editor.
 - WhatsApp.
 - Live Telegram polling/webhooks.
 - Exporters.

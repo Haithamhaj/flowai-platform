@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Produce a visible local MVP demo that proves the FlowAI product path.
+Rebuild the visible product path around an owner-first AI chatbot builder experience.
 
 ## Current Reality
 
@@ -11,6 +11,10 @@ Produce a visible local MVP demo that proves the FlowAI product path.
 Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning and implementation are merged into `main`; `packages/workflow-generator` now provides deterministic package-local `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` draft generation for clinic booking and service lead templates. TASK-005C planning and implementation are merged into `main`; `POST /workflow-drafts/from-business-understanding` is the accepted narrow API wrapper around the generator. TASK-005D end-to-end smoke tests are accepted and merged through PR #11 at final main HEAD `f2e44819757a0ef015b2674323feac4391ea0d8e`. TASK-006 document ingestion planning is merged into `main`. TASK-006A source document text ingestion is merged into `main` through PR #14 at `5d388ff79e84f42cf302b347590b703a8f3602b0`.
 
 The current branch adds visible local MVP demo support: `packages/source-review` converts accepted text/markdown `SourceDocument` records into deterministic review facts and `BusinessUnderstanding` drafts, and `pnpm demo:flowai` shows clinic appointment, service lead, FAQ, and Arabic examples through workflow generation, runtime test conversation, and Telegram preview mock. It adds no upload endpoints, parser dependencies, PDF parsing, storage, RAG, AI providers, crawling, persistence, auth, Studio UI, WhatsApp, live Telegram, or exporters.
+
+Owner review rejected the current visible surface as too technical and not the right user experience. The accepted direction is now owner-first: the business owner should talk naturally with FlowAI, provide business context/documents/website later, review what FlowAI understood, build a chatbot workflow, edit the decision tree on web, test channel previews, and export/integrate portable JSON/API mappings.
+
+The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`. TASK-010 is the active docs/spec task to formalize AI builder agents, tools, prompt pack, data models, and UX flow before implementation. The ignored local `.flowai.local.json` may hold development model preferences and API key material, but application code must not read it until a later approved provider task.
 
 ## Active Decisions
 
@@ -55,6 +59,9 @@ The current branch adds visible local MVP demo support: `packages/source-review`
 - TASK-006 planning should start with SourceDocument plus text/markdown ingestion only in a later implementation task; PDF requires a separate parser/security review.
 - TASK-006A implements `packages/source-ingestion` as the text/markdown-only SourceDocument foundation without external parser dependencies.
 - Visible MVP review should prioritize observable demo output over additional invisible infrastructure.
+- Owner-first AI builder work should preserve the safe pipeline while replacing the technical demo UX.
+- AI builder orchestration should be split into agents/tools/prompts with structured outputs and validation boundaries before any live provider call.
+- Model names should be configurable; do not hardcode a single future model as an architectural assumption.
 
 ## Active Risks
 
@@ -75,6 +82,9 @@ The current branch adds visible local MVP demo support: `packages/source-review`
 - TASK-005D smoke tests are controller/service-level integration tests, not production HTTP, persistence, auth, or live-channel tests.
 - Document ingestion can create upload, parser, privacy, PII, and source-conflict risks if implemented before the safety boundary is accepted.
 - TASK-006A warning flags for secret-like and PII-like content are basic deterministic safeguards, not complete DLP.
+- The existing local demo can mislead reviewers if treated as final UX instead of a technical proof.
+- Live AI provider integration can leak secrets or overclaim facts unless backend-only config, sourceRefs, structured outputs, and redaction checks are enforced.
+- Product catalog extraction can overclaim prices, availability, or recommendations without source-backed evidence.
 
 ## Protected Areas
 
@@ -89,10 +99,12 @@ The current branch adds visible local MVP demo support: `packages/source-review`
 - Do not generate action or webhook nodes unless configured tools exist in a later approved task.
 - Do not let workflow generation embed secrets, executable expressions, channel-specific semantics, or product/price claims without source-backed evidence.
 - Do not add document upload endpoints, parser dependencies, PDF parsing, durable storage, RAG, embeddings, or AI extraction during TASK-006 planning.
+- Do not use `.flowai.local.json` from application code until a provider-integration task explicitly approves backend-only secret handling.
+- Do not continue polishing the technical demo as the final product experience.
 
 ## Next Recommended Action
 
-Review and run the visible local MVP demo with `pnpm demo:flowai`. Use owner feedback on the visible flow before adding AI, persistence, upload endpoints, crawling, RAG, Studio UI, or additional templates.
+Complete TASK-010 owner-first AI builder orchestration planning, then start TASK-011_OWNER_FIRST_BUILDER_UI after acceptance.
 
 ## Critical References
 
@@ -102,6 +114,8 @@ Review and run the visible local MVP demo with `pnpm demo:flowai`. Use owner fee
 - `docs/07_TASK_SYSTEM.md`
 - `docs/17_SKILL_MCP_READINESS.md`
 - `docs/tasks/`
+- `docs/tasks/TASK-010_OWNER_FIRST_AI_BUILDER_ORCHESTRATION.md`
+- `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`
 - `docs/shards/`
 - `docs/16_PROJECT_SETUP.md`
 - `packages/workflow-dsl/src/validator.ts`

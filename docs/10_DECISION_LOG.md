@@ -160,3 +160,10 @@ Decision: The next delivery should prove the visible product path with `pnpm dem
 Reason: The owner needs to see whether FlowAI is on the right product path through real local output: source document, sourceRefs, extracted facts, workflow plan, workflow summary, runtime conversation, and Telegram mock output.
 Consequences: `packages/source-review` stays deterministic and narrow. AI extraction, upload endpoints, PDF parsing, crawling, RAG, persistence, Studio UI, WhatsApp, production Telegram, and exporters remain deferred until the visible flow is reviewed.
 Revisit trigger: Owner reviews the visible MVP demo and decides whether deterministic extraction should be expanded, simplified, or replaced with AI-assisted extraction.
+
+## 2026-07-01: Shift To Owner-First AI Builder Experience
+
+Decision: Supersede the technical visible demo UX with an owner-first AI builder direction while preserving the safe FlowAI pipeline.
+Reason: Owner review found the current local UI too technical for business owners. The product should feel like a smart chatbot-building assistant that understands the business, asks useful questions, builds a workflow, supports web decision-tree editing, previews channels, and exports portable JSON/API mappings.
+Consequences: TASK-010 formalizes the AI builder orchestration, agents, tools, prompt pack, ProductCatalog draft, IntegrationMappingPlan, and UX flow before implementation. The old FlowAI repo remains reference-only for product feel, not code or architecture. Live AI provider calls, upload endpoints, crawling, RAG, persistence, WhatsApp, visual editor dependencies, and exporters still require explicit tasks and approval.
+Revisit trigger: TASK-011 and TASK-012 prove whether the owner-first UI plus mocked/structured AI orchestration produces a better product review than the technical demo.
