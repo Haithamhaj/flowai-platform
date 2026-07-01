@@ -10,7 +10,8 @@
     "lint": "pnpm -r typecheck",
     "typecheck": "pnpm -r typecheck",
     "demo:flowai": "pnpm build && node examples/flowai-demo/visible-mvp-demo.mjs",
-    "dev:api": "pnpm --filter @flowai/api dev"
+    "dev:api": "pnpm --filter @flowai/api dev",
+    "dev:flowai-studio": "pnpm --filter @flowai/studio dev"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

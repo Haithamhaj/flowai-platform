@@ -5,12 +5,22 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "dev": "pnpm build && node dist/server.js",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@flowai/business-understanding": "workspace:*",
+    "@flowai/channel-adapters": "workspace:*",
+    "@flowai/runtime-core": "workspace:*",
+    "@flowai/source-ingestion": "workspace:*",
+    "@flowai/source-review": "workspace:*",
+    "@flowai/workflow-dsl": "workspace:*",
+    "@flowai/workflow-generator": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   }
 }
-

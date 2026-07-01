@@ -167,3 +167,10 @@ Decision: Supersede the technical visible demo UX with an owner-first AI builder
 Reason: Owner review found the current local UI too technical for business owners. The product should feel like a smart chatbot-building assistant that understands the business, asks useful questions, builds a workflow, supports web decision-tree editing, previews channels, and exports portable JSON/API mappings.
 Consequences: TASK-010 formalizes the AI builder orchestration, agents, tools, prompt pack, ProductCatalog draft, IntegrationMappingPlan, and UX flow before implementation. The old FlowAI repo remains reference-only for product feel, not code or architecture. Live AI provider calls, upload endpoints, crawling, RAG, persistence, WhatsApp, visual editor dependencies, and exporters still require explicit tasks and approval.
 Revisit trigger: TASK-011 and TASK-012 prove whether the owner-first UI plus mocked/structured AI orchestration produces a better product review than the technical demo.
+
+## 2026-07-01: Owner-First UI Starts With Deterministic Local Shell
+
+Decision: Implement TASK-011 as a local owner-first builder UI shell backed by the existing deterministic pipeline before adding live AI provider calls.
+Reason: The owner needs a visible product experience immediately, but provider integration should not precede structured prompts, mocked orchestration, sourceRefs, validation, and secret-safety boundaries.
+Consequences: `apps/studio` can show the business-owner journey from pasted text to business brief, workflow proposal, runtime conversation, and Telegram mock preview. Live AI remains clearly labeled as pending. `.flowai.local.json` is still ignored and not read by application code.
+Revisit trigger: TASK-012 adds prompt pack and mocked AI orchestration, or owner review shows the UI shell still does not match the intended product path.
