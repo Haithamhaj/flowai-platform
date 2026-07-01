@@ -1,6 +1,9 @@
 import {
   buildProductCatalogDraftFromBusinessUnderstanding,
+  type AiBuilderProvider,
+  type OpenAiProviderDiagnostics,
   loadPromptPack,
+  orchestrateAiBuilderTurn,
   planProductInquiryWorkflow
 } from "@flowai/ai-builder-orchestrator";
 import { redactSecrets, safeExcerpt } from "@flowai/business-understanding";
@@ -27,7 +30,7 @@ export interface OwnerFirstPreviewInput {
 export interface OwnerFirstPreview {
   status: "ready" | "blocked";
   aiMode: {
-    status: "deterministic_fallback";
+    status: "deterministic_fallback" | "live_provider" | "unconfigured";
     label: string;
     note: string;
   };
@@ -94,6 +97,12 @@ export interface OwnerFirstPreview {
   telegramPreview: Array<{ text: string; buttons: string[] }>;
   channelPreview: ChannelPreviewWorkspace;
   safetyNotes: string[];
+}
+
+export interface OwnerFirstAiReviewOptions {
+  useLiveAi: boolean;
+  providerDiagnostics: OpenAiProviderDiagnostics;
+  provider?: AiBuilderProvider;
 }
 
 const DEFAULT_CLINIC_TEXT = [
@@ -228,23 +237,7 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
       blockers: workflowResult.generationPlan.missingBlockers.map((blocker) => blocker.message),
       warnings: workflowResult.generationPlan.warnings.map((warning) => warning.message)
     },
-    productCatalog: {
-      reviewStatus: catalog.reviewStatus,
-      items: catalog.items.map((item) => ({
-        name: item.name,
-        type: item.type,
-        description: item.description,
-        price: item.price,
-        priceConfidence: item.price ? "source_backed_review_required" : "unknown",
-        availability: item.availability,
-        availabilityConfidence: item.availability ? "source_backed_review_required" : "unknown",
-        sourceRefs: item.sourceRefs,
-        questionsToAsk: item.questionsToAsk
-      })),
-      unknowns: catalog.unknowns,
-      conflicts: catalog.conflicts,
-      workflowPlan: productInquiryPlan
-    },
+    productCatalog: mapProductCatalogPanel(catalog, productInquiryPlan),
     workflowSummary: workflow
       ? {
           workflowId: workflow.workflowId,
@@ -261,6 +254,66 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
     telegramPreview: workflow ? renderTelegramPreview(workflow) : [],
     channelPreview: workflow ? renderChannelPreview(workflow) : emptyChannelPreview(),
     safetyNotes: defaultSafetyNotes()
+  };
+}
+
+export async function buildOwnerFirstPreviewWithAiReview(
+  input: OwnerFirstPreviewInput,
+  options: OwnerFirstAiReviewOptions
+): Promise<OwnerFirstPreview> {
+  const deterministic = buildOwnerFirstPreview(input);
+
+  if (!options.useLiveAi) return deterministic;
+
+  if (!options.providerDiagnostics.configured || !options.provider) {
+    return {
+      ...deterministic,
+      aiMode: {
+        status: "unconfigured",
+        label: "Live AI unavailable",
+        note: "Live AI review was requested, but no backend provider is configured. Deterministic fallback is still available."
+      }
+    };
+  }
+
+  const providerResult = await orchestrateAiBuilderTurn({
+    mode: "live_provider",
+    source: {
+      filename: input.filename?.trim() || "owner-business.md",
+      mimeType: input.mimeType?.trim() || inferMimeType(input.filename?.trim() || "owner-business.md"),
+      content: input.content
+    },
+    provider: options.provider
+  });
+  const productInquiryPlan = planProductInquiryWorkflow(providerResult.productCatalog);
+  const fallbackReason = providerResult.providerDiagnostics.fallbackReason;
+
+  return {
+    ...deterministic,
+    aiMode: {
+      status: providerResult.mode === "live_provider" ? "live_provider" : "deterministic_fallback",
+      label: providerResult.mode === "live_provider" ? "Live AI review" : "Live AI fallback",
+      note:
+        providerResult.mode === "live_provider"
+          ? `Reviewed with backend-only live AI provider (${options.providerDiagnostics.model ?? "configured model"}). Workflow JSON is still generated deterministically.`
+          : `Live AI provider returned an unsafe or invalid result, so FlowAI used deterministic fallback. ${fallbackReason ?? ""}`.trim()
+    },
+    assistantMessage:
+      providerResult.mode === "live_provider"
+        ? `I reviewed ${providerResult.businessUnderstanding.businessName ?? "the business"} with live AI and kept the workflow draft under deterministic validation.`
+        : deterministic.assistantMessage,
+    businessBrief: {
+      ...deterministic.businessBrief,
+      businessName: providerResult.businessUnderstanding.businessName,
+      category: providerResult.businessUnderstanding.category,
+      summary: safeExcerpt(redactSecrets(providerResult.businessUnderstanding.summary), 320),
+      missingQuestions: providerResult.businessUnderstanding.missingQuestions.map((question) => question.question)
+    },
+    productCatalog: mapProductCatalogPanel(providerResult.productCatalog, productInquiryPlan),
+    safetyNotes: [
+      "Live AI review is source-backed draft assistance only; Workflow JSON is still generated and validated deterministically.",
+      ...deterministic.safetyNotes
+    ]
   };
 }
 
@@ -357,6 +410,29 @@ function formatLocator(locator: { kind: string; startLine?: number; endLine?: nu
   if (locator.kind === "line_range") return `lines ${locator.startLine ?? "?"}-${locator.endLine ?? "?"}`;
   if (locator.kind === "markdown_heading") return `heading ${locator.heading ?? ""}`.trim();
   return locator.kind;
+}
+
+function mapProductCatalogPanel(
+  catalog: ReturnType<typeof buildProductCatalogDraftFromBusinessUnderstanding>,
+  productInquiryPlan: ReturnType<typeof planProductInquiryWorkflow>
+): OwnerFirstPreview["productCatalog"] {
+  return {
+    reviewStatus: catalog.reviewStatus,
+    items: catalog.items.map((item) => ({
+      name: item.name,
+      type: item.type,
+      description: item.description,
+      price: item.price,
+      priceConfidence: item.price ? "source_backed_review_required" : "unknown",
+      availability: item.availability,
+      availabilityConfidence: item.availability ? "source_backed_review_required" : "unknown",
+      sourceRefs: item.sourceRefs,
+      questionsToAsk: item.questionsToAsk
+    })),
+    unknowns: catalog.unknowns,
+    conflicts: catalog.conflicts,
+    workflowPlan: productInquiryPlan
+  };
 }
 
 function emptyBusinessBrief(): OwnerFirstPreview["businessBrief"] {

@@ -223,3 +223,10 @@ Decision: TASK-017A implements the first OpenAI integration as a backend-only Re
 Reason: The owner needs smarter AI behavior, but the safest first step is a narrow provider boundary that can be mocked in CI and locally smoke-tested without wiring secrets into the browser or letting AI own Workflow JSON.
 Consequences: The provider is disabled unless configured, reads ignored local config only when explicitly allowed, adds no SDK dependency, sanitizes provider failures, and falls back to deterministic extraction. `gpt-5.5` can be selected by local config for quality, but model choice remains backend configuration rather than a permanent architecture assumption. Studio live AI wiring, uploads, persistence, crawling, RAG, live channels, and production deployment remain separate tasks.
 Revisit trigger: TASK-018 wires the provider into Studio behind an explicit review/status control, or live smoke shows structured extraction is not good enough for owner review.
+
+## 2026-07-01: Studio Live AI Review Requires Explicit Toggle
+
+Decision: TASK-018 exposes live AI review in Studio only through an owner-controlled toggle that calls backend-only provider code.
+Reason: Live AI should make the product feel smarter, but provider credentials and AI behavior must remain outside browser code and outside final Workflow JSON generation.
+Consequences: Studio defaults to deterministic fallback. When live AI is requested, the server may use ignored local provider config and return a review draft with clear status. WorkflowGenerationPlan and WorkflowDefinition remain deterministic and validator-backed.
+Revisit trigger: Owner review confirms whether live AI output improves the builder experience enough to justify richer extraction, product catalog review, or follow-up agent tools.

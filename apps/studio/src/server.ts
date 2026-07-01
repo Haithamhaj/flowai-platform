@@ -1,10 +1,18 @@
 import { createServer } from "node:http";
-import { buildOwnerFirstPreview, getDefaultOwnerInput, type OwnerFirstPreviewInput } from "./index.js";
+import { resolve } from "node:path";
+import {
+  buildOwnerFirstPreviewWithAiReview,
+  getDefaultOwnerInput,
+  type OwnerFirstAiReviewOptions,
+  type OwnerFirstPreviewInput
+} from "./index.js";
+import { createOpenAiResponsesProvider, loadOpenAiProviderConfig } from "@flowai/ai-builder-orchestrator";
 import { applyWorkflowEditorCommand, runEditedWorkflowPreview, type WorkflowEditorCommand } from "./workflow-editor.js";
 import type { WorkflowDefinition } from "@flowai/workflow-dsl";
 
 const port = Number.parseInt(process.env.PORT ?? "4177", 10);
 const host = process.env.HOST ?? "127.0.0.1";
+const workspaceRoot = process.env.FLOWAI_WORKSPACE_ROOT ?? resolve(process.cwd(), "../..");
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? `${host}:${port}`}`);
@@ -23,7 +31,7 @@ const server = createServer(async (request, response) => {
     try {
       const body = await readJson(request);
       const input = normalizeInput(body);
-      sendJson(response, 200, buildOwnerFirstPreview(input));
+      sendJson(response, 200, await buildOwnerFirstPreviewWithAiReview(input, buildAiReviewOptions(body)));
     } catch (error) {
       sendJson(response, 400, {
         error: "invalid_request",
@@ -74,6 +82,39 @@ function normalizeInput(value: unknown): OwnerFirstPreviewInput {
     filename: typeof record.filename === "string" ? record.filename : "owner-business.md",
     mimeType: typeof record.mimeType === "string" ? record.mimeType : "text/markdown",
     content: record.content
+  };
+}
+
+function buildAiReviewOptions(value: unknown): OwnerFirstAiReviewOptions {
+  const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  const useLiveAi = record.useLiveAi === true;
+  if (!useLiveAi) {
+    return {
+      useLiveAi: false,
+      providerDiagnostics: {
+        configured: false,
+        source: "none",
+        model: null
+      }
+    };
+  }
+  const config = loadOpenAiProviderConfig({
+    allowLocalConfig: true,
+    workspaceRoot
+  });
+  if (!config.configured) {
+    return {
+      useLiveAi: true,
+      providerDiagnostics: config.diagnostics
+    };
+  }
+  return {
+    useLiveAi: true,
+    providerDiagnostics: config.diagnostics,
+    provider: createOpenAiResponsesProvider({
+      apiKey: config.apiKey,
+      model: config.model
+    })
   };
 }
 
@@ -153,6 +194,8 @@ function renderHtml(): string {
     .bubble.owner { align-self: flex-end; background: #e8f5f2; border-color: #b8ddd5; }
     .composer { padding: 16px; border-top: 1px solid var(--line); display: grid; gap: 10px; }
     .composer-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+    .toggle-row { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .toggle-row input { width: 18px; height: 18px; min-width: 18px; }
     textarea { width: 100%; min-height: 170px; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fff; color: var(--text); line-height: 1.45; }
     input { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0; }
     button { border: 0; border-radius: 8px; padding: 10px 14px; background: var(--accent); color: white; cursor: pointer; font-weight: 650; }
@@ -213,6 +256,7 @@ function renderHtml(): string {
             <input id="filename" value="bright-dental-clinic.md" aria-label="Filename" />
             <button class="secondary" id="loadSample" type="button">Sample</button>
           </div>
+          <label class="toggle-row"><input id="useLiveAi" type="checkbox" />Use live AI review</label>
           <textarea id="content" aria-label="Business description"></textarea>
           <button id="build" type="button">Build chatbot</button>
         </div>
@@ -225,6 +269,7 @@ function renderHtml(): string {
     const workspace = document.getElementById("workspace");
     const filename = document.getElementById("filename");
     const content = document.getElementById("content");
+    const useLiveAi = document.getElementById("useLiveAi");
     const build = document.getElementById("build");
     const loadSample = document.getElementById("loadSample");
     let visualWorkflowModel = null;
@@ -247,7 +292,7 @@ function renderHtml(): string {
       const res = await fetch("/api/build", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filename: filename.value, mimeType: filename.value.endsWith(".txt") ? "text/plain" : "text/markdown", content: ownerText })
+        body: JSON.stringify({ filename: filename.value, mimeType: filename.value.endsWith(".txt") ? "text/plain" : "text/markdown", content: ownerText, useLiveAi: Boolean(useLiveAi.checked) })
       });
       const preview = await res.json();
       addBubble("bot", preview.assistantMessage || "I could not build a preview.");
