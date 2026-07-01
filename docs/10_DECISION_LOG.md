@@ -195,3 +195,10 @@ Decision: TASK-014 implements a simple local visual workflow editor without addi
 Reason: The owner needs visible tree editing now, but adding React Flow/Xyflow or persistence before the product shape is accepted would expand scope and dependency risk.
 Consequences: Studio can inspect, edit text, add/delete/connect preview nodes, show validation issues, and rerun runtime/Telegram mock previews from edited JSON. The editor is local preview-only and not a durable publish workflow.
 Revisit trigger: A later task requires production-grade graph layout, persisted edits, collaborative editing, or richer node/edge editing.
+
+## 2026-07-01: Channel Preview Workspace Uses Runtime Output Only
+
+Decision: TASK-015 renders web chat, Telegram mock, and WhatsApp mock previews from the same channel-neutral runtime output.
+Reason: Owners need to compare how one chatbot workflow will feel across channels without introducing live channel credentials, webhooks, or channel-owned workflow logic.
+Consequences: Studio can show mock channel constraints and runtime trace side by side. Telegram and WhatsApp remain preview-only; no bot token, phone number, webhook, network delivery, or production channel behavior is implemented.
+Revisit trigger: A later task explicitly adds live Telegram, live WhatsApp, channel credential handling, or production publish semantics.

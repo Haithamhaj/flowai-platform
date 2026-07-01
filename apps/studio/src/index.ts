@@ -4,7 +4,7 @@ import {
   planProductInquiryWorkflow
 } from "@flowai/ai-builder-orchestrator";
 import { redactSecrets, safeExcerpt } from "@flowai/business-understanding";
-import { formatRuntimeOutputForTelegram } from "@flowai/channel-adapters";
+import { formatRuntimeOutputForChannelPreviews, formatRuntimeOutputForTelegram, type ChannelPreviewWorkspace } from "@flowai/channel-adapters";
 import { WorkflowRuntime, type RuntimeMessage } from "@flowai/runtime-core";
 import { ingestSourceDocument } from "@flowai/source-ingestion";
 import {
@@ -90,6 +90,7 @@ export interface OwnerFirstPreview {
   visualWorkflow?: WorkflowEditorModel;
   runtimeConversation: Array<{ from: "owner" | "bot" | "state"; messages: string[] }>;
   telegramPreview: Array<{ text: string; buttons: string[] }>;
+  channelPreview: ChannelPreviewWorkspace;
   safetyNotes: string[];
 }
 
@@ -163,6 +164,7 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
       productCatalog: emptyProductCatalogPanel(),
       runtimeConversation: [],
       telegramPreview: [],
+      channelPreview: emptyChannelPreview(),
       safetyNotes: defaultSafetyNotes()
     };
   }
@@ -254,6 +256,7 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
     visualWorkflow: workflow ? buildWorkflowEditorModel(workflow) : undefined,
     runtimeConversation: workflow ? runRuntimePreview(workflow) : [],
     telegramPreview: workflow ? renderTelegramPreview(workflow) : [],
+    channelPreview: workflow ? renderChannelPreview(workflow) : emptyChannelPreview(),
     safetyNotes: defaultSafetyNotes()
   };
 }
@@ -328,6 +331,18 @@ function renderTelegramPreview(workflow: WorkflowDefinition): OwnerFirstPreview[
   }));
 }
 
+function renderChannelPreview(workflow: WorkflowDefinition): ChannelPreviewWorkspace {
+  const runtime = new WorkflowRuntime({
+    workflow,
+    now: () => new Date("2026-07-01T00:00:00.000Z")
+  });
+  const output = runtime.start(`channel_${workflow.workflowId}`);
+  return formatRuntimeOutputForChannelPreviews({
+    output,
+    trace: output.traceEvents.map((entry) => ({ nodeId: entry.nodeId, event: entry.type }))
+  });
+}
+
 function formatRuntimeMessage(message: RuntimeMessage): string {
   if (message.type === "choices") {
     return `[choices: ${message.choices.map((choice) => choice.label).join(", ")}]`;
@@ -366,6 +381,13 @@ function emptyProductCatalogPanel(): OwnerFirstPreview["productCatalog"] {
       warnings: [],
       suggestedQuestions: ["Paste source-backed product or service details."]
     }
+  };
+}
+
+function emptyChannelPreview(): ChannelPreviewWorkspace {
+  return {
+    channels: [],
+    runtimeTrace: []
   };
 }
 

@@ -1,4 +1,4 @@
-import { formatRuntimeOutputForTelegram } from "@flowai/channel-adapters";
+import { formatRuntimeOutputForChannelPreviews, formatRuntimeOutputForTelegram, type ChannelPreviewWorkspace } from "@flowai/channel-adapters";
 import { WorkflowRuntime, type RuntimeMessage } from "@flowai/runtime-core";
 import { validateWorkflow, type ValidationResult, type WorkflowDefinition, type WorkflowEdge, type WorkflowNode } from "@flowai/workflow-dsl";
 
@@ -43,6 +43,7 @@ export interface EditedWorkflowPreview {
   validation: ValidationResult;
   runtimeConversation: Array<{ from: "owner" | "bot" | "state"; messages: string[] }>;
   telegramPreview: Array<{ text: string; buttons: string[] }>;
+  channelPreview: ChannelPreviewWorkspace;
 }
 
 export function buildWorkflowEditorModel(workflow: WorkflowDefinition): WorkflowEditorModel {
@@ -105,14 +106,23 @@ export function runEditedWorkflowPreview(workflow: WorkflowDefinition): EditedWo
     return {
       validation,
       runtimeConversation: [],
-      telegramPreview: []
+      telegramPreview: [],
+      channelPreview: {
+        channels: [],
+        runtimeTrace: []
+      }
     };
   }
 
+  const runtimeOutput = startRuntimeOutput(workflow);
   return {
     validation,
     runtimeConversation: runRuntimePreview(workflow),
-    telegramPreview: renderTelegramPreview(workflow)
+    telegramPreview: renderTelegramPreview(workflow),
+    channelPreview: formatRuntimeOutputForChannelPreviews({
+      output: runtimeOutput.output,
+      trace: runtimeOutput.output.traceEvents.map((entry) => ({ nodeId: entry.nodeId, event: entry.type }))
+    })
   };
 }
 
@@ -201,15 +211,21 @@ function runRuntimePreview(workflow: WorkflowDefinition): EditedWorkflowPreview[
 }
 
 function renderTelegramPreview(workflow: WorkflowDefinition): EditedWorkflowPreview["telegramPreview"] {
-  const runtime = new WorkflowRuntime({
-    workflow,
-    now: () => new Date("2026-07-01T00:00:00.000Z")
-  });
-  const output = runtime.start(`editor_telegram_${workflow.workflowId}`);
+  const { output } = startRuntimeOutput(workflow);
   return formatRuntimeOutputForTelegram({ output }).map((descriptor) => ({
     text: descriptor.text,
     buttons: descriptor.replyMarkup?.inline_keyboard.flatMap((row) => row.map((button) => button.text)) ?? []
   }));
+}
+
+function startRuntimeOutput(workflow: WorkflowDefinition) {
+  const runtime = new WorkflowRuntime({
+    workflow,
+    now: () => new Date("2026-07-01T00:00:00.000Z")
+  });
+  return {
+    output: runtime.start(`editor_channel_${workflow.workflowId}`)
+  };
 }
 
 function textForNode(node: WorkflowNode): string {

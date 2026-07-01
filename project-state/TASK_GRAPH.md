@@ -18,21 +18,21 @@
 - TASK-011 owner-first builder UI.
 - TASK-012 AI builder prompt pack and mocked orchestrator.
 - TASK-013 product catalog workspace.
+- TASK-014 visual workflow editor.
 
 ## Current Phase
 
 - Owner-first visible product rebuild.
-- Current implementation target: TASK-014 visual workflow editor.
-- Boundary: local visual workflow editing and preview only; no live provider call, upload endpoint, parser dependency, persistence, crawling, RAG, WhatsApp, live channel, exporter, external visual editor dependency, workflow DSL, or runtime semantic change.
+- Current implementation target: TASK-015 channel preview workspace.
+- Boundary: local channel previews only; no live provider call, upload endpoint, parser dependency, persistence, crawling, RAG, live Telegram, live WhatsApp, exporter, workflow DSL, or runtime semantic change.
 
 ## Next
 
-- Review TASK-014 visual workflow editor.
-- After acceptance, the next recommended task is TASK-015_CHANNEL_PREVIEW_WORKSPACE.
+- Review TASK-015 channel preview workspace.
+- After acceptance, the next recommended task is TASK-016_EXPORT_AND_INTEGRATION_HUB.
 
 ## Later
 
-- TASK-015 channel preview workspace.
 - TASK-016 export and integration hub.
 - PDF parser review/spike.
 - Real upload API after auth, limits, storage, and operational controls are planned.
