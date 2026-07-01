@@ -230,3 +230,10 @@ Decision: TASK-018 exposes live AI review in Studio only through an owner-contro
 Reason: Live AI should make the product feel smarter, but provider credentials and AI behavior must remain outside browser code and outside final Workflow JSON generation.
 Consequences: Studio defaults to deterministic fallback. When live AI is requested, the server may use ignored local provider config and return a review draft with clear status. WorkflowGenerationPlan and WorkflowDefinition remain deterministic and validator-backed.
 Revisit trigger: Owner review confirms whether live AI output improves the builder experience enough to justify richer extraction, product catalog review, or follow-up agent tools.
+
+## 2026-07-01: Owner Demo Compares Deterministic And Live AI Review
+
+Decision: TASK-019 generates a Markdown owner-review artifact from `pnpm demo:flowai:live`.
+Reason: The owner needs a concrete artifact showing what the brain does now, what AI improves, and what is still deterministic or deferred.
+Consequences: The demo compares deterministic extraction with live AI review using local ignored provider config when available. The artifact must not contain provider secrets, and Workflow JSON remains deterministic and validator-backed.
+Revisit trigger: Owner review shows the live AI output is not materially better than deterministic extraction or the UI still feels too technical.

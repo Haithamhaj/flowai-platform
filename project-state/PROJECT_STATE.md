@@ -16,7 +16,7 @@ Owner review rejected the original visible surface as too technical and not the 
 
 The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`. TASK-010 formalized AI builder agents, tools, prompt pack, data models, and UX flow before implementation. TASK-011 implemented `apps/studio` as an owner-first local builder UI shell backed by deterministic source ingestion, source review, BusinessUnderstanding draft, WorkflowGenerationPlan, Workflow JSON draft, runtime preview, and Telegram mock preview. TASK-012 added `packages/ai-builder-orchestrator` with prompt pack files, mocked provider tests, structured output validation, product catalog sourceRef blockers, and deterministic fallback. TASK-013 Product Catalog Workspace is merged into `main` at `df2c615`. TASK-014 Visual Workflow Editor is merged into `main` at `776208b`. TASK-015 Channel Preview Workspace is merged into `main` at `e718c70`. TASK-016 Export & Integration Hub is merged into `main` at `8ccd895d4a995435bf74fb397b958fcdd81df8de`; Studio now shows local FlowAI Workflow JSON, CRM mapping, and ticketing mapping copy blocks. The ignored local `.flowai.local.json` may hold development model preferences and API key material, but application code must not read it until a later approved live provider task.
 
-TASK-017 is merged as the live AI provider boundary plan. TASK-017A is merged as the backend-only OpenAI extraction spike: `packages/ai-builder-orchestrator` now has an OpenAI Responses API provider adapter, disabled unless explicitly configured, with mocked CI tests and an optional local smoke script. It reads ignored `.flowai.local.json` only when the backend caller explicitly allows local config. TASK-018 is the active implementation branch: Studio exposes live AI review as an explicit owner toggle while keeping deterministic fallback and Workflow JSON generation unchanged.
+TASK-017 is merged as the live AI provider boundary plan. TASK-017A is merged as the backend-only OpenAI extraction spike: `packages/ai-builder-orchestrator` now has an OpenAI Responses API provider adapter, disabled unless explicitly configured, with mocked CI tests and an optional local smoke script. It reads ignored `.flowai.local.json` only when the backend caller explicitly allows local config. TASK-018 is merged: Studio exposes live AI review as an explicit owner toggle while keeping deterministic fallback and Workflow JSON generation unchanged. TASK-019 is the active branch: it produces `docs/demo/FLOWAI_LIVE_AI_OWNER_REVIEW.md` from `pnpm demo:flowai:live` so the owner can compare deterministic and live AI review output.
 
 ## Active Decisions
 
@@ -74,6 +74,7 @@ TASK-017 is merged as the live AI provider boundary plan. TASK-017A is merged as
 - TASK-017 live AI work must start as backend-only BusinessUnderstanding extraction/refinement, disabled by default, with mocked tests first and no AI-generated final Workflow JSON.
 - TASK-017A uses OpenAI Responses API with strict structured output for BusinessUnderstanding refinement only; deterministic generation remains responsible for WorkflowGenerationPlan and WorkflowDefinition.
 - TASK-018 Studio live AI review must remain off by default and must use backend-only provider config; the browser can request live review but must never receive or send provider keys.
+- TASK-019 owner demo output should show live AI as review assistance, while Workflow JSON remains deterministic and validator-backed.
 
 ## Active Risks
 
@@ -127,7 +128,7 @@ TASK-017 is merged as the live AI provider boundary plan. TASK-017A is merged as
 
 ## Next Recommended Action
 
-Review TASK-018 Studio Live AI Review Toggle PR. After acceptance, start TASK-019_OWNER_REVIEW_DEMO_WITH_LIVE_AI.
+Review TASK-019 Owner Review Demo With Live AI PR. After acceptance, start TASK-020_OWNER_UI_POLISH_FOR_REVIEW.
 
 ## Critical References
 
@@ -148,6 +149,8 @@ Review TASK-018 Studio Live AI Review Toggle PR. After acceptance, start TASK-01
 - `docs/tasks/TASK-017_LIVE_AI_PROVIDER_PLANNING_OR_EXTRACTION_SPIKE.md`
 - `docs/tasks/TASK-017A_BACKEND_ONLY_OPENAI_EXTRACTION_SPIKE.md`
 - `docs/tasks/TASK-018_STUDIO_LIVE_AI_REVIEW_TOGGLE.md`
+- `docs/tasks/TASK-019_OWNER_REVIEW_DEMO_WITH_LIVE_AI.md`
+- `docs/demo/FLOWAI_LIVE_AI_OWNER_REVIEW.md`
 - `docs/ai-provider/LIVE_AI_PROVIDER_BOUNDARY.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`
 - `docs/shards/`
