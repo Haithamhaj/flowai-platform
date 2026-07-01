@@ -20,11 +20,22 @@ export async function orchestrateAiBuilderTurn(input: AiBuilderTurnInput): Promi
     return fallback;
   }
 
-  const providerOutput = await input.provider.generateBusinessUnderstanding({
-    source: input.source,
-    promptPack: loadPromptPack(),
-    deterministicBusinessUnderstanding: fallback.businessUnderstanding
-  });
+  let providerOutput: unknown;
+  try {
+    providerOutput = await input.provider.generateBusinessUnderstanding({
+      source: input.source,
+      promptPack: loadPromptPack(),
+      deterministicBusinessUnderstanding: fallback.businessUnderstanding
+    });
+  } catch (error) {
+    return {
+      ...fallback,
+      providerDiagnostics: {
+        providerCalled: true,
+        fallbackReason: `provider_error:${safeProviderErrorReason(error)}`
+      }
+    };
+  }
   const parsed = parseProviderOutput(providerOutput);
 
   if (!parsed.valid) {
@@ -55,7 +66,7 @@ export async function orchestrateAiBuilderTurn(input: AiBuilderTurnInput): Promi
 
   return {
     ...fallback,
-    mode: catalogValidation.valid ? "mocked_provider" : "deterministic_fallback",
+    mode: catalogValidation.valid ? input.mode : "deterministic_fallback",
     messages: [
       {
         role: "assistant",
@@ -70,6 +81,13 @@ export async function orchestrateAiBuilderTurn(input: AiBuilderTurnInput): Promi
     },
     safetyFindings
   };
+}
+
+function safeProviderErrorReason(error: unknown): string {
+  if (error instanceof Error && error.message.trim()) {
+    return safeExcerpt(redactSecrets(error.message), 160);
+  }
+  return "unknown";
 }
 
 function buildDeterministicFallback(input: AiBuilderTurnInput): AiBuilderOrchestrationResult {
@@ -144,8 +162,8 @@ function parseProviderOutput(output: unknown):
   | { valid: false; reason: string } {
   if (!output || typeof output !== "object") return { valid: false, reason: "not_object" };
   const record = output as Record<string, unknown>;
-  const patch = record.businessUnderstandingPatch;
-  const catalog = record.productCatalogDraft;
+  const patch = record.businessUnderstandingPatch === null ? undefined : record.businessUnderstandingPatch;
+  const catalog = record.productCatalogDraft === null ? undefined : record.productCatalogDraft;
 
   if (patch !== undefined && !isBusinessUnderstandingPatch(patch)) {
     return { valid: false, reason: "business_understanding_patch" };

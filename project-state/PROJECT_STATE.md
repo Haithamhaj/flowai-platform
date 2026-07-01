@@ -16,7 +16,7 @@ Owner review rejected the original visible surface as too technical and not the 
 
 The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`. TASK-010 formalized AI builder agents, tools, prompt pack, data models, and UX flow before implementation. TASK-011 implemented `apps/studio` as an owner-first local builder UI shell backed by deterministic source ingestion, source review, BusinessUnderstanding draft, WorkflowGenerationPlan, Workflow JSON draft, runtime preview, and Telegram mock preview. TASK-012 added `packages/ai-builder-orchestrator` with prompt pack files, mocked provider tests, structured output validation, product catalog sourceRef blockers, and deterministic fallback. TASK-013 Product Catalog Workspace is merged into `main` at `df2c615`. TASK-014 Visual Workflow Editor is merged into `main` at `776208b`. TASK-015 Channel Preview Workspace is merged into `main` at `e718c70`. TASK-016 Export & Integration Hub is merged into `main` at `8ccd895d4a995435bf74fb397b958fcdd81df8de`; Studio now shows local FlowAI Workflow JSON, CRM mapping, and ticketing mapping copy blocks. The ignored local `.flowai.local.json` may hold development model preferences and API key material, but application code must not read it until a later approved live provider task.
 
-TASK-017 is the active planning branch. It defines the live AI provider boundary for backend-only, disabled-by-default BusinessUnderstanding extraction/refinement. It does not implement provider calls, read keys, add dependencies, change runtime/DSL behavior, or allow AI to generate final Workflow JSON.
+TASK-017 is merged as the live AI provider boundary plan. TASK-017A is the active implementation branch: `packages/ai-builder-orchestrator` now has a backend-only OpenAI Responses API provider adapter, disabled unless explicitly configured, with mocked CI tests and an optional local smoke script. It reads ignored `.flowai.local.json` only when the backend caller explicitly allows local config. It does not add an SDK dependency, expose keys to browser code, change runtime/DSL behavior, or allow AI to generate final Workflow JSON.
 
 ## Active Decisions
 
@@ -72,6 +72,7 @@ TASK-017 is the active planning branch. It defines the live AI provider boundary
 - TASK-015 channel preview workspace renders channel-specific previews from runtime output only; Telegram and WhatsApp remain mock previews, not live integrations.
 - TASK-016 export hub produces local copy-ready JSON and mapping plans only; it does not connect to CRM, ticketing, webhooks, or external platforms.
 - TASK-017 live AI work must start as backend-only BusinessUnderstanding extraction/refinement, disabled by default, with mocked tests first and no AI-generated final Workflow JSON.
+- TASK-017A uses OpenAI Responses API with strict structured output for BusinessUnderstanding refinement only; deterministic generation remains responsible for WorkflowGenerationPlan and WorkflowDefinition.
 
 ## Active Risks
 
@@ -102,6 +103,7 @@ TASK-017 is the active planning branch. It defines the live AI provider boundary
 - Owner-first UI may feel incomplete until TASK-012 adds mocked AI orchestration and prompt-pack behavior.
 - Mocked AI orchestration may be mistaken for live AI unless UI labels and PR notes stay explicit.
 - Live AI provider integration can leak secrets or overclaim facts unless TASK-017A keeps provider access backend-only, disabled by default, sourceRef-gated, mocked in CI, and sanitized in diagnostics.
+- TASK-017A live smoke proves the provider can return structured output locally, but Studio is not wired to live AI yet and the output remains a review draft, not publish-ready chatbot behavior.
 
 ## Protected Areas
 
@@ -118,11 +120,12 @@ TASK-017 is the active planning branch. It defines the live AI provider boundary
 - Do not add document upload endpoints, parser dependencies, PDF parsing, durable storage, RAG, embeddings, or AI extraction during TASK-006 planning.
 - Do not use `.flowai.local.json` from application code until a provider-integration task explicitly approves backend-only secret handling.
 - Do not continue polishing the technical demo as the final product experience.
-- Do not read provider keys, call OpenAI, add provider SDKs, or change app/package source files during TASK-017 planning.
+- Do not expose provider keys to browser code, workflow JSON, BusinessUnderstanding, traces, logs, screenshots, docs, tests, or export packages.
+- Do not wire live AI into Studio UI without an explicit review toggle/status task.
 
 ## Next Recommended Action
 
-Review TASK-017 Live AI Provider Planning PR. After acceptance, start TASK-017A_BACKEND_ONLY_OPENAI_EXTRACTION_SPIKE only with explicit approval for backend-only provider work.
+Review TASK-017A Backend-Only OpenAI Extraction Spike PR. After acceptance, start TASK-018_STUDIO_LIVE_AI_REVIEW_TOGGLE.
 
 ## Critical References
 
@@ -141,6 +144,7 @@ Review TASK-017 Live AI Provider Planning PR. After acceptance, start TASK-017A_
 - `docs/tasks/TASK-016_EXPORT_AND_INTEGRATION_HUB.md`
 - `docs/exporters/EXPORT_AND_INTEGRATION_HUB.md`
 - `docs/tasks/TASK-017_LIVE_AI_PROVIDER_PLANNING_OR_EXTRACTION_SPIKE.md`
+- `docs/tasks/TASK-017A_BACKEND_ONLY_OPENAI_EXTRACTION_SPIKE.md`
 - `docs/ai-provider/LIVE_AI_PROVIDER_BOUNDARY.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`
 - `docs/shards/`

@@ -216,3 +216,10 @@ Decision: TASK-017 should define a backend-only live AI provider boundary before
 Reason: The owner wants smarter AI behavior, but provider integration is security-sensitive and can weaken sourceRefs, Workflow JSON safety, and deterministic fallback if added directly inside the UI or generator.
 Consequences: The first live use case should be BusinessUnderstanding extraction/refinement only. AI may improve source-backed summaries, services, FAQs, missing questions, and product catalog drafts, but the deterministic generator still owns WorkflowGenerationPlan and final WorkflowDefinition creation. Provider access must be disabled by default, mocked in CI, sanitized in diagnostics, and configured only through backend-only secret handling after explicit implementation approval.
 Revisit trigger: TASK-017A proves backend-only OpenAI extraction with mocked tests and an optional local non-CI smoke test without leaking secrets or allowing AI-generated Workflow JSON.
+
+## 2026-07-01: First Live AI Spike Is Backend-Only Extraction
+
+Decision: TASK-017A implements the first OpenAI integration as a backend-only Responses API adapter inside `packages/ai-builder-orchestrator`, using strict structured output for BusinessUnderstanding refinement only.
+Reason: The owner needs smarter AI behavior, but the safest first step is a narrow provider boundary that can be mocked in CI and locally smoke-tested without wiring secrets into the browser or letting AI own Workflow JSON.
+Consequences: The provider is disabled unless configured, reads ignored local config only when explicitly allowed, adds no SDK dependency, sanitizes provider failures, and falls back to deterministic extraction. `gpt-5.5` can be selected by local config for quality, but model choice remains backend configuration rather than a permanent architecture assumption. Studio live AI wiring, uploads, persistence, crawling, RAG, live channels, and production deployment remain separate tasks.
+Revisit trigger: TASK-018 wires the provider into Studio behind an explicit review/status control, or live smoke shows structured extraction is not good enough for owner review.

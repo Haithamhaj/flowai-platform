@@ -21,21 +21,22 @@
 - TASK-014 visual workflow editor.
 - TASK-015 channel preview workspace.
 - TASK-016 export and integration hub.
+- TASK-017 live AI provider planning.
 
 ## Current Phase
 
 - Owner-first visible product rebuild.
-- Current planning target: TASK-017 live AI provider planning.
-- Boundary: docs-only live provider boundary; no live provider call, key read, SDK dependency, upload endpoint, parser dependency, persistence, crawling, RAG, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or app/package source change.
+- Current implementation target: TASK-017A backend-only OpenAI extraction spike.
+- Boundary: backend-only provider adapter and optional local smoke only; no browser key access, Studio live wiring, upload endpoint, parser dependency, persistence, crawling, RAG, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
 
 ## Next
 
-- Review TASK-017 live AI provider planning PR.
-- After acceptance, the next recommended task is TASK-017A_BACKEND_ONLY_OPENAI_EXTRACTION_SPIKE.
+- Review TASK-017A backend-only OpenAI extraction spike PR.
+- After acceptance, the next recommended task is TASK-018_STUDIO_LIVE_AI_REVIEW_TOGGLE.
 
 ## Later
 
-- TASK-017A backend-only OpenAI extraction spike.
+- TASK-018 Studio live AI review toggle.
 - PDF parser review/spike.
 - Real upload API after auth, limits, storage, and operational controls are planned.
 - BusinessUnderstanding / BusinessGraph extraction from reviewed source documents.
@@ -58,7 +59,7 @@
 - File upload endpoints.
 - PDF, DOCX, OCR, or rich parser support.
 - RAG, embeddings, or vector DB.
-- AI/provider calls.
+- AI/provider calls beyond backend-only BusinessUnderstanding refinement.
 - Persistence/database.
 - Auth, tenants, or billing.
 - Studio UI or visual workflow editor.

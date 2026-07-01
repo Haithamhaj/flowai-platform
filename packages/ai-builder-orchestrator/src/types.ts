@@ -1,7 +1,7 @@
 import type { BusinessUnderstanding, MissingQuestion, PreferredLanguage, SourceRef } from "@flowai/business-understanding";
 
-export type AiBuilderMode = "disabled" | "mocked_provider";
-export type OrchestratorResultMode = "deterministic_fallback" | "mocked_provider";
+export type AiBuilderMode = "disabled" | "mocked_provider" | "live_provider";
+export type OrchestratorResultMode = "deterministic_fallback" | "mocked_provider" | "live_provider";
 
 export interface AiBuilderSourceInput {
   filename: string;
@@ -119,6 +119,24 @@ export interface AiBuilderOrchestrationResult {
   };
   safetyFindings: AiBuilderSafetyFinding[];
 }
+
+export interface OpenAiProviderDiagnostics {
+  configured: boolean;
+  source: "env" | "local_config" | "none";
+  model: string | null;
+}
+
+export type OpenAiProviderConfigResult =
+  | {
+      configured: false;
+      diagnostics: OpenAiProviderDiagnostics;
+    }
+  | {
+      configured: true;
+      apiKey: string;
+      model: string;
+      diagnostics: OpenAiProviderDiagnostics;
+    };
 
 export interface MockAiBuilderProviderOptions {
   businessUnderstandingPatch?: BusinessUnderstandingPatch;
