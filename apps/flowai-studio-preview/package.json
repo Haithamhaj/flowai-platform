@@ -1,0 +1,27 @@
+{
+  "name": "@flowai/flowai-studio-preview",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "node dist/server.js",
+    "help": "node dist/server.js --help"
+  },
+  "dependencies": {
+    "@flowai/business-understanding": "workspace:*",
+    "@flowai/channel-adapters": "workspace:*",
+    "@flowai/runtime-core": "workspace:*",
+    "@flowai/source-ingestion": "workspace:*",
+    "@flowai/source-review": "workspace:*",
+    "@flowai/workflow-dsl": "workspace:*",
+    "@flowai/workflow-generator": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

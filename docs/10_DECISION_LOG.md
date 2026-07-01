@@ -160,3 +160,10 @@ Decision: The next delivery should prove the visible product path with `pnpm dem
 Reason: The owner needs to see whether FlowAI is on the right product path through real local output: source document, sourceRefs, extracted facts, workflow plan, workflow summary, runtime conversation, and Telegram mock output.
 Consequences: `packages/source-review` stays deterministic and narrow. AI extraction, upload endpoints, PDF parsing, crawling, RAG, persistence, Studio UI, WhatsApp, production Telegram, and exporters remain deferred until the visible flow is reviewed.
 Revisit trigger: Owner reviews the visible MVP demo and decides whether deterministic extraction should be expanded, simplified, or replaced with AI-assisted extraction.
+
+## 2026-07-01: Build Local FlowAI Studio Preview
+
+Decision: Add a browser-based local Studio Preview with `pnpm dev:flowai-studio` instead of continuing terminal-only demos.
+Reason: The owner needs to see the product path: source input, AI/deterministic brain, BusinessUnderstanding, workflow plan, visual workflow, runtime chat, and Telegram mock in one reviewable local experience.
+Consequences: `apps/flowai-studio-preview` is a demo/local product review surface. It may call OpenAI from the backend only when `OPENAI_API_KEY` is configured, but deterministic fallback and workflow validation remain mandatory. No UI framework or AI SDK dependency is added in this iteration.
+Revisit trigger: Owner review shows the product direction is wrong, the UI needs a true production Studio architecture, or AI extraction needs a dedicated package and stronger schema validation.

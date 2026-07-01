@@ -2,9 +2,11 @@ node_modules/
 dist/
 coverage/
 .turbo/
+.pnpm-store/
+.playwright-cli/
+output/playwright/
 .env
 .env.*
 !.env.example
 *.log
 .DS_Store
-

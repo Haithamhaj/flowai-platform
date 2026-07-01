@@ -17,13 +17,14 @@
 ## Current Phase
 
 - Visible MVP demo.
-- Current implementation target: source review/facts plus `pnpm demo:flowai`.
-- Boundary: deterministic text/markdown examples only; no upload endpoint, parser dependency, AI, persistence, crawling, RAG, Studio UI, WhatsApp, or production channel work.
+- Current implementation target: browser-based FlowAI Studio Preview plus `pnpm dev:flowai-studio`.
+- Boundary: local demo app only; no upload endpoint, parser dependency, persistence, crawling, RAG, WhatsApp, live Telegram, exporters, auth, tenants, or production channel work.
+- AI boundary: optional backend-only OpenAI enrichment when `OPENAI_API_KEY` is configured; deterministic fallback remains required.
 
 ## Next
 
-- Review and run the visible local MVP demo.
-- After acceptance, the next recommended task is TASK-006C_OWNER_REVIEW_AND_AI_EXTRACTION_DECISION.
+- Review and run the visible browser MVP demo.
+- After acceptance, the next recommended task is owner review and design choice.
 
 ## Later
 
@@ -49,10 +50,10 @@
 - File upload endpoints.
 - PDF, DOCX, OCR, or rich parser support.
 - RAG, embeddings, or vector DB.
-- AI/provider calls.
+- Production AI/provider calls beyond local demo enrichment.
 - Persistence/database.
 - Auth, tenants, or billing.
-- Studio UI.
+- Production Studio UI.
 - WhatsApp.
 - Live Telegram polling/webhooks.
 - Exporters.

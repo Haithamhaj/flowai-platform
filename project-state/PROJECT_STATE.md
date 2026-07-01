@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Produce a visible local MVP demo that proves the FlowAI product path.
+Produce a visible local MVP demo that proves the FlowAI product path in a browser.
 
 ## Current Reality
 
@@ -10,7 +10,7 @@ Produce a visible local MVP demo that proves the FlowAI product path.
 
 Telegram mock/update preview is implemented and merged. TASK-005A package-first direct business interview analysis is merged into `main`. Business Understanding v1 architecture planning is merged into `main` as docs only. TASK-005B planning and implementation are merged into `main`; `packages/workflow-generator` now provides deterministic package-local `BusinessUnderstanding -> WorkflowGenerationPlan -> WorkflowDefinition` draft generation for clinic booking and service lead templates. TASK-005C planning and implementation are merged into `main`; `POST /workflow-drafts/from-business-understanding` is the accepted narrow API wrapper around the generator. TASK-005D end-to-end smoke tests are accepted and merged through PR #11 at final main HEAD `f2e44819757a0ef015b2674323feac4391ea0d8e`. TASK-006 document ingestion planning is merged into `main`. TASK-006A source document text ingestion is merged into `main` through PR #14 at `5d388ff79e84f42cf302b347590b703a8f3602b0`.
 
-The current branch adds visible local MVP demo support: `packages/source-review` converts accepted text/markdown `SourceDocument` records into deterministic review facts and `BusinessUnderstanding` drafts, and `pnpm demo:flowai` shows clinic appointment, service lead, FAQ, and Arabic examples through workflow generation, runtime test conversation, and Telegram preview mock. It adds no upload endpoints, parser dependencies, PDF parsing, storage, RAG, AI providers, crawling, persistence, auth, Studio UI, WhatsApp, live Telegram, or exporters.
+The current branch adds a local FlowAI Studio Preview browser experience through `apps/flowai-studio-preview` and `pnpm dev:flowai-studio`. It shows source input, SourceDocument/sourceRefs, deterministic facts, optional backend-only OpenAI enrichment when `OPENAI_API_KEY` is configured, BusinessUnderstanding, WorkflowGenerationPlan, validated Workflow JSON, visual workflow graph, runtime test conversation, Telegram preview mock, and owner decision prompts. It adds no upload endpoints, parser dependencies, PDF parsing, storage, RAG, crawling, persistence, auth, WhatsApp, live Telegram, or exporters.
 
 ## Active Decisions
 
@@ -54,7 +54,8 @@ The current branch adds visible local MVP demo support: `packages/source-review`
 - TASK-005D is accepted and merged via PR #11 at `f2e44819757a0ef015b2674323feac4391ea0d8e`.
 - TASK-006 planning should start with SourceDocument plus text/markdown ingestion only in a later implementation task; PDF requires a separate parser/security review.
 - TASK-006A implements `packages/source-ingestion` as the text/markdown-only SourceDocument foundation without external parser dependencies.
-- Visible MVP review should prioritize observable demo output over additional invisible infrastructure.
+- Visible MVP review should prioritize observable browser product review over additional invisible infrastructure.
+- FlowAI Studio Preview may use backend-only optional AI extraction as a demo enrichment layer, but generated workflows must still pass deterministic validation and fallback safely when AI is unavailable or invalid.
 
 ## Active Risks
 
@@ -64,7 +65,7 @@ The current branch adds visible local MVP demo support: `packages/source-review`
 - API runtime test sessions are process-local, temporary, capped in memory, lost on restart, not tenant-safe, and not horizontally scalable.
 - Telegram preview may accidentally grow into production channel infrastructure if endpoints, token handling, and persistence are not kept minimal.
 - TASK-004 Telegram preview sessions are also process-local and preview-only.
-- TASK-005 may overpromise AI generation if provider calls are added before explicit approval.
+- Studio Preview may overpromise AI extraction quality if demo enrichment is mistaken for production extraction.
 - BusinessUnderstanding may become too coupled to channels/runtime/API if the package boundary is not kept clean.
 - Deterministic TASK-005A extraction is intentionally conservative and should not be treated as production AI extraction quality.
 - BusinessGraph planning may be mistaken for implemented crawling, catalog extraction, or recommendations unless follow-up tasks stay explicit.
@@ -80,7 +81,7 @@ The current branch adds visible local MVP demo support: `packages/source-review`
 
 - Do not copy code from legacy backend, Dify, Typebot, Firecrawl, or unsafe-license projects.
 - Do not add `eval`, `new Function`, arbitrary workflow expressions, or secrets in workflow JSON.
-- Do not implement crawling, WhatsApp, Studio UI, RAG, or AI generation without explicit task approval.
+- Do not implement crawling, WhatsApp, RAG, production AI generation, or production Studio without explicit task approval.
 - Do not put Telegram bot tokens or webhook secrets in workflow JSON, logs, or runtime traces.
 - Do not store secrets or private chain-of-thought in BusinessUnderstanding JSON.
 - Do not generate Workflow JSON in TASK-005A; TASK-005B owns the package-local draft generator boundary.
@@ -92,7 +93,7 @@ The current branch adds visible local MVP demo support: `packages/source-review`
 
 ## Next Recommended Action
 
-Review and run the visible local MVP demo with `pnpm demo:flowai`. Use owner feedback on the visible flow before adding AI, persistence, upload endpoints, crawling, RAG, Studio UI, or additional templates.
+Review and run the visible browser MVP with `pnpm dev:flowai-studio`. Use owner feedback before adding persistence, upload endpoints, crawling, RAG, production Studio, live channels, or additional templates.
 
 ## Critical References
 
@@ -155,4 +156,7 @@ Review and run the visible local MVP demo with `pnpm demo:flowai`. Use owner fee
 - `packages/source-review/test/source-review.test.ts`
 - `examples/flowai-demo/visible-mvp-demo.mjs`
 - `docs/demo/FLOWAI_VISIBLE_MVP_DEMO.md`
+- `docs/demo/FLOWAI_PRODUCT_REVIEW_UI.md`
+- `docs/design/FLOWAI_STUDIO_PREVIEW_DESIGN_BRIEF.md`
+- `apps/flowai-studio-preview/`
 - `docs/api/WORKFLOW_DRAFT_ENDPOINT_PLAN.md`
