@@ -40,7 +40,8 @@
 
 ## Next
 
-- Start TASK-024_BROWSER_CRAWL_REVIEW_FIXTURES.
+- Review TASK-024_BROWSER_CRAWL_REVIEW_FIXTURES PR.
+- After acceptance, decide whether to start TASK-025_BROWSER_RENDERED_CRAWLER_SPIKE_PLAN.
 
 ## Later
 

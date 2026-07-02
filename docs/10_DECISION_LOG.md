@@ -280,3 +280,10 @@ Reason: The owner needs to paste a URL and see the full FlowAI product path, not
 Consequences: `/api/crawl-preview` remains available for raw crawl inspection, while `/api/crawl-build` is the owner-visible path. Crawled sources are marked separately from pasted website text so the checklist only claims website crawling when the crawler actually ran. This remains a local review flow, not production crawling, persistent ingestion, OCR/PDF parsing, browser rendering, live channel delivery, or RAG source-of-truth behavior.
 Merge: PR #35, final main HEAD `ef237981ed70713c5ef8101420d1964a8a7eb318`.
 Revisit trigger: Owner testing shows crawler output is too weak for real websites, or the next task needs browser-rendered/Crawl4AI-style crawling fixtures.
+
+## 2026-07-02: Measure Crawl Quality Before Browser Rendering
+
+Decision: TASK-024 adds local crawl review fixtures and `pnpm demo:crawl-review` before any browser-rendered crawler implementation.
+Reason: The current Cheerio crawler is fast and lower-risk, but it cannot execute JavaScript. FlowAI needs owner-review evidence showing which website content is extractable today and which content needs a later browser-rendered crawler spike.
+Consequences: Static public HTML is treated as supported by the current crawler. Client-rendered catalog/service/FAQ content is flagged as `needs_browser_rendering`. No new dependency, Crawl4AI integration, browser crawler, upload endpoint, OCR/PDF parser, persistence, production RAG lifecycle, or login/session crawling is added by this task.
+Revisit trigger: Real target website examples show important business, catalog, FAQ, or policy content missing from Cheerio output.

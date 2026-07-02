@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Add owner-review crawl quality fixtures so FlowAI can compare where the current Cheerio crawler succeeds and where browser-rendered/Crawl4AI-style crawling may be needed.
+Review TASK-024 crawl quality fixtures and decide whether a browser-rendered crawler spike is justified by real website examples.
 
 ## Current Reality
 
@@ -29,6 +29,8 @@ TASK-021 is active. It turns the existing local Studio into a more complete visi
 TASK-022 is merged. It added `packages/website-crawler` using Crawlee `CheerioCrawler` as the first real website crawling path. The crawler is same-origin, capped, explicit, blocks private-network targets by default, uses in-memory Crawlee storage, and converts crawled pages into a website `SourceDocument` for the existing Studio pipeline.
 
 TASK-023 is merged through PR #35 at final main HEAD `ef237981ed70713c5ef8101420d1964a8a7eb318`. It connects the website crawler to the visible Studio build path so a URL can produce crawl summary, website SourceDocument/sourceRefs, owner checklist status, optional live AI review, optional OpenAI RAG search, WorkflowGenerationPlan/WorkflowDefinition summary, runtime conversation, channel previews, and export blocks in one owner-review action.
+
+TASK-024 is implemented and ready for review. It adds crawl quality fixtures and `pnpm demo:crawl-review`, producing `docs/demo/FLOWAI_CRAWL_REVIEW_FIXTURES.md` to show that static public HTML is supported by the current Cheerio crawler while client-rendered catalog content needs a later browser-rendered crawler spike.
 
 ## Active Decisions
 
@@ -101,6 +103,7 @@ TASK-023 is merged through PR #35 at final main HEAD `ef237981ed70713c5ef8101420
 - TASK-022 selects Crawlee for the first crawler because it is TypeScript, Apache-2.0, and can start with CheerioCrawler HTTP crawling without browser automation. Crawl4AI remains a later candidate for stronger LLM-friendly Markdown and JS-heavy crawling.
 - TASK-023 keeps `/api/crawl-preview` for raw crawl inspection and adds `/api/crawl-build` for the owner-visible URL-to-preview path.
 - Crawled website sources are marked as crawler-origin so Studio can distinguish real crawler execution from pasted website text.
+- TASK-024 uses fixtures to measure crawler fit before approving browser-rendered crawling.
 
 ## Active Risks
 
@@ -144,6 +147,7 @@ TASK-023 is merged through PR #35 at final main HEAD `ef237981ed70713c5ef8101420
 - TASK-021 can make the system feel more complete than the backend reality; UI must continue showing OCR/PDF, upload, crawling, persistence, live channels, and production RAG as blocked/deferred.
 - TASK-022 crawling is not production crawling: no login/session crawling, no browser rendering, no scheduled crawl, no durable crawl storage, and no production robots/terms policy yet.
 - TASK-023 can make website ingestion feel more complete than it is; Studio must keep labeling OCR/PDF, upload, private crawling, browser rendering, persistence, live channels, and production RAG lifecycle as deferred.
+- TASK-024 fixture output may underrepresent real customer website complexity; real URLs still need separate review.
 
 ## Protected Areas
 
@@ -169,7 +173,7 @@ TASK-023 is merged through PR #35 at final main HEAD `ef237981ed70713c5ef8101420
 
 ## Next Recommended Action
 
-Start `TASK-024_BROWSER_CRAWL_REVIEW_FIXTURES`.
+Review and merge `TASK-024_BROWSER_CRAWL_REVIEW_FIXTURES`; then decide whether `TASK-025_BROWSER_RENDERED_CRAWLER_SPIKE_PLAN` is needed.
 
 ## Critical References
 
@@ -198,6 +202,8 @@ Start `TASK-024_BROWSER_CRAWL_REVIEW_FIXTURES`.
 - `docs/tasks/TASK-021_VISIBLE_FULL_SYSTEM_TRIAL.md`
 - `docs/tasks/TASK-022_WEBSITE_CRAWLING_CRAWLEE.md`
 - `docs/tasks/TASK-023_CRAWL_TO_AI_RAG_REVIEW.md`
+- `docs/tasks/TASK-024_BROWSER_CRAWL_REVIEW_FIXTURES.md`
+- `docs/demo/FLOWAI_CRAWL_REVIEW_FIXTURES.md`
 - `docs/document-intelligence/DOCUMENT_INTELLIGENCE_OPTIONS.md`
 - `docs/ai-provider/LIVE_AI_PROVIDER_BOUNDARY.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`
