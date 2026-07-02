@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   DEFAULT_SOURCE_DOCUMENT_LIMITS,
+  ingestExtractedDocument,
   ingestSourceDocument,
   type SourceDocument,
   type SourceDocumentRejection
@@ -260,6 +261,149 @@ describe("source document text ingestion", () => {
 
     expect(result.ok).toBe(false);
     expect(readRejection(result).error.code).toBe("EXTRACTED_TEXT_TOO_LARGE");
+  });
+});
+
+describe("extracted document contract ingestion", () => {
+  it("converts OCR-like page results into a SourceDocument with stable page sourceRefs and chunks", () => {
+    const result = ingestExtractedDocument({
+      sourceId: "leap_ocr_session_001",
+      sourceKind: "ocr_result",
+      filename: "clinic-services.pdf",
+      mimeType: "application/pdf",
+      language: "en",
+      pages: [
+        {
+          pageNumber: 1,
+          text: [
+            "# Bright Dental Clinic",
+            "Category: clinic",
+            "## Services",
+            "- Dental checkup: Routine examination.",
+            "- Teeth whitening: Cosmetic consultation."
+          ].join("\n"),
+          confidence: 0.93,
+          blocks: [
+            { blockId: "p1-title", kind: "heading", text: "Bright Dental Clinic", confidence: 0.95 },
+            { blockId: "p1-services", kind: "list", text: "Dental checkup\nTeeth whitening", confidence: 0.91 }
+          ]
+        },
+        {
+          pageNumber: 2,
+          text: ["## Required fields", "- name", "- phone", "- preferred date"].join("\n"),
+          confidence: 0.9,
+          tables: [
+            {
+              tableId: "fields-table",
+              rows: [
+                ["field", "required"],
+                ["name", "yes"],
+                ["phone", "yes"]
+              ],
+              confidence: 0.86
+            }
+          ]
+        }
+      ]
+    });
+
+    expect(result.ok).toBe(true);
+    const document = readDocument(result);
+
+    expect(document).toMatchObject({
+      filename: "clinic-services.pdf",
+      mimeType: "application/pdf",
+      status: "extracted",
+      metadata: {
+        detectedFormat: "ocr_result",
+        pageCount: 2,
+        blockCount: 2,
+        tableCount: 1,
+        language: "en"
+      },
+      errors: []
+    });
+    expect(document.text).toContain("# Bright Dental Clinic");
+    expect(document.text).toContain("## Required fields");
+    expect(document.sourceRefs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "clinic-services.pdf page 1",
+          locator: { kind: "line_range", startLine: 1, endLine: 5 }
+        }),
+        expect.objectContaining({
+          label: "clinic-services.pdf page 2",
+          locator: { kind: "line_range", startLine: 7, endLine: 14 }
+        }),
+        expect.objectContaining({
+          label: "clinic-services.pdf page 1 block p1-services",
+          metadata: expect.objectContaining({ pageNumber: 1, blockId: "p1-services", confidence: 0.91 })
+        }),
+        expect.objectContaining({
+          label: "clinic-services.pdf page 2 table fields-table",
+          metadata: expect.objectContaining({ pageNumber: 2, tableId: "fields-table", confidence: 0.86 })
+        })
+      ])
+    );
+    expect(document.chunks).toHaveLength(2);
+    expect(document.chunks[0]).toMatchObject({
+      locator: { kind: "line_range", startLine: 1, endLine: 5 },
+      extractionMethod: "ocr_result",
+      metadata: { pageNumber: 1, confidence: 0.93 }
+    });
+    expect(JSON.stringify(document).toLowerCase()).not.toContain("workflowid");
+    expect(JSON.stringify(document).toLowerCase()).not.toContain("adapterid");
+  });
+
+  it("preserves Arabic OCR-like text and flags low-confidence pages for review", () => {
+    const result = ingestExtractedDocument({
+      sourceId: "arabic_fixture_001",
+      sourceKind: "manual_fixture",
+      filename: "arabic-clinic.pdf",
+      mimeType: "application/pdf",
+      language: "ar",
+      pages: [
+        {
+          pageNumber: 1,
+          text: "# عيادة النور\nCategory: clinic\n## Services\n- فحص الأسنان: فحص وتنظيف دوري.",
+          confidence: 0.62
+        }
+      ]
+    });
+
+    expect(result.ok).toBe(true);
+    const document = readDocument(result);
+
+    expect(document.text).toContain("عيادة النور");
+    expect(document.metadata).toMatchObject({
+      detectedFormat: "manual_fixture",
+      pageCount: 1,
+      language: "ar",
+      minConfidence: 0.62
+    });
+    expect(document.warnings).toContainEqual(
+      expect.objectContaining({
+        code: "LOW_EXTRACTION_CONFIDENCE",
+        message: expect.not.stringContaining("عيادة النور")
+      })
+    );
+  });
+
+  it("rejects empty extracted documents without echoing secret-like page text", () => {
+    const result = ingestExtractedDocument({
+      sourceId: "empty_ocr",
+      sourceKind: "ocr_result",
+      filename: "blank.pdf",
+      mimeType: "application/pdf",
+      pages: [{ pageNumber: 1, text: "api_key=sk-secret-value", confidence: 0.1 }]
+    }, { minPageConfidence: 0.5 });
+
+    expect(result.ok).toBe(false);
+    const rejection = readRejection(result);
+
+    expect(rejection.error.code).toBe("EMPTY_EXTRACTED_DOCUMENT");
+    expect(JSON.stringify(rejection)).not.toContain("sk-secret-value");
+    expect(rejection.document.text).toBe("");
   });
 });
 

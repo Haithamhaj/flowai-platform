@@ -244,3 +244,10 @@ Decision: TASK-020 evaluates OCR/PDF parsing, cloud extraction, RAG/vector searc
 Reason: FlowAI needs source-backed business and catalog facts before retrieval. Starting with a vector database would make it too easy to answer from opaque chunks without traceable evidence, freshness, conflict handling, or review gates.
 Consequences: LeapAI-SA/leap-ocr-platform is an internal OCR/extraction reference and possible service adapter candidate, not a direct code-copy source. MinerU, Docling, and PaddleOCR are local PDF/OCR candidates; Google Document AI is a separate cloud extraction candidate; OpenAI Vector Stores/File Search is a later hosted RAG candidate after chunks/sourceRefs exist; Crawl4AI and Crawlee are later crawling candidates. No dependency, provider credential, upload endpoint, parser, vector store, RAG runtime, crawler, or LeapOCR code reuse is approved by this decision.
 Revisit trigger: TASK-020A proves the extracted document contract and fixture harness, or a parser/cloud/RAG/crawler spike produces evidence that the ordering should change.
+
+## 2026-07-02: ExtractedDocument Is The OCR Boundary
+
+Decision: TASK-020A introduces `ExtractedDocument` as the boundary between future OCR/parser providers and FlowAI source review.
+Reason: FlowAI needs to prove the product path using OCR-like output without waiting for real OCR integration or importing the LeapOCR platform into the monorepo.
+Consequences: OCR/parser candidates should map pages, blocks, tables, entities, confidence, and language into `ExtractedDocument`, which then becomes `SourceDocument`, chunks, and sourceRefs. FlowAI workflow generation remains downstream of source review and BusinessUnderstanding. No OCR, PDF parser, upload endpoint, RAG, crawling, cloud provider, persistence, or LeapOCR code reuse is approved by this decision.
+Revisit trigger: TASK-020B evaluates real OCR/parser output and shows the contract needs richer page/block locators or provider-specific metadata.
