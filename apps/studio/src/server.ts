@@ -1,5 +1,4 @@
 import { createServer } from "node:http";
-import { resolve } from "node:path";
 import {
   buildOwnerFirstPreviewWithAiReview,
   getDefaultOwnerInput,
@@ -9,17 +8,29 @@ import {
 import { createOpenAiResponsesProvider, createOpenAiVectorStoreClient, loadOpenAiProviderConfig } from "@flowai/ai-builder-orchestrator";
 import { crawlWebsiteToSourceDocument } from "@flowai/website-crawler";
 import { applyWorkflowEditorCommand, runEditedWorkflowPreview, type WorkflowEditorCommand } from "./workflow-editor.js";
+import { renderCustomerChatHtml } from "./customer-chat-view.js";
+import {
+  runCustomerChatTurn,
+  type CustomerChatAgentProvider,
+  type CustomerChatMessage
+} from "./customer-chat-agent.js";
+import { resolveStudioWorkspaceRoot } from "./workspace-root.js";
 import type { WorkflowDefinition } from "@flowai/workflow-dsl";
 
 const port = Number.parseInt(process.env.PORT ?? "4177", 10);
 const host = process.env.HOST ?? "127.0.0.1";
-const workspaceRoot = process.env.FLOWAI_WORKSPACE_ROOT ?? resolve(process.cwd(), "../..");
+const workspaceRoot = process.env.FLOWAI_WORKSPACE_ROOT ?? resolveStudioWorkspaceRoot(process.cwd());
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? `${host}:${port}`}`);
 
   if (request.method === "GET" && url.pathname === "/") {
     send(response, 200, "text/html; charset=utf-8", renderHtml());
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/customer") {
+    send(response, 200, "text/html; charset=utf-8", renderCustomerChatHtml());
     return;
   }
 
@@ -37,6 +48,22 @@ const server = createServer(async (request, response) => {
       sendJson(response, 400, {
         error: "invalid_request",
         message: error instanceof Error ? error.message : "Request could not be processed."
+      });
+    }
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/customer-chat") {
+    try {
+      const body = await readJson(request);
+      const input = normalizeCustomerChatRequest(body);
+      const provider = buildCustomerChatAgentProvider(body);
+      sendJson(response, 200, await runCustomerChatTurn(input, provider));
+    } catch (error) {
+      sendJson(response, 400, {
+        action: "reply",
+        reply: "لم أستطع قراءة الرسالة. أرسل وصفًا قصيرًا للبزنس أو رابط الموقع.",
+        error: error instanceof Error ? error.message : "Customer chat request could not be processed."
       });
     }
     return;
@@ -103,7 +130,7 @@ const server = createServer(async (request, response) => {
         sourceKind: "website_text",
         sourceOrigin: "crawler",
         sourceUrl: crawl.startUrl,
-        content: crawl.document.text
+        content: appendOwnerContext(crawl.document.text, body)
       };
       const preview = await buildOwnerFirstPreviewWithAiReview(input, buildAiReviewOptions(body));
       sendJson(response, 200, {
@@ -181,7 +208,7 @@ function normalizeInput(value: unknown): OwnerFirstPreviewInput {
     sourceKind: normalizeSourceKind(record.sourceKind),
     sourceOrigin: record.sourceOrigin === "crawler" ? "crawler" : "pasted",
     sourceUrl: typeof record.sourceUrl === "string" ? record.sourceUrl : undefined,
-    content: record.content
+    content: appendOwnerContext(record.content, record)
   };
 }
 
@@ -267,6 +294,144 @@ function normalizeCrawlRequest(value: unknown) {
     maxPages,
     allowPrivateNetwork: process.env.FLOWAI_ALLOW_PRIVATE_CRAWL === "true" && record.allowPrivateNetwork === true
   };
+}
+
+function normalizeCustomerChatRequest(value: unknown): { message: string; history: CustomerChatMessage[]; ownerContext?: string } {
+  if (!value || typeof value !== "object") throw new Error("Body must be a JSON object.");
+  const record = value as Record<string, unknown>;
+  if (typeof record.message !== "string") throw new Error("message is required.");
+  return {
+    message: record.message,
+    history: normalizeCustomerHistory(record.history),
+    ownerContext: typeof record.ownerContext === "string" ? sanitizeOwnerContext(record.ownerContext) : undefined
+  };
+}
+
+function normalizeCustomerHistory(value: unknown): CustomerChatMessage[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry): CustomerChatMessage | null => {
+      if (!entry || typeof entry !== "object") return null;
+      const record = entry as Record<string, unknown>;
+      const role = record.role === "assistant" || record.role === "owner" ? record.role : null;
+      if (!role || typeof record.text !== "string") return null;
+      return { role, text: record.text.slice(0, 800) };
+    })
+    .filter((entry): entry is CustomerChatMessage => Boolean(entry))
+    .slice(-12);
+}
+
+function buildCustomerChatAgentProvider(value: unknown): CustomerChatAgentProvider | undefined {
+  const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  if (record.useLiveAi !== true) return undefined;
+  const config = loadOpenAiProviderConfig({
+    allowLocalConfig: true,
+    workspaceRoot
+  });
+  if (!config.configured) return undefined;
+
+  return {
+    async generateReply(input) {
+      const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${config.apiKey}`,
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          model: config.model,
+          input: [
+            {
+              role: "system",
+              content: [
+                {
+                  type: "input_text",
+                  text: [
+                    "You are FlowAI, an Arabic-first senior chatbot product consultant for business owners.",
+                    "Reply naturally like ChatGPT, but think like a conversion-focused chatbot architect.",
+                    "Internally run a private multi-agent review before answering: Business Strategist, Source/Catalog Analyst, Global Best-Practices Advisor, Conversation Designer, Workflow Planner, and Safety Reviewer.",
+                    "Do not reveal those internal agents, role names, votes, traces, chain-of-thought, or internal deliberation.",
+                    "Use global chatbot/ecommerce/service-business best practices to propose stronger flows, but separate recommendations from source-backed facts.",
+                    "Understand the business vision, positioning, target customer, conversion goal, channels, tone, and catalog before pushing to workflow generation.",
+                    "Do not behave like a form. Use the conversation history and owner context before asking.",
+                    "Do not analyze short greetings as documents.",
+                    "If the owner already answered a point, acknowledge it and move forward; do not ask it again.",
+                    "Prefer useful recommendations, options, and a proposed chatbot path over generic questions.",
+                    "Ask at most one high-leverage follow-up question, and only when it changes the workflow.",
+                    "When source evidence is missing, say what you can propose and what must come from the source.",
+                    "Keep the answer under 95 Arabic words.",
+                    "Do not mention SourceDocument, sourceRefs, JSON, internal pipelines, or tests.",
+                    "Do not claim prices, availability, integrations, or deployment unless the user provided evidence."
+                  ].join("\\n")
+                }
+              ]
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "input_text",
+                  text: JSON.stringify({
+                    intent: input.intent,
+                    message: input.message,
+                    ownerContext: input.ownerContext,
+                    history: input.history.slice(-8)
+                  })
+                }
+              ]
+            }
+          ]
+        })
+      });
+      if (!response.ok) throw new Error(`customer_chat_provider_error:${response.status}`);
+      const payload = await response.json();
+      const text = extractResponsesText(payload);
+      if (!text) throw new Error("customer_chat_provider_error:missing_text");
+      return text;
+    }
+  };
+}
+
+function appendOwnerContext(content: string, value: unknown): string {
+  const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  const ownerContext = typeof record.ownerContext === "string" ? sanitizeOwnerContext(record.ownerContext) : "";
+  if (!ownerContext) return content;
+  return [
+    "# Owner Conversation Decisions",
+    "These are owner-provided chatbot requirements from the current chat. Treat them as owner instructions, not website evidence for prices or availability.",
+    ownerContext,
+    "",
+    "---",
+    "",
+    content
+  ].join("\n");
+}
+
+function sanitizeOwnerContext(value: string): string {
+  return value
+    .replace(/sk-[A-Za-z0-9_-]+/g, "[redacted_key]")
+    .replace(/api[_-]?key\s*[:=]\s*\S+/gi, "api_key=[redacted]")
+    .slice(0, 2800)
+    .trim();
+}
+
+function extractResponsesText(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+  const record = payload as Record<string, unknown>;
+  if (typeof record.output_text === "string") return record.output_text;
+  const output = record.output;
+  if (!Array.isArray(output)) return null;
+  for (const item of output) {
+    if (!item || typeof item !== "object") continue;
+    const content = (item as Record<string, unknown>).content;
+    if (!Array.isArray(content)) continue;
+    for (const part of content) {
+      if (!part || typeof part !== "object") continue;
+      const text = (part as Record<string, unknown>).text;
+      if (typeof text === "string") return text;
+    }
+  }
+  return null;
 }
 
 function normalizeSourceKind(value: unknown): OwnerFirstPreviewInput["sourceKind"] {

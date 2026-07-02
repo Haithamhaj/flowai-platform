@@ -35,13 +35,14 @@
 
 ## Current Phase
 
-- Crawl quality review.
-- Current planning target: decide whether TASK-025 browser-rendered crawler spike planning is justified.
-- Boundary: bounded same-origin public http/https crawling only; no browser key access, upload endpoint, parser dependency, OCR implementation, Google integration, persistence, login/session crawling, private-network crawling by default, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
+- Customer-facing visible product experience.
+- Active task: TASK-025 customer chat screen.
+- Boundary: separate `/customer` route only; keep `/` Studio unchanged; no server upload endpoint, file storage, parser dependency, OCR implementation, PDF parsing, Google integration, persistence, auth/tenants, private-network crawling by default, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL change, runtime semantic change, or AI-generated final Workflow JSON.
 
 ## Next
 
-- Start TASK-025_BROWSER_RENDERED_CRAWLER_SPIKE_PLAN only if real target websites need JavaScript-rendered extraction.
+- Complete TASK-025_CUSTOMER_CHAT_SCREEN.
+- Then run owner review of `/customer` before choosing the next product task.
 
 ## Later
 
@@ -51,6 +52,7 @@
 - BusinessUnderstanding / BusinessGraph extraction from reviewed source documents.
 - Browser-rendered crawling.
 - Crawl quality fixtures and owner review examples.
+- Customer chat polish after owner review.
 - Production RAG lifecycle: persistence, expiry, deletion, tenant isolation, citations, and review policy.
 - Studio UI.
 - WhatsApp.

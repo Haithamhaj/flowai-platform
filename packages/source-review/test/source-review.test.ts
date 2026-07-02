@@ -130,6 +130,45 @@ describe("source document review and deterministic facts", () => {
     expect(review.boundedExcerpts.map((excerpt) => excerpt.text).join("\n")).toContain("عيادة النور");
   });
 
+  it("extracts source-backed Arabic website catalog services from crawler-style page headings", () => {
+    const document = acceptedDocument({
+      filename: "alboshrastore-crawl.md",
+      mimeType: "text/markdown",
+      content: [
+        "# البشرى - نبني اثر لا ينسى",
+        "SOURCE_URL: https://alboshrastore.com/",
+        "DESCRIPTION: شركة سعودية رسمية لبيع وتنفيذ مشاريع الصدقات تشمل حفر آبار بالقرى الآسيوية وذبح وتوزيع المواشي ووقف مصاحف.",
+        "",
+        "## Page 2: الذبائح - البشرى - نبني اثر لا ينسى",
+        "CATALOG_LINK: الذبائح -> https://alboshrastore.com/slaughter",
+        "PRICE_CANDIDATE: ذبيحة تبدأ من 500 ريال",
+        "خدمة ذبح وتوزيع المواشي ضمن مشاريع الصدقات.",
+        "",
+        "## Page 3: الآبار - البشرى - نبني اثر لا ينسى",
+        "خدمة حفر آبار في القرى المحتاجة.",
+        "",
+        "## Page 4: وقف المصاحف - البشرى - نبني اثر لا ينسى",
+        "وقف مصاحف للمساجد والمستفيدين."
+      ].join("\n")
+    });
+
+    const facts = extractBusinessFactsDraft(document);
+
+    expect(facts.language).toBe("ar");
+    expect(facts.category).toBe("service_company");
+    expect(facts.services.map((service) => service.name)).toEqual([
+      "حفر آبار",
+      "ذبح وتوزيع المواشي",
+      "وقف مصاحف"
+    ]);
+    expect(facts.services.every((service) => service.sourceRefs.length > 0)).toBe(true);
+    expect(facts.services.every((service) => !service.description.includes("price"))).toBe(true);
+    expect(facts.services.find((service) => service.name === "ذبح وتوزيع المواشي")?.description).toContain(
+      "https://alboshrastore.com/slaughter"
+    );
+    expect(facts.services.find((service) => service.name === "ذبح وتوزيع المواشي")?.description).toContain("500 ريال");
+  });
+
   it("blocks ecommerce/product recommendation claims without ProductCatalog evidence", () => {
     const document = acceptedDocument({
       filename: "shop.md",

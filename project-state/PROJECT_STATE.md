@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Decide whether to plan a browser-rendered crawler spike from real website examples, using TASK-024 fixture output as the review baseline.
+Build a separate customer-facing chat screen at `/customer` that uses the existing FlowAI pipeline without changing the current technical Studio review screen at `/`.
 
 ## Current Reality
 
@@ -31,6 +31,22 @@ TASK-022 is merged. It added `packages/website-crawler` using Crawlee `CheerioCr
 TASK-023 is merged through PR #35 at final main HEAD `ef237981ed70713c5ef8101420d1964a8a7eb318`. It connects the website crawler to the visible Studio build path so a URL can produce crawl summary, website SourceDocument/sourceRefs, owner checklist status, optional live AI review, optional OpenAI RAG search, WorkflowGenerationPlan/WorkflowDefinition summary, runtime conversation, channel previews, and export blocks in one owner-review action.
 
 TASK-024 is merged through PR #37 at final main HEAD `266b2bbb5b98e267775f83660e21f7253e2702ad`. It adds crawl quality fixtures and `pnpm demo:crawl-review`, producing `docs/demo/FLOWAI_CRAWL_REVIEW_FIXTURES.md` to show that static public HTML is supported by the current Cheerio crawler while client-rendered catalog content needs a later browser-rendered crawler spike.
+
+TASK-025 is active. The owner clarified that the current Studio surface should remain available for technical review, but customers need a separate normal chat screen. The new route should let a customer describe the business, attach a local text/markdown file in the browser, paste a website URL, and receive all results inside the chat thread. The chat summarizes sourceRefs, what FlowAI understood, services/FAQs, required fields, missing information, and whether a workflow can be opened. Workflow review opens from a chat action in an in-page modal. This task must not add upload endpoints, PDF/OCR, persistence, auth, live channels, new dependencies, or workflow/runtime contract changes.
+
+During owner review, `https://alboshrastore.com/` exposed a product-fit gap: the crawler fetched Arabic catalog pages, but deterministic source review did not surface Arabic services/products. TASK-025 now includes a narrow source-backed Arabic website catalog extraction fix for explicit terms such as `حفر آبار`, `ذبح وتوزيع المواشي`, and `وقف مصاحف`. The system still blocks workflow generation when required customer fields are missing instead of inventing them.
+
+Follow-up review exposed that `/customer` Live AI was not actually enabled when Studio was started from the repository root, because the server resolved ignored local OpenAI config from the wrong workspace path. TASK-025 now resolves the monorepo root before reading `.flowai.local.json`, and `/customer` renders Live AI `ProductCatalogDraft.items` plus AI missing questions inside the chat response. Verified against `https://alboshrastore.com/` with `aiMode.status=live_provider` and model `gpt-5.5`.
+
+Further owner review exposed a customer-chat UX bug: typing a normal message while a previous website URL remained in the URL field triggered crawling that stale URL. TASK-025 now only crawls when the owner clicks `Use link` or types a URL inside the message itself. The assistant result is also shortened into a conversational response with one follow-up question instead of a long technical report.
+
+Another review exposed that greetings like `مرحبا` and small talk like `كيف حالك` were being treated as source documents, causing Live AI to produce document-analysis reports. TASK-025 now handles these as normal chat and asks for business context without calling `/api/build`.
+
+The current TASK-025 fix adds a customer chat-agent turn before the build pipeline. `/customer` now calls `POST /api/customer-chat` first; that endpoint classifies each owner message as a conversational reply, URL crawl request, or detailed text build request. When Live AI is enabled and backend-only OpenAI config is available, the agent may use the provider for short discovery replies, while provider keys remain server-side and Workflow JSON generation remains deterministic.
+
+Owner review then showed that conversational intelligence alone is not enough: repeated crawls forgot owner decisions, and simple storefront crawls did not surface links/prices clearly. TASK-025 now keeps a lightweight browser-session owner decision log and sends it with customer-chat/build/crawl-build calls. The crawler also emits bounded `CATALOG_LINK` and `PRICE_CANDIDATE` lines from static same-origin HTML so source review and Live AI can reason from better evidence. This is not production memory, persistence, or browser-rendered crawling.
+
+The owner also clarified that agents must not be visible to the customer. `/customer` should present one FlowAI assistant. Internal context, decision memory, and multi-role agent reasoning stay backend-only. The current provider prompt now uses a private multi-role review pattern covering business strategy, source/catalog analysis, global best practices, conversation design, workflow planning, and safety review, but this remains prompt-level orchestration rather than a durable multi-agent runtime.
 
 ## Active Decisions
 
@@ -104,6 +120,18 @@ TASK-024 is merged through PR #37 at final main HEAD `266b2bbb5b98e267775f83660e
 - TASK-023 keeps `/api/crawl-preview` for raw crawl inspection and adds `/api/crawl-build` for the owner-visible URL-to-preview path.
 - Crawled website sources are marked as crawler-origin so Studio can distinguish real crawler execution from pasted website text.
 - TASK-024 uses fixtures to measure crawler fit before approving browser-rendered crawling.
+- TASK-025 keeps the existing `/` Studio screen unchanged and adds `/customer` as a separate customer-facing chat entry point over the same local pipeline.
+- TASK-025 customer output stays inside the conversation; technical panels remain on `/`.
+- Browser-only file attach in `/customer` is limited to `.md` and `.txt` text read with `FileReader`; it is not a server upload feature.
+- Arabic website catalog extraction in TASK-025 is deterministic, source-backed, and conservative; it may surface explicit services/products, but it must not infer prices, availability, recommendations, or missing lead fields.
+- `/customer` may display Live AI catalog items and missing questions when explicitly enabled, but Workflow JSON remains deterministic and validator-backed.
+- `/customer` text send is message-first; the URL field is used only by `Use link`, preventing accidental re-crawls from previous examples.
+- `/customer` small talk is handled before source extraction; not every message should become a SourceDocument.
+- `/customer` routes every typed message through a customer chat-agent turn before extraction; the build pipeline runs only when the agent returns a build/crawl action.
+- `/customer` maintains a local owner decision log for the current browser session and appends it to build/crawl-build as owner-provided requirements.
+- `/customer` must not display internal agent names, internal decision memory, traces, or orchestration steps to the customer.
+- Live AI chat replies may use private multi-role prompt orchestration, but the UI still presents one FlowAI assistant.
+- Website crawler output may include source-backed catalog/order links and price candidates from static HTML, but these remain review evidence rather than publish-ready price/availability claims.
 
 ## Active Risks
 
@@ -148,6 +176,13 @@ TASK-024 is merged through PR #37 at final main HEAD `266b2bbb5b98e267775f83660e
 - TASK-022 crawling is not production crawling: no login/session crawling, no browser rendering, no scheduled crawl, no durable crawl storage, and no production robots/terms policy yet.
 - TASK-023 can make website ingestion feel more complete than it is; Studio must keep labeling OCR/PDF, upload, private crawling, browser rendering, persistence, live channels, and production RAG lifecycle as deferred.
 - TASK-024 fixture output may underrepresent real customer website complexity; real URLs still need separate review.
+- The customer chat screen may make the product feel more complete than the backend reality; it must keep boundaries visible for upload, OCR/PDF, persistence, live channels, and production integrations.
+- Browser-only file attach proves local UX only and does not satisfy production upload, scanning, storage, privacy, retention, or auth needs.
+- Pattern-based Arabic catalog extraction will miss many real catalogs and synonyms until live AI extraction, stronger catalog modeling, or browser-rendered crawling is approved and tested.
+- The TASK-025 chat-agent turn improves intent routing and tone, but it is not yet durable session memory, production orchestration, OCR/PDF upload, browser-rendered crawling, or full multi-agent planning.
+- The session decision log can be lost on reload and is not tenant-safe; production memory/session persistence remains a separate task.
+- Prompt-level multi-role review can improve reasoning, but it is not a full multi-agent system with independent tools, durable state, or reviewable traces yet.
+- Catalog links and price candidates only work when present in static HTML; JS-rendered catalogs still need a browser-rendered crawler spike.
 
 ## Protected Areas
 
@@ -170,14 +205,17 @@ TASK-024 is merged through PR #37 at final main HEAD `266b2bbb5b98e267775f83660e
 - Do not copy code from LeapAI-SA/leap-ocr-platform into FlowAI until ownership/reuse permission, security boundaries, and a specific adapter task are approved.
 - Do not use RAG results as source of truth for prices, availability, recommendations, medical/legal policy, or workflow decisions without source-backed review.
 - Do not let OCR/parser adapters generate final Workflow JSON or bypass SourceDocument/sourceRefs review.
+- Do not modify the existing `/` Studio review screen while TASK-025 adds the separate `/customer` screen.
+- Do not add a server upload endpoint or file storage during TASK-025.
 
 ## Next Recommended Action
 
-Start `TASK-025_BROWSER_RENDERED_CRAWLER_SPIKE_PLAN` only if owner review confirms real target websites need browser-rendered crawling.
+Complete `TASK-025_CUSTOMER_CHAT_SCREEN`, then review the `/customer` owner/customer experience before choosing the next single implementation task.
 
 ## Critical References
 
 - `AGENTS.md`
+- `docs/tasks/TASK-025_CUSTOMER_CHAT_SCREEN.md`
 - `docs/00_PROJECT_CONTEXT.md`
 - `docs/06_AGENT_WORKFLOW.md`
 - `docs/07_TASK_SYSTEM.md`
