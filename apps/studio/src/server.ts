@@ -7,6 +7,7 @@ import {
   type OwnerFirstPreviewInput
 } from "./index.js";
 import { createOpenAiResponsesProvider, createOpenAiVectorStoreClient, loadOpenAiProviderConfig } from "@flowai/ai-builder-orchestrator";
+import { crawlWebsiteToSourceDocument } from "@flowai/website-crawler";
 import { applyWorkflowEditorCommand, runEditedWorkflowPreview, type WorkflowEditorCommand } from "./workflow-editor.js";
 import type { WorkflowDefinition } from "@flowai/workflow-dsl";
 
@@ -36,6 +37,48 @@ const server = createServer(async (request, response) => {
       sendJson(response, 400, {
         error: "invalid_request",
         message: error instanceof Error ? error.message : "Request could not be processed."
+      });
+    }
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/crawl-preview") {
+    try {
+      const body = await readJson(request);
+      const crawlRequest = normalizeCrawlRequest(body);
+      const crawl = await crawlWebsiteToSourceDocument(crawlRequest);
+      if (!crawl.ok) {
+        sendJson(response, 400, {
+          ok: false,
+          error: crawl.error,
+          warnings: crawl.warnings
+        });
+        return;
+      }
+      sendJson(response, 200, {
+        ok: true,
+        startUrl: crawl.startUrl,
+        filename: crawl.document.filename,
+        content: crawl.document.text,
+        pages: crawl.pages.map((page) => ({
+          url: page.url,
+          title: page.title,
+          textLength: page.text.length
+        })),
+        sourceRefs: crawl.document.sourceRefs.map((ref) => ({
+          id: ref.id,
+          label: ref.label
+        })),
+        warnings: crawl.warnings
+      });
+    } catch (error) {
+      sendJson(response, 400, {
+        ok: false,
+        error: {
+          code: "INVALID_CRAWL_REQUEST",
+          message: error instanceof Error ? error.message : "Crawl request could not be processed."
+        },
+        warnings: []
       });
     }
     return;
@@ -157,6 +200,20 @@ function buildAiReviewOptions(value: unknown): OwnerFirstAiReviewOptions {
   };
 }
 
+function normalizeCrawlRequest(value: unknown) {
+  if (!value || typeof value !== "object") throw new Error("Body must be a JSON object.");
+  const record = value as Record<string, unknown>;
+  if (typeof record.url !== "string" || record.url.trim().length === 0) {
+    throw new Error("url is required.");
+  }
+  const maxPages = typeof record.maxPages === "number" ? record.maxPages : 5;
+  return {
+    startUrl: record.url,
+    maxPages,
+    allowPrivateNetwork: process.env.FLOWAI_ALLOW_PRIVATE_CRAWL === "true" && record.allowPrivateNetwork === true
+  };
+}
+
 function normalizeSourceKind(value: unknown): OwnerFirstPreviewInput["sourceKind"] {
   if (value === "document_text" || value === "website_text" || value === "business_description") return value;
   return "business_description";
@@ -222,7 +279,7 @@ function renderHtml(): string {
     }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg); color: var(--text); }
-    button, textarea, input { font: inherit; }
+    button, textarea, input, select { font: inherit; }
     .app { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
     header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
     .brand { font-weight: 750; font-size: 18px; }
@@ -241,7 +298,7 @@ function renderHtml(): string {
     .toggle-row { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
     .toggle-row input { width: 18px; height: 18px; min-width: 18px; }
     textarea { width: 100%; min-height: 170px; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fff; color: var(--text); line-height: 1.45; }
-    input { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0; }
+    input, select { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0; background: #fff; color: var(--text); }
     button { border: 0; border-radius: 8px; padding: 10px 14px; background: var(--accent); color: white; cursor: pointer; font-weight: 650; }
     button.secondary { background: #364152; }
     .workspace { padding: 18px; overflow: auto; display: grid; gap: 14px; align-content: start; }
@@ -316,6 +373,11 @@ function renderHtml(): string {
             </select>
             <input id="sourceUrl" placeholder="Website URL reference" aria-label="Website URL reference" />
           </div>
+          <div class="composer-row">
+            <input id="crawlUrl" placeholder="https://example.com" aria-label="Website URL to crawl" />
+            <button class="secondary" id="crawlWebsite" type="button">Crawl</button>
+          </div>
+          <p class="muted" id="crawlStatus">Crawler is same-origin, capped, and blocks private network targets by default.</p>
           <label class="toggle-row"><input id="useLiveAi" type="checkbox" />Use live AI review</label>
           <label class="toggle-row"><input id="useKnowledgeSearch" type="checkbox" />Use OpenAI RAG search</label>
           <input id="knowledgeSearchQuery" value="What should the chatbot know about this business?" aria-label="RAG search query" />
@@ -336,6 +398,9 @@ function renderHtml(): string {
     const useLiveAi = document.getElementById("useLiveAi");
     const useKnowledgeSearch = document.getElementById("useKnowledgeSearch");
     const knowledgeSearchQuery = document.getElementById("knowledgeSearchQuery");
+    const crawlUrl = document.getElementById("crawlUrl");
+    const crawlWebsite = document.getElementById("crawlWebsite");
+    const crawlStatus = document.getElementById("crawlStatus");
     const build = document.getElementById("build");
     const loadSample = document.getElementById("loadSample");
     let visualWorkflowModel = null;
@@ -572,7 +637,33 @@ function renderHtml(): string {
 
     build.addEventListener("click", runBuild);
     loadSample.addEventListener("click", loadDefault);
+    crawlWebsite.addEventListener("click", runCrawl);
     loadDefault();
+
+    async function runCrawl() {
+      const url = crawlUrl.value.trim() || sourceUrl.value.trim();
+      if (!url) {
+        crawlStatus.textContent = "Enter a website URL first.";
+        return;
+      }
+      crawlStatus.textContent = "Crawling website pages...";
+      const res = await fetch("/api/crawl-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, maxPages: 5 })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        crawlStatus.textContent = "Crawl blocked: " + (data.error?.message || "Unable to crawl this URL.");
+        return;
+      }
+      filename.value = data.filename || "website-crawl.md";
+      sourceKind.value = "website_text";
+      sourceUrl.value = data.startUrl || url;
+      content.value = data.content || "";
+      crawlStatus.textContent = "Crawled " + (data.pages?.length || 0) + " page(s). Build the chatbot from this source now.";
+      await runBuild();
+    }
   </script>
 </body>
 </html>`;

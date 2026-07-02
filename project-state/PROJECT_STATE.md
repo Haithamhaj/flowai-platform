@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Make FlowAI locally reviewable as one visible owner-facing system trial: business/document/website text input, sourceRefs, BusinessUnderstanding, catalog review, optional OpenAI RAG evidence, checklist, workflow, visual editor, runtime test, Telegram/Web/WhatsApp mock previews, and export package.
+Add the first real website crawling path so FlowAI can accept a website URL, crawl bounded same-origin pages, create website SourceDocument/sourceRefs, and feed the visible Studio build pipeline.
 
 ## Current Reality
 
@@ -25,6 +25,8 @@ TASK-020A is merged. It adds an `ExtractedDocument` contract and fixture harness
 TASK-020B is merged. It adds a narrow OpenAI Vector Stores adapter in `packages/ai-builder-orchestrator` so FlowAI can create a sourceRef-backed knowledge file from `SourceDocument` chunks, create/search/delete a hosted vector store, and prove the path with a local smoke command using ignored backend-only OpenAI config. This is a RAG/catalog retrieval boundary, not production OCR, crawling, upload, persistence, tenant isolation, or catalog source-of-truth behavior.
 
 TASK-021 is active. It turns the existing local Studio into a more complete visible system trial by showing an owner checklist, source kind/website URL reference, optional sourceRef-backed RAG knowledge search, workflow generation, visual editing, runtime conversation, channel previews, and export blocks in one reviewable page.
+
+TASK-022 is active. It adds `packages/website-crawler` using Crawlee `CheerioCrawler` as the first real website crawling path. The crawler is same-origin, capped, explicit, blocks private-network targets by default, uses in-memory Crawlee storage, and converts crawled pages into a website `SourceDocument` for the existing Studio pipeline.
 
 ## Active Decisions
 
@@ -94,6 +96,7 @@ TASK-021 is active. It turns the existing local Studio into a more complete visi
 - `ExtractedDocument` is evidence and sourceRefs, not BusinessUnderstanding and not Workflow JSON.
 - TASK-020B uses OpenAI Vector Stores over sourceRef-backed knowledge Markdown; retrieval results remain review evidence, not final workflow/catalog truth.
 - TASK-021 Studio RAG search is explicit, backend-only, and temporary per request; website mode is pasted website text plus URL reference, not crawling.
+- TASK-022 selects Crawlee for the first crawler because it is TypeScript, Apache-2.0, and can start with CheerioCrawler HTTP crawling without browser automation. Crawl4AI remains a later candidate for stronger LLM-friendly Markdown and JS-heavy crawling.
 
 ## Active Risks
 
@@ -135,6 +138,7 @@ TASK-021 is active. It turns the existing local Studio into a more complete visi
 - TASK-020A proves only contract compatibility and deterministic pipeline shape; it does not prove real OCR quality.
 - TASK-020B proves only create/search/delete against OpenAI Vector Stores for a small sourceRef-backed fixture; it does not prove production RAG lifecycle, tenant isolation, retention policy, catalog truth, OCR quality, or crawling quality.
 - TASK-021 can make the system feel more complete than the backend reality; UI must continue showing OCR/PDF, upload, crawling, persistence, live channels, and production RAG as blocked/deferred.
+- TASK-022 crawling is not production crawling: no login/session crawling, no browser rendering, no scheduled crawl, no durable crawl storage, and no production robots/terms policy yet.
 
 ## Protected Areas
 
@@ -160,7 +164,7 @@ TASK-021 is active. It turns the existing local Studio into a more complete visi
 
 ## Next Recommended Action
 
-Review TASK-021 visible full system trial. After acceptance, start `TASK-022_OCR_PARSER_LOCAL_SPIKE` only if dependency/license/security approval is documented.
+Review TASK-022 website crawling with Crawlee. After acceptance, start `TASK-023_CRAWL_TO_AI_RAG_REVIEW`.
 
 ## Critical References
 
@@ -187,6 +191,7 @@ Review TASK-021 visible full system trial. After acceptance, start `TASK-022_OCR
 - `docs/tasks/TASK-020A_EXTRACTED_DOCUMENT_CONTRACT_AND_FIXTURE_HARNESS.md`
 - `docs/tasks/TASK-020B_OPENAI_RAG_CATALOG_KB.md`
 - `docs/tasks/TASK-021_VISIBLE_FULL_SYSTEM_TRIAL.md`
+- `docs/tasks/TASK-022_WEBSITE_CRAWLING_CRAWLEE.md`
 - `docs/document-intelligence/DOCUMENT_INTELLIGENCE_OPTIONS.md`
 - `docs/ai-provider/LIVE_AI_PROVIDER_BOUNDARY.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`

@@ -2,7 +2,7 @@ export type SupportedSourceDocumentMimeType = "text/plain" | "text/markdown";
 export type SourceDocumentStatus = "extracted" | "rejected" | "failed";
 export type SourceDocumentFormat = "plain_text" | "markdown";
 export type ExtractedDocumentSourceKind = "ocr_result" | "parser_result" | "manual_fixture";
-export type SourceDocumentExtractionMethod = SourceDocumentFormat | ExtractedDocumentSourceKind;
+export type SourceDocumentExtractionMethod = SourceDocumentFormat | ExtractedDocumentSourceKind | "website_crawl";
 
 export interface SourceDocumentInput {
   filename: string;
@@ -69,7 +69,7 @@ export interface SourceDocumentMetadata {
 
 export interface SourceDocument {
   id: string;
-  sourceType: "uploaded_document";
+  sourceType: "uploaded_document" | "website";
   filename: string;
   extension: string;
   mimeType: SupportedSourceDocumentMimeType | string;
