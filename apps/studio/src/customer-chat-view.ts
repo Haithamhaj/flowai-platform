@@ -157,6 +157,7 @@ export function renderCustomerChatHtml(): string {
     const copyJson = document.getElementById("customerCopyJson");
     let currentWorkflowModel = null;
     let selectedNodeId = null;
+    const chatHistory = [];
 
     addMessage("bot", "أهلًا، أنا FlowAI. احكِ لي عن البزنس أو أرسل رابط موقع أو أرفق ملف نصي، وسأرجع لك داخل هذه المحادثة بما فهمته، ما ينقصني، وهل أقدر أبني الشجرة الآن.");
 
@@ -214,23 +215,56 @@ export function renderCustomerChatHtml(): string {
 
     async function sendCustomerMessage() {
       const text = message.value.trim();
-      const url = firstUrl(text);
       if (!text) return;
-      addMessage("owner", text || url);
+      addMessage("owner", text);
       message.value = "";
-      if (url) {
-        await buildFromWebsite(url);
+      const turn = await runCustomerAgent(text);
+      if (turn.action === "crawl_url") {
+        addMessage("bot", turn.reply);
+        await buildFromWebsite(turn.url);
         return;
       }
-      if (isSmallTalkOnly(text)) {
-        addMessage("bot", renderSmallTalkReply(text));
+      if (turn.action === "build_text") {
+        addMessage("bot", turn.reply);
+        await buildFromText(turn.content, {
+          filename: "customer-chat.md",
+          mimeType: "text/markdown",
+          sourceKind: "business_description"
+        }, { announce: false });
         return;
       }
-      await buildFromText(text, {
-        filename: "customer-chat.md",
-        mimeType: "text/markdown",
-        sourceKind: "business_description"
-      });
+      addMessage("bot", turn.reply);
+    }
+
+    async function runCustomerAgent(text) {
+      try {
+        const response = await fetch("/api/customer-chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: text,
+            history: chatHistory.slice(-10),
+            useLiveAi: Boolean(liveAi.checked)
+          })
+        });
+        if (!response.ok) throw new Error("customer_chat_failed");
+        return await response.json();
+      } catch {
+        if (firstUrl(text)) {
+          return {
+            action: "crawl_url",
+            url: firstUrl(text),
+            reply: "تمام، سأقرأ الرابط وأرجع لك بملخص واضح وأسئلة المتابعة قبل بناء الشجرة."
+          };
+        }
+        if (isSmallTalkOnly(text)) {
+          return { action: "reply", reply: renderSmallTalkReply(text) };
+        }
+        return {
+          action: "reply",
+          reply: "فهمت عليك. قل لي اسم البزنس وأهم خدمة أو منتج تريد البوت يساعد العملاء يفهموه أو يشتروه."
+        };
+      }
     }
 
     async function buildFromWebsite(url) {
@@ -254,8 +288,8 @@ export function renderCustomerChatHtml(): string {
       appendAssistantResult(payload.preview, payload.crawl);
     }
 
-    async function buildFromText(content, source) {
-      addMessage("bot", "سأراجع المعلومات وأبني لك نتيجة قابلة للمراجعة داخل الشات.");
+    async function buildFromText(content, source, options = {}) {
+      if (options.announce !== false) addMessage("bot", "سأراجع المعلومات وأبني لك نتيجة قابلة للمراجعة داخل الشات.");
       const response = await fetch("/api/build", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -350,6 +384,9 @@ export function renderCustomerChatHtml(): string {
       bubble.textContent = text;
       messageNode.append(avatar, bubble);
       thread.appendChild(messageNode);
+      if (kind === "owner" || kind === "bot") {
+        chatHistory.push({ role: kind === "owner" ? "owner" : "assistant", text: String(text).slice(0, 800) });
+      }
       thread.scrollTop = thread.scrollHeight;
     }
 

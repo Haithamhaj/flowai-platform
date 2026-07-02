@@ -50,7 +50,8 @@ describe("customer chat view", () => {
   test("does not crawl a stale link field when the user sends a text-only message", () => {
     const html = renderCustomerChatHtml();
 
-    expect(html).toContain("const url = firstUrl(text);");
+    expect(html).toContain("const turn = await runCustomerAgent(text);");
+    expect(html).toContain('turn.action === "crawl_url"');
     expect(html).not.toContain("const url = link.value.trim() || firstUrl(text);");
     expect(html).toContain("sourceUrl: source.sourceUrl");
     expect(html).not.toContain("sourceUrl: link.value.trim() || undefined");
@@ -70,13 +71,14 @@ describe("customer chat view", () => {
     expect(html).toContain("isSmallTalkOnly");
     expect(html).toContain("renderSmallTalkReply");
     expect(html).toContain("أهلًا، تمام الحمد لله");
-    expect(html).toContain("await buildFromText(text");
+    expect(html).toContain('fetch("/api/customer-chat"');
   });
 
   test("uses the existing pipeline endpoints without adding server upload behavior", () => {
     const html = renderCustomerChatHtml();
 
     expect(html).toContain('fetch("/api/build"');
+    expect(html).toContain('fetch("/api/customer-chat"');
     expect(html).toContain('fetch("/api/crawl-build"');
     expect(html).toContain('fetch("/api/workflow-editor/command"');
     expect(html).toContain("FileReader");

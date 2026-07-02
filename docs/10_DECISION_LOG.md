@@ -330,3 +330,10 @@ Decision: `/customer` must classify obvious greetings and small talk before sour
 Reason: Owner testing showed that messages like `مرحبا` and `كيف حالك` were analyzed as one-line documents, producing an obviously unintelligent report despite Live AI being enabled.
 Consequences: The current guard handles simple greetings locally and asks for business context. Real multi-turn intent classification remains a follow-up agent-loop task. No new provider, dependency, persistence, or workflow contract change is added.
 Revisit trigger: TASK-026 introduces a real conversational state machine or AI agent loop for intent classification, clarification, and workflow build readiness.
+
+## 2026-07-02: Customer Chat Agent Routes Before Build
+
+Decision: `/customer` should call a dedicated customer chat-agent endpoint before invoking source extraction, crawling, or workflow building.
+Reason: The customer experience should feel like talking to a focused GPT-style chatbot builder. Treating every owner message as a document makes greetings and vague goals produce technical extraction reports, which is the wrong product behavior.
+Consequences: `POST /api/customer-chat` returns one of three safe actions: `reply`, `crawl_url`, or `build_text`. Live AI may improve short discovery replies through backend-only provider config, but no provider key reaches the browser and AI still does not generate final Workflow JSON. The existing `/api/build` and `/api/crawl-build` paths remain the only build/crawl execution paths.
+Revisit trigger: TASK-026 formalizes durable multi-turn agent state, richer source collection, tool calls, and build readiness checks.

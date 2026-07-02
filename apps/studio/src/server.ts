@@ -9,6 +9,11 @@ import { createOpenAiResponsesProvider, createOpenAiVectorStoreClient, loadOpenA
 import { crawlWebsiteToSourceDocument } from "@flowai/website-crawler";
 import { applyWorkflowEditorCommand, runEditedWorkflowPreview, type WorkflowEditorCommand } from "./workflow-editor.js";
 import { renderCustomerChatHtml } from "./customer-chat-view.js";
+import {
+  runCustomerChatTurn,
+  type CustomerChatAgentProvider,
+  type CustomerChatMessage
+} from "./customer-chat-agent.js";
 import { resolveStudioWorkspaceRoot } from "./workspace-root.js";
 import type { WorkflowDefinition } from "@flowai/workflow-dsl";
 
@@ -43,6 +48,22 @@ const server = createServer(async (request, response) => {
       sendJson(response, 400, {
         error: "invalid_request",
         message: error instanceof Error ? error.message : "Request could not be processed."
+      });
+    }
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/customer-chat") {
+    try {
+      const body = await readJson(request);
+      const input = normalizeCustomerChatRequest(body);
+      const provider = buildCustomerChatAgentProvider(body);
+      sendJson(response, 200, await runCustomerChatTurn(input, provider));
+    } catch (error) {
+      sendJson(response, 400, {
+        action: "reply",
+        reply: "لم أستطع قراءة الرسالة. أرسل وصفًا قصيرًا للبزنس أو رابط الموقع.",
+        error: error instanceof Error ? error.message : "Customer chat request could not be processed."
       });
     }
     return;
@@ -273,6 +294,111 @@ function normalizeCrawlRequest(value: unknown) {
     maxPages,
     allowPrivateNetwork: process.env.FLOWAI_ALLOW_PRIVATE_CRAWL === "true" && record.allowPrivateNetwork === true
   };
+}
+
+function normalizeCustomerChatRequest(value: unknown): { message: string; history: CustomerChatMessage[] } {
+  if (!value || typeof value !== "object") throw new Error("Body must be a JSON object.");
+  const record = value as Record<string, unknown>;
+  if (typeof record.message !== "string") throw new Error("message is required.");
+  return {
+    message: record.message,
+    history: normalizeCustomerHistory(record.history)
+  };
+}
+
+function normalizeCustomerHistory(value: unknown): CustomerChatMessage[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry): CustomerChatMessage | null => {
+      if (!entry || typeof entry !== "object") return null;
+      const record = entry as Record<string, unknown>;
+      const role = record.role === "assistant" || record.role === "owner" ? record.role : null;
+      if (!role || typeof record.text !== "string") return null;
+      return { role, text: record.text.slice(0, 800) };
+    })
+    .filter((entry): entry is CustomerChatMessage => Boolean(entry))
+    .slice(-12);
+}
+
+function buildCustomerChatAgentProvider(value: unknown): CustomerChatAgentProvider | undefined {
+  const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  if (record.useLiveAi !== true) return undefined;
+  const config = loadOpenAiProviderConfig({
+    allowLocalConfig: true,
+    workspaceRoot
+  });
+  if (!config.configured) return undefined;
+
+  return {
+    async generateReply(input) {
+      const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${config.apiKey}`,
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          model: config.model,
+          input: [
+            {
+              role: "system",
+              content: [
+                {
+                  type: "input_text",
+                  text: [
+                    "You are FlowAI, an Arabic-first AI agent that helps business owners build chatbots.",
+                    "Reply naturally like ChatGPT, but stay focused on chatbot-building.",
+                    "Do not analyze short greetings as documents.",
+                    "Ask exactly one useful follow-up question.",
+                    "Keep the answer under 70 Arabic words.",
+                    "Do not mention SourceDocument, sourceRefs, JSON, internal pipelines, or tests.",
+                    "Do not claim prices, availability, integrations, or deployment unless the user provided evidence."
+                  ].join("\\n")
+                }
+              ]
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "input_text",
+                  text: JSON.stringify({
+                    intent: input.intent,
+                    message: input.message,
+                    history: input.history.slice(-6)
+                  })
+                }
+              ]
+            }
+          ]
+        })
+      });
+      if (!response.ok) throw new Error(`customer_chat_provider_error:${response.status}`);
+      const payload = await response.json();
+      const text = extractResponsesText(payload);
+      if (!text) throw new Error("customer_chat_provider_error:missing_text");
+      return text;
+    }
+  };
+}
+
+function extractResponsesText(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") return null;
+  const record = payload as Record<string, unknown>;
+  if (typeof record.output_text === "string") return record.output_text;
+  const output = record.output;
+  if (!Array.isArray(output)) return null;
+  for (const item of output) {
+    if (!item || typeof item !== "object") continue;
+    const content = (item as Record<string, unknown>).content;
+    if (!Array.isArray(content)) continue;
+    for (const part of content) {
+      if (!part || typeof part !== "object") continue;
+      const text = (part as Record<string, unknown>).text;
+      if (typeof text === "string") return text;
+    }
+  }
+  return null;
 }
 
 function normalizeSourceKind(value: unknown): OwnerFirstPreviewInput["sourceKind"] {

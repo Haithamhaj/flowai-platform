@@ -70,6 +70,12 @@ customer chat / text file / website URL
 - The result appears inside the chat, not under it or beside it.
 - Customer-facing result messages stay conversational: summarize what FlowAI understood, show top source-backed services/products, and end with one clear follow-up question.
 - The chat should not treat every short user message as a source document; it should ask for business context when no source/build intent exists.
+- Customer messages pass through a chat-agent turn before any extraction:
+  - conversational/small-talk messages return normal assistant replies
+  - generic chatbot goals ask for one useful business/source follow-up
+  - explicit message URLs route to website crawling
+  - detailed business descriptions route to the existing build pipeline
+- When Live AI review is enabled, the chat-agent reply can use backend-only OpenAI config for conversational discovery, but provider keys must remain server-side and the final Workflow JSON remains deterministic.
 - Internal labels such as SourceDocument, WorkflowGenerationPlan, and Generated WorkflowDefinition must not render as customer-facing panels.
 - Workflow node text edits happen in a modal opened from a chat message action.
 - Workflow node text edits call the existing workflow editor command endpoint and refresh preview panels.
@@ -92,6 +98,9 @@ customer chat / text file / website URL
 - Same endpoint with `useLiveAi: true` reports backend-only `live_provider` mode when local OpenAI config is present.
   - `GET http://127.0.0.1:4178/customer` confirms Live AI is checked by default, stale link auto-crawl is absent, and the chat result includes a follow-up question.
   - Same HTML check confirms `isSmallTalkOnly` exists so greetings are handled before `/api/build`.
+  - `POST http://127.0.0.1:4178/api/customer-chat` with `مرحبا` returns a conversational `reply`, not a build result.
+  - `POST http://127.0.0.1:4178/api/customer-chat` with a generic chatbot goal returns one follow-up question asking for a source/business details, not a technical extraction report.
+  - `POST http://127.0.0.1:4178/api/customer-chat` with a URL returns `action: "crawl_url"`.
 - Manual/browser check:
   - `http://127.0.0.1:4178/` remains current Studio.
   - `http://127.0.0.1:4178/customer` shows the customer chat screen.
@@ -111,6 +120,8 @@ customer chat / text file / website URL
 - Website URL quality remains limited by the current bounded Cheerio crawler; JavaScript-heavy websites may still need a later browser-rendered crawler task.
 - Arabic catalog extraction is intentionally conservative and pattern-based; it proves simple source-backed service discovery, not full product catalog extraction, pricing, availability, or recommendation quality.
 - Live AI review improves catalog and missing-question quality, but Workflow JSON is still generated and validated deterministically; it is not yet a fully conversational multi-turn builder agent.
+- The new chat-agent turn is still process-local and stateless beyond the browser-sent recent history; it is a safer conversational gate, not a production memory/session system.
+- Provider-backed discovery replies improve tone and follow-up quality, but source extraction, OCR/PDF, browser-rendered crawling, persistence, and production channel behavior remain separate tasks.
 
 ## Next Recommended Task
 

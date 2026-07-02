@@ -42,6 +42,8 @@ Further owner review exposed a customer-chat UX bug: typing a normal message whi
 
 Another review exposed that greetings like `مرحبا` and small talk like `كيف حالك` were being treated as source documents, causing Live AI to produce document-analysis reports. TASK-025 now handles these as normal chat and asks for business context without calling `/api/build`.
 
+The current TASK-025 fix adds a customer chat-agent turn before the build pipeline. `/customer` now calls `POST /api/customer-chat` first; that endpoint classifies each owner message as a conversational reply, URL crawl request, or detailed text build request. When Live AI is enabled and backend-only OpenAI config is available, the agent may use the provider for short discovery replies, while provider keys remain server-side and Workflow JSON generation remains deterministic.
+
 ## Active Decisions
 
 - FlowAI is a Business-to-Workflow Chatbot Generator.
@@ -121,6 +123,7 @@ Another review exposed that greetings like `مرحبا` and small talk like `ك�
 - `/customer` may display Live AI catalog items and missing questions when explicitly enabled, but Workflow JSON remains deterministic and validator-backed.
 - `/customer` text send is message-first; the URL field is used only by `Use link`, preventing accidental re-crawls from previous examples.
 - `/customer` small talk is handled before source extraction; not every message should become a SourceDocument.
+- `/customer` routes every typed message through a customer chat-agent turn before extraction; the build pipeline runs only when the agent returns a build/crawl action.
 
 ## Active Risks
 
@@ -168,6 +171,7 @@ Another review exposed that greetings like `مرحبا` and small talk like `ك�
 - The customer chat screen may make the product feel more complete than the backend reality; it must keep boundaries visible for upload, OCR/PDF, persistence, live channels, and production integrations.
 - Browser-only file attach proves local UX only and does not satisfy production upload, scanning, storage, privacy, retention, or auth needs.
 - Pattern-based Arabic catalog extraction will miss many real catalogs and synonyms until live AI extraction, stronger catalog modeling, or browser-rendered crawling is approved and tested.
+- The TASK-025 chat-agent turn improves intent routing and tone, but it is not yet durable session memory, production orchestration, OCR/PDF upload, browser-rendered crawling, or full multi-agent planning.
 
 ## Protected Areas
 
