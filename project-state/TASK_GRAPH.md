@@ -26,27 +26,27 @@
 - TASK-018 Studio live AI review toggle.
 - TASK-019 owner review demo with live AI.
 - TASK-020 document intelligence evaluation.
+- TASK-020A extracted document contract and fixture harness.
 
 ## Current Phase
 
-- Document intelligence fixture harness.
-- Current implementation target: TASK-020A extracted document contract and fixture harness.
-- Boundary: fixture-based extracted output only; no browser key access, upload endpoint, parser dependency, OCR implementation, Google integration, OpenAI vector store integration, persistence, crawling implementation, RAG runtime, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
+- Hosted RAG/catalog knowledge base adapter.
+- Current implementation target: TASK-020B OpenAI RAG catalog knowledge base.
+- Boundary: sourceRef-backed SourceDocument chunks only; no browser key access, upload endpoint, parser dependency, OCR implementation, Google integration, persistence, crawling implementation, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
 
 ## Next
 
-- Review TASK-020A extracted document contract and fixture harness PR.
-- After acceptance, the next recommended task is TASK-020B_PDF_OCR_LOCAL_SPIKE.
+- Review TASK-020B OpenAI RAG catalog knowledge base PR.
+- After acceptance, the next recommended task is TASK-020C_OCR_PARSER_LOCAL_SPIKE.
 
 ## Later
 
-- PDF parser review/spike.
+- OCR/parser review/spike.
 - Google Document AI extraction spike.
-- OpenAI Vector Stores/File Search RAG spike.
 - Real upload API after auth, limits, storage, and operational controls are planned.
 - BusinessUnderstanding / BusinessGraph extraction from reviewed source documents.
 - Crawling.
-- RAG.
+- Production RAG lifecycle: persistence, expiry, deletion, tenant isolation, citations, and review policy.
 - Studio UI.
 - WhatsApp.
 - Exporters.
@@ -55,7 +55,7 @@
 
 - PDF ingestion until parser/security evaluation is accepted.
 - Crawling until source pipeline and robots/safety plan are accepted.
-- RAG until sourceRefs, chunking, citation, and retrieval boundaries are approved.
+- Production RAG until persistence, retention, tenant isolation, source citation, and retrieval review boundaries are approved.
 - Durable storage until persistence, retention, and tenant/security plans are approved.
 
 ## Requires Approval
@@ -63,7 +63,7 @@
 - External dependencies.
 - File upload endpoints.
 - PDF, DOCX, OCR, or rich parser support.
-- RAG, embeddings, or vector DB.
+- Production RAG, embeddings beyond OpenAI Vector Stores, or self-hosted vector DB.
 - AI/provider calls beyond backend-only BusinessUnderstanding refinement.
 - Persistence/database.
 - Auth, tenants, or billing.

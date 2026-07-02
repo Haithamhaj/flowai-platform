@@ -1,6 +1,6 @@
 # TASK-020A: ExtractedDocument Contract And Fixture Harness
 
-Status: in progress
+Status: accepted / merged
 Owner/Agent: Codex
 Parent: `TASK-020_DOCUMENT_INTELLIGENCE_EVALUATION`
 
@@ -94,6 +94,8 @@ OCR-like extracted output fixture
 
 ## Next Recommended Task
 
-`TASK-020B_PDF_OCR_LOCAL_SPIKE`
+`TASK-020B_OPENAI_RAG_CATALOG_KB`
 
-Goal: evaluate one local open-source OCR/parser candidate and optionally LeapOCR service output against the same fixture contract, with documented dependency/security approval before installing or integrating anything.
+Goal: implement a narrow OpenAI Vector Stores adapter over existing sourceRef-backed chunks after owner approval to use the existing OpenAI key path for RAG.
+
+After TASK-020B, evaluate one local open-source OCR/parser candidate as `TASK-020C_OCR_PARSER_LOCAL_SPIKE`, with documented dependency/license/security approval before installing or integrating anything.

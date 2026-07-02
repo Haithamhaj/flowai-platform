@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Prove the first document intelligence bridge by accepting OCR-like extracted output fixtures into FlowAI without adding OCR, upload endpoints, parser dependencies, RAG, crawling, or cloud providers.
+Prove the first hosted RAG/catalog knowledge boundary using OpenAI Vector Stores over existing FlowAI `SourceDocument` chunks and sourceRefs, without adding OCR, upload endpoints, parser dependencies, crawling, persistence, or a production RAG lifecycle.
 
 ## Current Reality
 
@@ -20,7 +20,9 @@ TASK-017 is merged as the live AI provider boundary plan. TASK-017A is merged as
 
 TASK-020 is merged. It documents the approved direction for document intelligence: OCR/PDF extraction, cloud extraction, RAG/vector search, crawling, and catalog extraction must start from source-backed extraction and stable sourceRefs, not from a RAG-first implementation.
 
-TASK-020A is the active implementation task. It adds an `ExtractedDocument` contract and fixture harness so FlowAI can prove the path from OCR-like output to SourceDocument/sourceRefs/chunks, BusinessUnderstanding, WorkflowGenerationPlan, WorkflowDefinition, runtime test conversation, and Telegram preview mock without implementing OCR, upload endpoints, parser dependencies, RAG, crawling, persistence, or cloud providers.
+TASK-020A is merged. It adds an `ExtractedDocument` contract and fixture harness so FlowAI can prove the path from OCR-like output to SourceDocument/sourceRefs/chunks, BusinessUnderstanding, WorkflowGenerationPlan, WorkflowDefinition, runtime test conversation, and Telegram preview mock without implementing OCR, upload endpoints, parser dependencies, RAG, crawling, persistence, or cloud providers.
+
+TASK-020B is the active implementation task. It adds a narrow OpenAI Vector Stores adapter in `packages/ai-builder-orchestrator` so FlowAI can create a sourceRef-backed knowledge file from `SourceDocument` chunks, create/search/delete a hosted vector store, and prove the path with a local smoke command using ignored backend-only OpenAI config. This is a RAG/catalog retrieval boundary, not production OCR, crawling, upload, persistence, tenant isolation, or catalog source-of-truth behavior.
 
 ## Active Decisions
 
@@ -84,10 +86,11 @@ TASK-020A is the active implementation task. It adds an `ExtractedDocument` cont
 - MinerU, Docling, and PaddleOCR are the first local PDF/OCR candidates to evaluate, but no dependency is approved yet.
 - LeapAI-SA/leap-ocr-platform is an internal reference and possible OCR/extraction service adapter candidate, not a direct code-copy source.
 - Google Document AI OCR/Form Parser/Custom Extractor is a cloud extraction candidate that requires separate credential, billing, privacy, and region approval before any spike.
-- OpenAI Vector Stores/File Search may be useful for hosted MVP RAG after extracted chunks/sourceRefs exist, but not as the source of truth for catalog or workflow decisions.
+- OpenAI Vector Stores/File Search is the accepted first hosted MVP RAG adapter after extracted chunks/sourceRefs exist, but not as the source of truth for catalog or workflow decisions.
 - Crawl4AI and Crawlee are crawling candidates for a later website ingestion spike; Firecrawl remains learn-only until license/security/provider review.
 - TASK-020A uses fixture-based extracted output only; OCR/parser providers should map into `ExtractedDocument` later rather than owning FlowAI workflow logic.
 - `ExtractedDocument` is evidence and sourceRefs, not BusinessUnderstanding and not Workflow JSON.
+- TASK-020B uses OpenAI Vector Stores over sourceRef-backed knowledge Markdown; retrieval results remain review evidence, not final workflow/catalog truth.
 
 ## Active Risks
 
@@ -127,6 +130,7 @@ TASK-020A is the active implementation task. It adds an `ExtractedDocument` cont
 - Crawling can introduce SSRF, robots, rate-limit, stale-data, and privacy risks.
 - Arabic OCR and extraction quality must be proven on fixtures rather than assumed from multilingual claims.
 - TASK-020A proves only contract compatibility and deterministic pipeline shape; it does not prove real OCR quality.
+- TASK-020B proves only create/search/delete against OpenAI Vector Stores for a small sourceRef-backed fixture; it does not prove production RAG lifecycle, tenant isolation, retention policy, catalog truth, OCR quality, or crawling quality.
 
 ## Protected Areas
 
@@ -145,14 +149,14 @@ TASK-020A is the active implementation task. It adds an `ExtractedDocument` cont
 - Do not continue polishing the technical demo as the final product experience.
 - Do not expose provider keys to browser code, workflow JSON, BusinessUnderstanding, traces, logs, screenshots, docs, tests, or export packages.
 - Do not wire live AI into Studio without an explicit review toggle/status and backend-only provider access.
-- Do not add OCR, PDF parsers, cloud extraction, vector stores, RAG, crawling, or upload endpoints without their own approved task.
+- Do not add OCR, PDF parsers, cloud extraction, crawling, upload endpoints, or production RAG lifecycle behavior without their own approved task.
 - Do not copy code from LeapAI-SA/leap-ocr-platform into FlowAI until ownership/reuse permission, security boundaries, and a specific adapter task are approved.
 - Do not use RAG results as source of truth for prices, availability, recommendations, medical/legal policy, or workflow decisions without source-backed review.
 - Do not let OCR/parser adapters generate final Workflow JSON or bypass SourceDocument/sourceRefs review.
 
 ## Next Recommended Action
 
-Review TASK-020A ExtractedDocument Contract And Fixture Harness PR. After acceptance, start `TASK-020B_PDF_OCR_LOCAL_SPIKE` only if dependency/security approval is documented.
+Review TASK-020B OpenAI RAG Catalog Knowledge Base PR. After acceptance, start `TASK-020C_OCR_PARSER_LOCAL_SPIKE` only if dependency/license/security approval is documented.
 
 ## Critical References
 
@@ -177,6 +181,7 @@ Review TASK-020A ExtractedDocument Contract And Fixture Harness PR. After accept
 - `docs/demo/FLOWAI_LIVE_AI_OWNER_REVIEW.md`
 - `docs/tasks/TASK-020_DOCUMENT_INTELLIGENCE_EVALUATION.md`
 - `docs/tasks/TASK-020A_EXTRACTED_DOCUMENT_CONTRACT_AND_FIXTURE_HARNESS.md`
+- `docs/tasks/TASK-020B_OPENAI_RAG_CATALOG_KB.md`
 - `docs/document-intelligence/DOCUMENT_INTELLIGENCE_OPTIONS.md`
 - `docs/ai-provider/LIVE_AI_PROVIDER_BOUNDARY.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`

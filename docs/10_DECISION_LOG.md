@@ -251,3 +251,10 @@ Decision: TASK-020A introduces `ExtractedDocument` as the boundary between futur
 Reason: FlowAI needs to prove the product path using OCR-like output without waiting for real OCR integration or importing the LeapOCR platform into the monorepo.
 Consequences: OCR/parser candidates should map pages, blocks, tables, entities, confidence, and language into `ExtractedDocument`, which then becomes `SourceDocument`, chunks, and sourceRefs. FlowAI workflow generation remains downstream of source review and BusinessUnderstanding. No OCR, PDF parser, upload endpoint, RAG, crawling, cloud provider, persistence, or LeapOCR code reuse is approved by this decision.
 Revisit trigger: TASK-020B evaluates real OCR/parser output and shows the contract needs richer page/block locators or provider-specific metadata.
+
+## 2026-07-02: Use OpenAI Vector Stores For First Hosted RAG Adapter
+
+Decision: TASK-020B implements a narrow backend OpenAI Vector Stores adapter over existing `SourceDocument` chunks and sourceRefs.
+Reason: The owner approved using the existing OpenAI key path for RAG, and TASK-020A already provides a sourceRef-backed extracted document boundary. This lets FlowAI prove catalog/knowledge retrieval without adding a self-hosted vector DB, crawler, OCR dependency, or upload system yet.
+Consequences: RAG can create, search, and clean up a hosted vector store for MVP smoke/testing. It remains downstream of extraction and source review. Retrieval results must not become the source of truth for catalog prices, availability, recommendations, medical/legal claims, or final Workflow JSON decisions without review gates. Production use still needs retention, deletion, tenant isolation, billing, privacy, and citation policy.
+Revisit trigger: OCR/parser spike shows sourceRefs need richer locators, OpenAI retrieval quality is insufficient, hosted retention/privacy is unacceptable, or a production requirement justifies a self-hosted vector database.
