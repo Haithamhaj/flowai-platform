@@ -25,21 +25,21 @@
 - TASK-017A backend-only OpenAI extraction spike.
 - TASK-018 Studio live AI review toggle.
 - TASK-019 owner review demo with live AI.
+- TASK-020 document intelligence evaluation.
 
 ## Current Phase
 
-- Document intelligence evaluation.
-- Current implementation target: TASK-020 document intelligence evaluation.
-- Boundary: docs-only stack evaluation; no browser key access, upload endpoint, parser dependency, OCR implementation, Google integration, OpenAI vector store integration, persistence, crawling implementation, RAG runtime, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
+- Document intelligence fixture harness.
+- Current implementation target: TASK-020A extracted document contract and fixture harness.
+- Boundary: fixture-based extracted output only; no browser key access, upload endpoint, parser dependency, OCR implementation, Google integration, OpenAI vector store integration, persistence, crawling implementation, RAG runtime, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
 
 ## Next
 
-- Review TASK-020 document intelligence evaluation PR.
-- After acceptance, the next recommended task is TASK-020A_EXTRACTED_DOCUMENT_CONTRACT_AND_FIXTURE_HARNESS.
+- Review TASK-020A extracted document contract and fixture harness PR.
+- After acceptance, the next recommended task is TASK-020B_PDF_OCR_LOCAL_SPIKE.
 
 ## Later
 
-- TASK-020A extracted document contract and fixture harness.
 - PDF parser review/spike.
 - Google Document AI extraction spike.
 - OpenAI Vector Stores/File Search RAG spike.

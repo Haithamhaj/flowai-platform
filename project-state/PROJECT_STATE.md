@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Define the safe document intelligence path for FlowAI before adding OCR, PDF parsing, cloud extraction, RAG/vector search, or crawling.
+Prove the first document intelligence bridge by accepting OCR-like extracted output fixtures into FlowAI without adding OCR, upload endpoints, parser dependencies, RAG, crawling, or cloud providers.
 
 ## Current Reality
 
@@ -18,7 +18,9 @@ The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PL
 
 TASK-017 is merged as the live AI provider boundary plan. TASK-017A is merged as the backend-only OpenAI extraction spike: `packages/ai-builder-orchestrator` now has an OpenAI Responses API provider adapter, disabled unless explicitly configured, with mocked CI tests and an optional local smoke script. It reads ignored `.flowai.local.json` only when the backend caller explicitly allows local config. TASK-018 is merged: Studio exposes live AI review as an explicit owner toggle while keeping deterministic fallback and Workflow JSON generation unchanged. TASK-019 is merged: it produces `docs/demo/FLOWAI_LIVE_AI_OWNER_REVIEW.md` from `pnpm demo:flowai:live` so the owner can compare deterministic and live AI review output.
 
-TASK-020 is the active evaluation task. It documents the approved direction for document intelligence: OCR/PDF extraction, cloud extraction, RAG/vector search, crawling, and catalog extraction must start from source-backed extraction and stable sourceRefs, not from a RAG-first implementation. No parser, crawler, vector store, upload endpoint, provider credential, persistence, or source/package code is added in TASK-020.
+TASK-020 is merged. It documents the approved direction for document intelligence: OCR/PDF extraction, cloud extraction, RAG/vector search, crawling, and catalog extraction must start from source-backed extraction and stable sourceRefs, not from a RAG-first implementation.
+
+TASK-020A is the active implementation task. It adds an `ExtractedDocument` contract and fixture harness so FlowAI can prove the path from OCR-like output to SourceDocument/sourceRefs/chunks, BusinessUnderstanding, WorkflowGenerationPlan, WorkflowDefinition, runtime test conversation, and Telegram preview mock without implementing OCR, upload endpoints, parser dependencies, RAG, crawling, persistence, or cloud providers.
 
 ## Active Decisions
 
@@ -84,6 +86,8 @@ TASK-020 is the active evaluation task. It documents the approved direction for 
 - Google Document AI OCR/Form Parser/Custom Extractor is a cloud extraction candidate that requires separate credential, billing, privacy, and region approval before any spike.
 - OpenAI Vector Stores/File Search may be useful for hosted MVP RAG after extracted chunks/sourceRefs exist, but not as the source of truth for catalog or workflow decisions.
 - Crawl4AI and Crawlee are crawling candidates for a later website ingestion spike; Firecrawl remains learn-only until license/security/provider review.
+- TASK-020A uses fixture-based extracted output only; OCR/parser providers should map into `ExtractedDocument` later rather than owning FlowAI workflow logic.
+- `ExtractedDocument` is evidence and sourceRefs, not BusinessUnderstanding and not Workflow JSON.
 
 ## Active Risks
 
@@ -122,6 +126,7 @@ TASK-020 is the active evaluation task. It documents the approved direction for 
 - RAG can produce unsupported answers if chunking, sourceRefs, freshness, and citation rules are weak.
 - Crawling can introduce SSRF, robots, rate-limit, stale-data, and privacy risks.
 - Arabic OCR and extraction quality must be proven on fixtures rather than assumed from multilingual claims.
+- TASK-020A proves only contract compatibility and deterministic pipeline shape; it does not prove real OCR quality.
 
 ## Protected Areas
 
@@ -143,10 +148,11 @@ TASK-020 is the active evaluation task. It documents the approved direction for 
 - Do not add OCR, PDF parsers, cloud extraction, vector stores, RAG, crawling, or upload endpoints without their own approved task.
 - Do not copy code from LeapAI-SA/leap-ocr-platform into FlowAI until ownership/reuse permission, security boundaries, and a specific adapter task are approved.
 - Do not use RAG results as source of truth for prices, availability, recommendations, medical/legal policy, or workflow decisions without source-backed review.
+- Do not let OCR/parser adapters generate final Workflow JSON or bypass SourceDocument/sourceRefs review.
 
 ## Next Recommended Action
 
-Open and review TASK-020 Document Intelligence Evaluation PR. After acceptance, start `TASK-020A_EXTRACTED_DOCUMENT_CONTRACT_AND_FIXTURE_HARNESS` only.
+Review TASK-020A ExtractedDocument Contract And Fixture Harness PR. After acceptance, start `TASK-020B_PDF_OCR_LOCAL_SPIKE` only if dependency/security approval is documented.
 
 ## Critical References
 
@@ -170,6 +176,7 @@ Open and review TASK-020 Document Intelligence Evaluation PR. After acceptance, 
 - `docs/tasks/TASK-019_OWNER_REVIEW_DEMO_WITH_LIVE_AI.md`
 - `docs/demo/FLOWAI_LIVE_AI_OWNER_REVIEW.md`
 - `docs/tasks/TASK-020_DOCUMENT_INTELLIGENCE_EVALUATION.md`
+- `docs/tasks/TASK-020A_EXTRACTED_DOCUMENT_CONTRACT_AND_FIXTURE_HARNESS.md`
 - `docs/document-intelligence/DOCUMENT_INTELLIGENCE_OPTIONS.md`
 - `docs/ai-provider/LIVE_AI_PROVIDER_BOUNDARY.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`
