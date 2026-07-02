@@ -302,3 +302,10 @@ Decision: The `/customer` screen should behave like a ChatGPT/Claude/Gemini-styl
 Reason: The owner clarified that chat is the product experience. Side panels and technical result sections make the product feel like an internal dashboard instead of an AI builder.
 Consequences: `/customer` should not render a customer-facing results panel below or beside the conversation. SourceRefs, business understanding, missing fields, and workflow availability are summarized in assistant messages. Workflow review opens from a chat action in an in-page modal. The technical `/` Studio page remains the place for full internal pipeline inspection.
 Revisit trigger: Owner testing shows customers need a separate shareable workflow/PDF view, production upload flow, or richer visual workflow editor beyond the in-chat modal.
+
+## 2026-07-02: Arabic Website Catalog Extraction Must Stay Source-Backed
+
+Decision: TASK-025 may surface explicit Arabic website catalog services/products from crawled source text when the terms are present in page headings or source copy.
+Reason: Owner review with `https://alboshrastore.com/` showed that the crawler fetched simple Arabic catalog pages, but the deterministic review layer failed to expose obvious services/products to the customer chat.
+Consequences: The fix is intentionally narrow and deterministic. It can show explicit items such as `حفر آبار`, `ذبح وتوزيع المواشي`, and `وقف مصاحف` as source-backed services/products. It must not infer prices, availability, recommendation claims, lead fields, or publish-ready workflow completeness.
+Revisit trigger: Owner testing needs broad Arabic catalog coverage, price/availability extraction, synonym handling, or AI-assisted product catalog extraction.

@@ -79,7 +79,11 @@ export function extractBusinessFactsDraft(document: SourceDocument): BusinessFac
   const goal = detectGoal(lines);
   const language = detectLanguage(document.text);
   const fields = extractFields(sections.required_fields ?? [], documentSourceRefId);
-  const services = extractServices(sections.services ?? [], fields, documentSourceRefId);
+  const explicitServices = extractServices(sections.services ?? [], fields, documentSourceRefId);
+  const services =
+    explicitServices.length > 0
+      ? explicitServices
+      : extractArabicCatalogServices(document.text, fields, documentSourceRefId);
   const faqs = extractFaqs(sections.faqs ?? [], documentSourceRefId);
   const policies = extractPolicies(sections.policies ?? [], documentSourceRefId);
   const scenarios = extractScenarios({ category, goal, services, fields, sourceRefId: documentSourceRefId });
@@ -285,6 +289,9 @@ function detectCategory(lines: string[], text: string): string | null {
   if (/\b(clinic|dental|appointment|patient)\b/.test(normalized)) return "clinic";
   if (/\b(service company|cleaning|repair|maintenance|lead)\b/.test(normalized)) return "service_company";
   if (/\b(ecommerce|product|price|shop|store)\b/.test(normalized)) return "ecommerce";
+  if (/خدمات|مشاريع|صدقات|حفر\s+آ?بار|الآبار|الذبائح|وقف\s+مصاحف|المصاحف/.test(text)) {
+    return "service_company";
+  }
   return null;
 }
 
@@ -326,6 +333,51 @@ function extractServices(lines: string[], fields: ExtractedField[], sourceRefId:
         notes: "Deterministically extracted from a Services section."
       };
     });
+}
+
+function extractArabicCatalogServices(text: string, fields: ExtractedField[], sourceRefId: string): ExtractedService[] {
+  if (!/[\u0600-\u06ff]/.test(text)) return [];
+
+  const normalized = normalizeArabic(text);
+  const catalogPatterns = [
+    {
+      name: "حفر آبار",
+      patterns: [/حفر\s+ا?بار/, /الابار/, /ابار/]
+    },
+    {
+      name: "ذبح وتوزيع المواشي",
+      patterns: [/ذبح\s+وتوزيع\s+المواشي/, /توزيع\s+المواشي/, /الذبائح/, /ذبائح/]
+    },
+    {
+      name: "وقف مصاحف",
+      patterns: [/وقف\s+مصاحف/, /وقف\s+المصاحف/, /المصاحف/]
+    }
+  ];
+
+  return catalogPatterns
+    .filter((catalogItem) => catalogItem.patterns.some((pattern) => pattern.test(normalized)))
+    .map((catalogItem, index) => ({
+      id: `service_${normalizeIdOrHash(catalogItem.name, index)}`,
+      name: redactSecrets(catalogItem.name),
+      description: redactSecrets(extractNearbyArabicDescription(text, catalogItem.patterns) ?? catalogItem.name),
+      requiredFields: fields.map((field) => field.label),
+      sourceRefs: [sourceRefId],
+      confidence: 0.68,
+      notes: "Deterministically extracted from Arabic website catalog headings or source text; price and availability claims are not inferred."
+    }));
+}
+
+function extractNearbyArabicDescription(text: string, patterns: RegExp[]): string | null {
+  const matchingLine = text
+    .split("\n")
+    .map((line) => cleanText(stripMarkdown(line)))
+    .find((line) => {
+      const normalized = normalizeArabic(line);
+      return patterns.some((pattern) => pattern.test(normalized));
+    });
+
+  if (!matchingLine) return null;
+  return matchingLine.replace(/^Page\s+\d+\s*:\s*/i, "").slice(0, 180);
 }
 
 function extractFields(lines: string[], sourceRefId: string): ExtractedField[] {
@@ -547,6 +599,16 @@ function stripMarkdown(value: string): string {
 
 function cleanText(value: string): string {
   return value.trim().replace(/\s+/g, " ");
+}
+
+function normalizeArabic(value: string): string {
+  return value
+    .replace(/[إأآا]/g, "ا")
+    .replace(/ى/g, "ي")
+    .replace(/ة/g, "ه")
+    .replace(/[^\u0600-\u06ff\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function inferFieldType(label: string): ExtractedField["type"] {

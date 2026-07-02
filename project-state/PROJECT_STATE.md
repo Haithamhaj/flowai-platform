@@ -34,6 +34,8 @@ TASK-024 is merged through PR #37 at final main HEAD `266b2bbb5b98e267775f83660e
 
 TASK-025 is active. The owner clarified that the current Studio surface should remain available for technical review, but customers need a separate normal chat screen. The new route should let a customer describe the business, attach a local text/markdown file in the browser, paste a website URL, and receive all results inside the chat thread. The chat summarizes sourceRefs, what FlowAI understood, services/FAQs, required fields, missing information, and whether a workflow can be opened. Workflow review opens from a chat action in an in-page modal. This task must not add upload endpoints, PDF/OCR, persistence, auth, live channels, new dependencies, or workflow/runtime contract changes.
 
+During owner review, `https://alboshrastore.com/` exposed a product-fit gap: the crawler fetched Arabic catalog pages, but deterministic source review did not surface Arabic services/products. TASK-025 now includes a narrow source-backed Arabic website catalog extraction fix for explicit terms such as `حفر آبار`, `ذبح وتوزيع المواشي`, and `وقف مصاحف`. The system still blocks workflow generation when required customer fields are missing instead of inventing them.
+
 ## Active Decisions
 
 - FlowAI is a Business-to-Workflow Chatbot Generator.
@@ -109,6 +111,7 @@ TASK-025 is active. The owner clarified that the current Studio surface should r
 - TASK-025 keeps the existing `/` Studio screen unchanged and adds `/customer` as a separate customer-facing chat entry point over the same local pipeline.
 - TASK-025 customer output stays inside the conversation; technical panels remain on `/`.
 - Browser-only file attach in `/customer` is limited to `.md` and `.txt` text read with `FileReader`; it is not a server upload feature.
+- Arabic website catalog extraction in TASK-025 is deterministic, source-backed, and conservative; it may surface explicit services/products, but it must not infer prices, availability, recommendations, or missing lead fields.
 
 ## Active Risks
 
@@ -155,6 +158,7 @@ TASK-025 is active. The owner clarified that the current Studio surface should r
 - TASK-024 fixture output may underrepresent real customer website complexity; real URLs still need separate review.
 - The customer chat screen may make the product feel more complete than the backend reality; it must keep boundaries visible for upload, OCR/PDF, persistence, live channels, and production integrations.
 - Browser-only file attach proves local UX only and does not satisfy production upload, scanning, storage, privacy, retention, or auth needs.
+- Pattern-based Arabic catalog extraction will miss many real catalogs and synonyms until live AI extraction, stronger catalog modeling, or browser-rendered crawling is approved and tested.
 
 ## Protected Areas
 

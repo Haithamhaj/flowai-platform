@@ -294,7 +294,7 @@ export function renderCustomerChatHtml(): string {
       const sourceRefText = sourceRefs.length > 0 ? "<p class='muted'>sourceRefs: " + escapeHtml(sourceRefs.map(ref => ref.label).slice(0, 4).join(", ")) + "</p>" : "";
       const servicesHtml = services.length > 0
         ? "<ul>" + services.map(service => "<li>" + escapeHtml(service.name) + "</li>").join("") + "</ul>"
-        : "<p class='muted'>لم أستخرج خدمات واضحة كفاية من المصدر.</p>";
+        : "<p class='muted'>لم أستخرج خدمات أو منتجات واضحة كفاية من المصدر.</p>";
       const faqsHtml = faqs.length > 0
         ? "<ul>" + faqs.map(faq => "<li>" + escapeHtml(faq.question) + "</li>").join("") + "</ul>"
         : "<p class='muted'>لم أجد FAQ واضحة بعد.</p>";
@@ -311,7 +311,7 @@ export function renderCustomerChatHtml(): string {
         "<p>" + escapeHtml(brief.summary || "راجعت المصدر، لكن أحتاج تفاصيل أكثر حتى أخرج chatbot قابل للنشر.") + "</p>",
         crawlNote,
         sourceRefText,
-        "<h3>الخدمات التي وجدتها</h3>",
+        "<h3>الخدمات/المنتجات التي وجدتها</h3>",
         servicesHtml,
         "<h3>الأسئلة الشائعة</h3>",
         faqsHtml,
