@@ -237,3 +237,10 @@ Decision: TASK-019 generates a Markdown owner-review artifact from `pnpm demo:fl
 Reason: The owner needs a concrete artifact showing what the brain does now, what AI improves, and what is still deterministic or deferred.
 Consequences: The demo compares deterministic extraction with live AI review using local ignored provider config when available. The artifact must not contain provider secrets, and Workflow JSON remains deterministic and validator-backed.
 Revisit trigger: Owner review shows the live AI output is not materially better than deterministic extraction or the UI still feels too technical.
+
+## 2026-07-02: Document Intelligence Starts With SourceRefs, Not RAG First
+
+Decision: TASK-020 evaluates OCR/PDF parsing, cloud extraction, RAG/vector search, crawling, and catalog extraction as a document intelligence layer that must first produce safe extracted chunks and stable sourceRefs.
+Reason: FlowAI needs source-backed business and catalog facts before retrieval. Starting with a vector database would make it too easy to answer from opaque chunks without traceable evidence, freshness, conflict handling, or review gates.
+Consequences: MinerU, Docling, and PaddleOCR are local PDF/OCR candidates; Google Document AI is a separate cloud extraction candidate; OpenAI Vector Stores/File Search is a later hosted RAG candidate after chunks/sourceRefs exist; Crawl4AI and Crawlee are later crawling candidates. No dependency, provider credential, upload endpoint, parser, vector store, RAG runtime, or crawler is approved by this decision.
+Revisit trigger: TASK-020A proves the extracted document contract and fixture harness, or a parser/cloud/RAG/crawler spike produces evidence that the ordering should change.
