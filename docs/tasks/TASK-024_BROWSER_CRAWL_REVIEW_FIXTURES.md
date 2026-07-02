@@ -1,6 +1,6 @@
 # TASK-024: Browser Crawl Review Fixtures
 
-Status: implemented / ready for review
+Status: accepted/merged
 Owner/Agent: Codex
 Parent: Website crawling quality review
 

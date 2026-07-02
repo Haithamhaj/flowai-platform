@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Review TASK-024 crawl quality fixtures and decide whether a browser-rendered crawler spike is justified by real website examples.
+Decide whether to plan a browser-rendered crawler spike from real website examples, using TASK-024 fixture output as the review baseline.
 
 ## Current Reality
 
@@ -30,7 +30,7 @@ TASK-022 is merged. It added `packages/website-crawler` using Crawlee `CheerioCr
 
 TASK-023 is merged through PR #35 at final main HEAD `ef237981ed70713c5ef8101420d1964a8a7eb318`. It connects the website crawler to the visible Studio build path so a URL can produce crawl summary, website SourceDocument/sourceRefs, owner checklist status, optional live AI review, optional OpenAI RAG search, WorkflowGenerationPlan/WorkflowDefinition summary, runtime conversation, channel previews, and export blocks in one owner-review action.
 
-TASK-024 is implemented and ready for review. It adds crawl quality fixtures and `pnpm demo:crawl-review`, producing `docs/demo/FLOWAI_CRAWL_REVIEW_FIXTURES.md` to show that static public HTML is supported by the current Cheerio crawler while client-rendered catalog content needs a later browser-rendered crawler spike.
+TASK-024 is merged through PR #37 at final main HEAD `266b2bbb5b98e267775f83660e21f7253e2702ad`. It adds crawl quality fixtures and `pnpm demo:crawl-review`, producing `docs/demo/FLOWAI_CRAWL_REVIEW_FIXTURES.md` to show that static public HTML is supported by the current Cheerio crawler while client-rendered catalog content needs a later browser-rendered crawler spike.
 
 ## Active Decisions
 
@@ -173,7 +173,7 @@ TASK-024 is implemented and ready for review. It adds crawl quality fixtures and
 
 ## Next Recommended Action
 
-Review and merge `TASK-024_BROWSER_CRAWL_REVIEW_FIXTURES`; then decide whether `TASK-025_BROWSER_RENDERED_CRAWLER_SPIKE_PLAN` is needed.
+Start `TASK-025_BROWSER_RENDERED_CRAWLER_SPIKE_PLAN` only if owner review confirms real target websites need browser-rendered crawling.
 
 ## Critical References
 

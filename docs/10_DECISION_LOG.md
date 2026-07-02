@@ -286,4 +286,5 @@ Revisit trigger: Owner testing shows crawler output is too weak for real website
 Decision: TASK-024 adds local crawl review fixtures and `pnpm demo:crawl-review` before any browser-rendered crawler implementation.
 Reason: The current Cheerio crawler is fast and lower-risk, but it cannot execute JavaScript. FlowAI needs owner-review evidence showing which website content is extractable today and which content needs a later browser-rendered crawler spike.
 Consequences: Static public HTML is treated as supported by the current crawler. Client-rendered catalog/service/FAQ content is flagged as `needs_browser_rendering`. No new dependency, Crawl4AI integration, browser crawler, upload endpoint, OCR/PDF parser, persistence, production RAG lifecycle, or login/session crawling is added by this task.
+Merge: PR #37, final main HEAD `266b2bbb5b98e267775f83660e21f7253e2702ad`.
 Revisit trigger: Real target website examples show important business, catalog, FAQ, or policy content missing from Cheerio output.
