@@ -22,10 +22,13 @@ describe("customer chat view", () => {
   test("keeps customer output inside the chat instead of rendering technical panels", () => {
     const html = renderCustomerChatHtml();
 
-    expect(html).toContain("تمام، فهمت الاتجاه");
-    expect(html).toContain("سؤالي التالي");
+    expect(html).toContain("واضح أن البوت يحتاج");
+    expect(html).toContain("nextQuestion");
     expect(html).toContain("افتح الشجرة");
     expect(html).not.toContain("<aside");
+    expect(html).not.toContain("سؤالي التالي");
+    expect(html).not.toContain("ما فهمته من الخدمات/المنتجات");
+    expect(html).not.toContain("الحقول المتوقعة");
     expect(html).not.toContain("WorkflowGenerationPlan</h2>");
     expect(html).not.toContain("SourceDocument / sourceRefs</h2>");
     expect(html).not.toContain("Generated WorkflowDefinition</h2>");
@@ -36,8 +39,8 @@ describe("customer chat view", () => {
 
     expect(html).toContain("productCatalog");
     expect(html).toContain("catalogItems");
-    expect(html).toContain("catalogHtml");
-    expect(html).toContain("ما فهمته من الخدمات/المنتجات");
+    expect(html).toContain("names.map(escapeHtml).join");
+    expect(html).toContain("خدمات مثل");
   });
 
   test("renders AI missing questions instead of only technical generation blockers", () => {
@@ -62,8 +65,8 @@ describe("customer chat view", () => {
     const html = renderCustomerChatHtml();
 
     expect(html).toContain("nextQuestion");
-    expect(html).toContain("سؤالي التالي");
-    expect(html).toContain("slice(0, 4)");
+    expect(html).toContain("slice(0, 5)");
+    expect(html).not.toContain("<h3>");
   });
 
   test("handles greetings and small talk without running the build pipeline", () => {
@@ -81,11 +84,9 @@ describe("customer chat view", () => {
     expect(html).toContain("ownerDecisionLog");
     expect(html).toContain("rememberOwnerDecision(text)");
     expect(html).toContain("ownerContext: buildOwnerContext()");
-    expect(html).toContain("customerSourceName");
-    expect(html).toContain("isInternalCustomerSource");
-    expect(html).toContain("customerFacingSummary");
-    expect(html).toContain("website-.*\\.md");
     expect(html).not.toContain("قراراتك في المحادثة");
+    expect(html).not.toContain("Owner Conversation Decisions");
+    expect(html).not.toContain("website-.*\\.md");
   });
 
   test("uses the existing pipeline endpoints without adding server upload behavior", () => {

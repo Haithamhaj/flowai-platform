@@ -326,64 +326,29 @@ export function renderCustomerChatHtml(): string {
 
     function renderAssistantResult(preview, crawl) {
       const brief = preview.businessBrief || {};
-      const source = preview.sourcePanel || {};
       const proposal = preview.workflowProposal || {};
       const catalog = preview.productCatalog || {};
       const services = brief.services || [];
       const catalogItems = catalog.items || [];
-      const faqs = brief.faqs || [];
       const blockers = proposal.blockers || [];
       const missingQuestions = brief.missingQuestions || [];
       const combinedMissing = [...missingQuestions, ...blockers].filter((item, index, items) => item && items.indexOf(item) === index);
-      const fields = proposal.requiredFields || [];
-      const sourceName = customerSourceName(brief, source);
       const crawlNote = crawl ? "قرأت " + escapeHtml(String(crawl.pages?.length || 0)) + " صفحات من الموقع. " : "";
-      const servicesHtml = services.length > 0
-        ? "<ul>" + services.slice(0, 4).map(service => "<li>" + escapeHtml(service.name) + "</li>").join("") + "</ul>"
-        : "<p class='muted'>لم أستخرج خدمات أو منتجات واضحة كفاية من المصدر.</p>";
-      const catalogHtml = catalogItems.length > 0
-        ? "<ul>" + catalogItems.slice(0, 4).map(item => "<li><strong>" + escapeHtml(item.name) + "</strong>" + (item.description ? "<br><span class='muted'>" + escapeHtml(item.description) + "</span>" : "") + "</li>").join("") + "</ul>"
-        : "<p class='muted'>لم أجد كتالوج منتجات/باقات واضحًا بعد.</p>";
       const nextQuestion = combinedMissing[0] || "هل تريد أن أجعل البوت يوجّه العميل للشراء مباشرة، أم يجمع بياناته أولًا ثم يحوله للموظف؟";
-      const missingHtml = "<p><strong>سؤالي التالي:</strong> " + escapeHtml(nextQuestion) + "</p>";
-      const fieldsHtml = fields.length > 0
-        ? "<div class='pill-row'>" + fields.map(field => "<span class='pill'>" + escapeHtml(field) + "</span>").join("") + "</div>"
-        : "<p class='muted'>لم يتم تحديد حقول جمع بيانات العميل بعد.</p>";
+      const names = [...catalogItems.map(item => item.name), ...services.map(service => service.name)]
+        .filter(Boolean)
+        .filter((item, index, items) => items.indexOf(item) === index)
+        .slice(0, 5);
+      const understood = names.length > 0
+        ? "واضح أن البوت يحتاج يشرح للزائر خدمات مثل: " + names.map(escapeHtml).join("، ") + "."
+        : "ما زلت أحتاج تفاصيل أوضح عن الخدمات/المنتجات حتى أبني مسار مفيد بدل شجرة عامة.";
+      const workflowAction = currentWorkflowModel ? renderWorkflowLinkMessage(preview) : "";
 
       return [
-        "<h2>تمام، فهمت الاتجاه</h2>",
-        "<p>" + crawlNote + "أقدر أبدأ ببناء بوت يساعد الزائر يفهم الخدمات ويقربه من قرار الشراء، لكن أحتاج أوضح طريقة إتمام الطلب قبل بناء الشجرة.</p>",
-        sourceName ? "<p><strong>" + escapeHtml(sourceName) + "</strong></p>" : "",
-        customerFacingSummary(brief.summary),
-        "<h3>ما فهمته من الخدمات/المنتجات</h3>",
-        catalogItems.length > 0 ? catalogHtml : servicesHtml,
-        services.length > 0 && catalogItems.length > 0 ? "<h3>الخدمات المختصرة</h3>" + servicesHtml : "",
-        "<h3>الحقول المتوقعة</h3>",
-        fieldsHtml,
-        missingHtml,
-        "<p class='muted'>سأستخدم الأسعار أو التوفر فقط إذا كانت موجودة بوضوح في المصدر.</p>",
-        currentWorkflowModel ? renderWorkflowLinkMessage(preview) : renderBlockedWorkflowMessage()
+        "<p>" + crawlNote + understood + "</p>",
+        "<p>" + escapeHtml(nextQuestion) + "</p>",
+        workflowAction
       ].filter(Boolean).join("");
-    }
-
-    function customerFacingSummary(summary) {
-      if (!summary || !hasArabicText(summary)) return "";
-      return "<p>" + escapeHtml(summary) + "</p>";
-    }
-
-    function customerSourceName(brief, source) {
-      if (brief.businessName && !isInternalCustomerSource(brief.businessName)) return brief.businessName;
-      if (source.sourceUrl) return source.sourceUrl;
-      if (source.filename && !isInternalCustomerSource(source.filename)) return source.filename;
-      return "المحادثة الحالية";
-    }
-
-    function isInternalCustomerSource(value) {
-      return /Owner Conversation Decisions|customer-chat\\.md|website-.*\\.md|sourceRefs|SourceDocument|src_doc_|#line_/i.test(String(value || ""));
-    }
-
-    function hasArabicText(value) {
-      return /[\\u0600-\\u06ff]/.test(String(value || ""));
     }
 
     function renderWorkflowLinkMessage(preview) {
