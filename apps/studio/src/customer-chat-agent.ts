@@ -75,6 +75,14 @@ export async function runCustomerChatTurn(
     };
   }
 
+  if (hasEnoughContextToBuild(message, history, ownerContext)) {
+    return {
+      action: "build_text",
+      content: ownerContext,
+      reply: "عندي معلومات كافية الآن. سأبني الـ workflow وأجهز الشجرة ونسخة JSON وتجربة Telegram mock بدل ما أكمل أسئلة."
+    };
+  }
+
   if (!hasBusinessBuildSignal(message)) {
     return {
       action: "reply",
@@ -170,6 +178,23 @@ function hasEnoughSourceDetail(text: string): boolean {
   const hasNamedBusiness = /(اسمه|اسم|متجر|عيادة|شركة|مطعم|مركز|منصة|مؤسسة)\s+[\u0600-\u06ffA-Za-z0-9]/.test(normalized);
   const serviceSignals = normalized.match(/(خدمة|منتج|باقة|سعر|حجز|طلب|شراء|دفع|توصيل|استشارة|موعد)/g) ?? [];
   return text.length >= 140 && (hasNamedBusiness || serviceSignals.length >= 2);
+}
+
+function hasEnoughContextToBuild(message: string, history: CustomerChatMessage[], ownerContext: string): boolean {
+  if (ownerContext.length < 220) return false;
+  const combined = normalizeArabicText(`${ownerContext}\n${message}`);
+  const assistantContext = normalizeArabicText(
+    history
+      .filter((entry) => entry.role === "assistant")
+      .slice(-4)
+      .map((entry) => entry.text)
+      .join("\n")
+  );
+  const hasSourceOrIntake = /(موقع|رابط|ملف|وصف|يفهم البزنس|فهم البزنس|استقبال رابط|استقبال ملف)/i.test(combined);
+  const hasClearGoal = /(حجز|موعد|استشارة|اتمتة|أتمتة|تأهيل|شراء|قرار|شرح|خدمة العملاء|مبيعات|فرص الاتمتة|فرص الأتمتة)/i.test(combined);
+  const hasConversionPath = /(يجمع البيانات|جمع البيانات|بيانات العميل|الاسم|الجوال|واتساب|البريد|الشركة|رقم التواصل|يتواصل معه|تحويل للفريق)/i.test(combined);
+  const recentlyAskedOptionalDetail = /(ميزانية|نبرة|رسمية|ودية|تقويم|يجمع البيانات|رابط تقويم|بيانات فقط)/i.test(assistantContext);
+  return hasSourceOrIntake && hasClearGoal && hasConversionPath && (recentlyAskedOptionalDetail || message.length <= 80);
 }
 
 function normalizeArabicText(text: string): string {

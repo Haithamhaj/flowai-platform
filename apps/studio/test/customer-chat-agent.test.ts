@@ -98,6 +98,23 @@ describe("customer chat agent", () => {
     expect(result.reply).toContain("workflow");
   });
 
+  test("proactively builds when the collected context is sufficient", async () => {
+    const result = await runCustomerChatTurn({
+      message: "يجمع البيانات فقط",
+      history: [
+        {
+          role: "assistant",
+          text: "هل عندك رابط تقويم للحجز، أم تريد البوت يجمع البيانات فقط؟"
+        }
+      ],
+      ownerContext:
+        "- Decision 1: هذا الموقع https://www.next-stepai.com/.\n- Decision 2: البوت يفهم البزنس من رابط موقع أو ملف أو وصف.\n- Decision 3: الهدف شرح فرص الأتمتة ومساعدة العميل على اتخاذ القرار.\n- Decision 4: الهدف النهائي حجز موعد استشارة أو طلب تواصل.\n- Decision 5: المطلوب أن يجمع البيانات فقط ثم يحولها للفريق."
+    });
+
+    expect(result.action).toBe("build_text");
+    expect(result.reply).toContain("معلومات كافية");
+  });
+
   test("does not treat a generic website chatbot request as an explicit build command", async () => {
     const result = await runCustomerChatTurn({
       message: "في عندي الموقع تبعي بدي اعمل تشات بوت عشان يساعد العملاء ويشرح لهم",
