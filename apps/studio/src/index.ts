@@ -27,6 +27,7 @@ export interface OwnerFirstPreviewInput {
   filename?: string;
   mimeType?: string;
   sourceKind?: "business_description" | "document_text" | "website_text";
+  sourceOrigin?: "pasted" | "crawler";
   sourceUrl?: string;
   content: string;
 }
@@ -224,7 +225,8 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
         runtimeTurnCount: 0,
         telegramMessageCount: 0,
         exportReady: false,
-        ragStatus: "not_enabled"
+        ragStatus: "not_enabled",
+        websiteCrawled: input.sourceOrigin === "crawler"
       }),
       knowledgeSearch: disabledKnowledgeSearchPanel(),
       runtimeConversation: [],
@@ -308,7 +310,8 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
       runtimeTurnCount: runtimeConversation.length,
       telegramMessageCount: telegramPreview.length,
       exportReady: Boolean(integrationHub),
-      ragStatus: "not_enabled"
+      ragStatus: "not_enabled",
+      websiteCrawled: input.sourceOrigin === "crawler"
     }),
     knowledgeSearch: disabledKnowledgeSearchPanel(),
     workflowSummary: workflow
@@ -391,7 +394,8 @@ export async function buildOwnerFirstPreviewWithAiReview(
         runtimeTurnCount: deterministic.runtimeConversation.length,
         telegramMessageCount: deterministic.telegramPreview.length,
         exportReady: Boolean(deterministic.integrationHub),
-        ragStatus: deterministic.knowledgeSearch.status
+        ragStatus: deterministic.knowledgeSearch.status,
+        websiteCrawled: input.sourceOrigin === "crawler"
       }),
       safetyNotes: [
         "Live AI review is source-backed draft assistance only; Workflow JSON is still generated and validated deterministically.",
@@ -575,7 +579,8 @@ async function withKnowledgeSearch(
       runtimeTurnCount: preview.runtimeConversation.length,
       telegramMessageCount: preview.telegramPreview.length,
       exportReady: Boolean(preview.integrationHub),
-      ragStatus: knowledgeSearch.status
+      ragStatus: knowledgeSearch.status,
+      websiteCrawled: input.sourceOrigin === "crawler"
     })
   };
 }
@@ -696,7 +701,8 @@ function buildOwnerChecklist({
   runtimeTurnCount,
   telegramMessageCount,
   exportReady,
-  ragStatus
+  ragStatus,
+  websiteCrawled
 }: {
   sourceAccepted: boolean;
   sourceRefCount: number;
@@ -707,6 +713,7 @@ function buildOwnerChecklist({
   telegramMessageCount: number;
   exportReady: boolean;
   ragStatus: KnowledgeSearchPanel["status"];
+  websiteCrawled?: boolean;
 }): OwnerChecklistItem[] {
   return [
     checklistItem("source_document", "Source document accepted", sourceAccepted ? "done" : "blocked", sourceAccepted ? "Text/markdown source is accepted." : "Source needs safe text or markdown."),
@@ -719,7 +726,12 @@ function buildOwnerChecklist({
     checklistItem("export_package", "Export package", exportReady ? "done" : "blocked", "Copy-ready JSON/mapping is available."),
     checklistItem("rag_search", "RAG knowledge search", ragStatus === "ready" ? "done" : ragStatus === "not_enabled" ? "not_enabled" : "blocked", ragStatus === "ready" ? "SourceRef-backed knowledge search returned evidence." : "Enable backend RAG search to test OpenAI Vector Stores."),
     checklistItem("ocr_pdf", "OCR/PDF ingestion", "blocked", "Needs approved OCR/parser dependency spike."),
-    checklistItem("website_crawling", "Website crawling", "blocked", "Current website mode accepts pasted website text only; crawler spike is separate.")
+    checklistItem(
+      "website_crawling",
+      "Website crawling",
+      websiteCrawled ? "done" : "blocked",
+      websiteCrawled ? "Website URL was crawled into sourceRefs for this build." : "Use the Crawl action to turn a website URL into sourceRefs."
+    )
   ];
 }
 

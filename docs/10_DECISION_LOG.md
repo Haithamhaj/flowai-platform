@@ -272,3 +272,10 @@ Decision: TASK-022 uses Crawlee `CheerioCrawler` for the first real website craw
 Reason: Crawlee is TypeScript, Apache-2.0, current, and fits the monorepo without adding a Python/Docker service. `CheerioCrawler` provides a lower-risk HTTP/HTML crawl path before browser automation.
 Consequences: Studio can crawl bounded same-origin public http/https pages into a website SourceDocument/sourceRefs. Private-network targets are blocked by default. Crawl4AI remains a strong later candidate for LLM-friendly Markdown, screenshots, PDFs, Docker service deployment, and JS-heavy crawling, but it is not the first dependency because it expands operational and security scope.
 Revisit trigger: Real customer sites require JavaScript rendering, Crawl4AI-style Markdown quality, deep crawling, authenticated sessions, or production crawling policy.
+
+## 2026-07-02: Crawl URL Should Build A Visible Owner Preview
+
+Decision: TASK-023 adds a Studio crawl-build path that runs bounded website crawl output through the existing owner-first preview, optional live AI review, optional OpenAI RAG search, workflow generation, runtime test, channel previews, and export blocks.
+Reason: The owner needs to paste a URL and see the full FlowAI product path, not inspect crawler output as a separate technical artifact.
+Consequences: `/api/crawl-preview` remains available for raw crawl inspection, while `/api/crawl-build` is the owner-visible path. Crawled sources are marked separately from pasted website text so the checklist only claims website crawling when the crawler actually ran. This remains a local review flow, not production crawling, persistent ingestion, OCR/PDF parsing, browser rendering, live channel delivery, or RAG source-of-truth behavior.
+Revisit trigger: Owner testing shows crawler output is too weak for real websites, or the next task needs browser-rendered/Crawl4AI-style crawling fixtures.

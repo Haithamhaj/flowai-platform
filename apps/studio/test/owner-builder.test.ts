@@ -262,4 +262,19 @@ describe("owner-first builder preview", () => {
       "delete:vs_test:file_test"
     ]);
   });
+
+  test("marks website crawling done when the source came from the crawler", () => {
+    const preview = buildOwnerFirstPreview({
+      filename: "example-com-crawl.md",
+      mimeType: "text/markdown",
+      sourceKind: "website_text",
+      sourceUrl: "https://example.com",
+      sourceOrigin: "crawler",
+      content: clinicText
+    });
+
+    expect(preview.sourcePanel.sourceKind).toBe("website_text");
+    expect(preview.sourcePanel.sourceUrl).toBe("https://example.com");
+    expect(preview.ownerChecklist.find((item) => item.id === "website_crawling")?.status).toBe("done");
+  });
 });
