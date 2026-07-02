@@ -6,6 +6,7 @@ export interface CustomerChatMessage {
 export interface CustomerChatTurnInput {
   message: string;
   history?: CustomerChatMessage[];
+  ownerContext?: string;
 }
 
 export type CustomerChatTurnResult =
@@ -29,6 +30,7 @@ export interface CustomerChatAgentProvider {
     message: string;
     history: CustomerChatMessage[];
     intent: "small_talk" | "builder_discovery" | "ready_to_build";
+    ownerContext: string;
   }): Promise<string>;
 }
 
@@ -38,6 +40,7 @@ export async function runCustomerChatTurn(
 ): Promise<CustomerChatTurnResult> {
   const message = input.message.trim();
   const history = input.history ?? [];
+  const ownerContext = input.ownerContext?.trim() ?? "";
   if (!message) {
     return { action: "reply", reply: "اكتب لي رسالة قصيرة عن البزنس أو أرسل رابط الموقع/ملف الخدمات." };
   }
@@ -51,12 +54,21 @@ export async function runCustomerChatTurn(
     };
   }
 
+  if (wantsBuildNow(message) && ownerContext.length > 80) {
+    return {
+      action: "build_text",
+      content: ownerContext,
+      reply: "تمام، سأبني الآن من القرارات التي اتفقنا عليها في المحادثة بدل ما أعيد الأسئلة."
+    };
+  }
+
   if (isSmallTalkOnly(message)) {
     return {
       action: "reply",
       reply: await providerReplyOrFallback(provider, {
         message,
         history,
+        ownerContext,
         intent: "small_talk",
         fallback: smallTalkReply(message)
       })
@@ -69,9 +81,10 @@ export async function runCustomerChatTurn(
       reply: await providerReplyOrFallback(provider, {
         message,
         history,
+        ownerContext,
         intent: "builder_discovery",
         fallback:
-          "فهمت عليك. قبل ما أبني الشجرة أحتاج أعرف البزنس نفسه: ما اسم النشاط؟ وما أهم خدمة أو منتج تريد البوت يشرحها ويقرب العميل من شرائها؟"
+          buildDiscoveryFallback(ownerContext)
       })
     };
   }
@@ -82,9 +95,9 @@ export async function runCustomerChatTurn(
       reply: await providerReplyOrFallback(provider, {
         message,
         history,
+        ownerContext,
         intent: "builder_discovery",
-        fallback:
-          "الفكرة واضحة: تريد بوت يساعد العميل يفهم الخدمات ويتحفز للشراء. أرسل لي الآن رابط الموقع أو اكتب أهم 3 خدمات/منتجات مع طريقة إتمام الطلب، وبعدها أبني لك workflow أولي."
+        fallback: buildBusinessGoalFallback(ownerContext)
       })
     };
   }
@@ -115,9 +128,30 @@ function smallTalkReply(text: string): string {
   return "أهلًا. أنا هنا عشان أبني معك chatbot للبزنس. ابدأ باسم النشاط أو أرسل رابط الموقع/ملف الخدمات، وسأسألك خطوة بخطوة.";
 }
 
+function buildDiscoveryFallback(ownerContext: string): string {
+  if (ownerContext) {
+    return "فهمت. عندي سياق سابق عن البوت، فبدل ما نعيد من الصفر سأستخدمه. أعطني الآن رابط الموقع أو ملف المنتجات/الخدمات، أو قل لي: ابنِ الشجرة الآن.";
+  }
+  return "فهمت عليك. قبل ما أبني الشجرة أحتاج أعرف البزنس نفسه: ما اسم النشاط؟ وما أهم خدمة أو منتج تريد البوت يشرحها ويقرب العميل من شرائها؟";
+}
+
+function buildBusinessGoalFallback(ownerContext: string): string {
+  if (ownerContext) {
+    return "واضح. سأضيف هذا القرار لسياق البوت بدل ما أعيد الأسئلة. الخطوة الأنسب الآن: أرسل رابط المصدر أو قل لي ابنِ الشجرة الآن لأحوّل القرارات الحالية إلى workflow.";
+  }
+  return "الفكرة واضحة: تريد بوت يساعد العميل يفهم الخدمات ويتحفز للشراء. أرسل لي الآن رابط الموقع أو اكتب أهم 3 خدمات/منتجات مع طريقة إتمام الطلب، وبعدها أبني لك workflow أولي.";
+}
+
 function hasBusinessBuildSignal(text: string): boolean {
   const normalized = normalizeArabicText(text);
   return /(بوت|تشات|chatbot|شات بوت|عميل|عملاء|شراء|خدمات|منتجات|بزنس|موقع|متجر|عيادة|شركة|مطعم|حجوزات|طلبات|workflow)/i.test(
+    normalized
+  );
+}
+
+function wantsBuildNow(text: string): boolean {
+  const normalized = normalizeArabicText(text);
+  return /(ابني|ابن|بناء|جهز|طلع|اعمل).*(الشجره|الشجرة|workflow|البوت|تشات بوت|chatbot)|^(ابن الشجره الان|ابن الشجرة الآن|build now)$/i.test(
     normalized
   );
 }
@@ -138,6 +172,7 @@ async function providerReplyOrFallback(
   input: {
     message: string;
     history: CustomerChatMessage[];
+    ownerContext: string;
     intent: "small_talk" | "builder_discovery" | "ready_to_build";
     fallback: string;
   }
@@ -147,6 +182,7 @@ async function providerReplyOrFallback(
     const reply = await provider.generateReply({
       message: input.message,
       history: input.history,
+      ownerContext: input.ownerContext,
       intent: input.intent
     });
     return reply.trim() || input.fallback;

@@ -140,6 +140,8 @@ describe("source document review and deterministic facts", () => {
         "DESCRIPTION: شركة سعودية رسمية لبيع وتنفيذ مشاريع الصدقات تشمل حفر آبار بالقرى الآسيوية وذبح وتوزيع المواشي ووقف مصاحف.",
         "",
         "## Page 2: الذبائح - البشرى - نبني اثر لا ينسى",
+        "CATALOG_LINK: الذبائح -> https://alboshrastore.com/slaughter",
+        "PRICE_CANDIDATE: ذبيحة تبدأ من 500 ريال",
         "خدمة ذبح وتوزيع المواشي ضمن مشاريع الصدقات.",
         "",
         "## Page 3: الآبار - البشرى - نبني اثر لا ينسى",
@@ -161,6 +163,10 @@ describe("source document review and deterministic facts", () => {
     ]);
     expect(facts.services.every((service) => service.sourceRefs.length > 0)).toBe(true);
     expect(facts.services.every((service) => !service.description.includes("price"))).toBe(true);
+    expect(facts.services.find((service) => service.name === "ذبح وتوزيع المواشي")?.description).toContain(
+      "https://alboshrastore.com/slaughter"
+    );
+    expect(facts.services.find((service) => service.name === "ذبح وتوزيع المواشي")?.description).toContain("500 ريال");
   });
 
   it("blocks ecommerce/product recommendation claims without ProductCatalog evidence", () => {

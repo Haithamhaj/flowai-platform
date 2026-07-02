@@ -14,6 +14,8 @@ export interface CrawledWebsitePage {
   title: string;
   description: string | null;
   text: string;
+  catalogLinks: Array<{ label: string; url: string }>;
+  priceCandidates: string[];
   statusCode: number | null;
 }
 
@@ -71,6 +73,16 @@ export interface WebsiteCrawlReviewReport {
 const DEFAULT_MAX_PAGES = 5;
 const DEFAULT_MAX_TEXT_CHARS_PER_PAGE = 8000;
 
+type PageQuery = {
+  (selector: string): {
+    each(callback: (index: number, element: unknown) => false | void): void;
+  };
+  (element: unknown): {
+    attr(name: string): string | undefined;
+    text(): string;
+  };
+};
+
 export async function crawlWebsiteToSourceDocument(request: WebsiteCrawlRequest): Promise<WebsiteCrawlResult> {
   const urlResult = parseAllowedStartUrl(request.startUrl, Boolean(request.allowPrivateNetwork));
   const warnings = ["Crawl limited to same-origin http/https pages."];
@@ -102,13 +114,22 @@ export async function crawlWebsiteToSourceDocument(request: WebsiteCrawlRequest)
           const title = normalizeSpace($("title").first().text() || $("h1").first().text());
           const description = normalizeSpace($("meta[name='description']").attr("content") ?? "");
           $("script, style, noscript, svg, canvas, iframe, nav, footer").remove();
-          const mainText = normalizeSpace(($("main").text() || $("body").text()).slice(0, maxTextCharsPerPage));
+          const structuredText = $("main h1, main h2, main h3, main p, main li, main a, body h1, body h2, body h3, body p, body li, body a")
+            .map((_, element) => normalizeSpace($(element).text()))
+            .get()
+            .filter(Boolean)
+            .join("\n");
+          const mainText = (structuredText || normalizeSpace($("main").text() || $("body").text())).slice(0, maxTextCharsPerPage);
           if (mainText) {
+            const catalogLinks = extractCatalogLinks($, loaded, urlResult.url.origin);
+            const priceCandidates = extractPriceCandidates(mainText);
             pages.push({
               url: loaded.href,
               title: title || loaded.pathname || loaded.hostname,
               description: description || null,
               text: mainText,
+              catalogLinks,
+              priceCandidates,
               statusCode: response?.statusCode ?? null
             });
           }
@@ -223,13 +244,7 @@ export async function reviewWebsiteCrawlQuality({
 
 function buildWebsiteSourceDocument(startUrl: URL, pages: CrawledWebsitePage[]): SourceDocument {
   const filename = websiteFilename(startUrl, pages[0]?.title ?? startUrl.hostname);
-  const text = pages.map((page, index) => [
-    `# Page ${index + 1}: ${page.title}`,
-    `SOURCE_URL: ${page.url}`,
-    page.description ? `DESCRIPTION: ${page.description}` : null,
-    "",
-    page.text
-  ].filter((line): line is string => typeof line === "string").join("\n")).join("\n\n---\n\n");
+  const text = pages.map((page, index) => textForPage(page, index + 1)).join("\n\n---\n\n");
   const contentHash = hashText(text);
   const id = `src_web_${contentHash.slice(0, 16)}`;
   const lines = text.split("\n");
@@ -322,9 +337,61 @@ function textForPage(page: CrawledWebsitePage, index: number): string {
     `# Page ${index}: ${page.title}`,
     `SOURCE_URL: ${page.url}`,
     page.description ? `DESCRIPTION: ${page.description}` : null,
+    ...page.catalogLinks.map((link) => `CATALOG_LINK: ${link.label} -> ${link.url}`),
+    ...page.priceCandidates.map((candidate) => `PRICE_CANDIDATE: ${candidate}`),
     "",
     page.text
   ].filter((line): line is string => typeof line === "string").join("\n");
+}
+
+function extractCatalogLinks(
+  $: PageQuery,
+  loaded: URL,
+  allowedOrigin: string
+): Array<{ label: string; url: string }> {
+  const links: Array<{ label: string; url: string }> = [];
+  $("a[href]").each((_, element) => {
+    if (links.length >= 24) return false;
+    const rawHref = $(element).attr("href");
+    const label = normalizeSpace($(element).text());
+    if (!rawHref || !label || label.length < 2 || label.length > 90) return;
+    let href: URL;
+    try {
+      href = new URL(rawHref, loaded.href);
+    } catch {
+      return;
+    }
+    if (href.origin !== allowedOrigin) return;
+    if (!isCatalogLikeLink(label, href)) return;
+    links.push({ label, url: href.href });
+  });
+  return uniqueLinks(links);
+}
+
+function isCatalogLikeLink(label: string, href: URL): boolean {
+  const normalized = `${label} ${decodeURIComponent(href.pathname)}`.toLowerCase();
+  return /(product|products|shop|store|cart|checkout|buy|order|service|package|price|pricing|منتج|منتجات|متجر|شراء|اطلب|طلب|السلة|السعر|الاسعار|باقة|باقات|ذبائح|ذبيحة|اضحية|أضحية|ابار|آبار|المصاحف|مصاحف)/i.test(
+    normalized
+  );
+}
+
+function extractPriceCandidates(text: string): string[] {
+  const candidates = text
+    .split(/[.\n،]/)
+    .map((line) => normalizeSpace(line))
+    .filter((line) => /(?:\d+\s*(?:sar|ريال|ر\.س)|(?:sar|ريال|ر\.س)\s*\d+|\$\s*\d+|starts at|from\s+\d+)/i.test(line))
+    .slice(0, 12);
+  return Array.from(new Set(candidates));
+}
+
+function uniqueLinks(links: Array<{ label: string; url: string }>): Array<{ label: string; url: string }> {
+  const seen = new Set<string>();
+  return links.filter((link) => {
+    const key = `${link.label}\n${link.url}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function parseAllowedStartUrl(

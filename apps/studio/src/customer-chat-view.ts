@@ -158,6 +158,7 @@ export function renderCustomerChatHtml(): string {
     let currentWorkflowModel = null;
     let selectedNodeId = null;
     const chatHistory = [];
+    const ownerDecisionLog = [];
 
     addMessage("bot", "أهلًا، أنا FlowAI. احكِ لي عن البزنس أو أرسل رابط موقع أو أرفق ملف نصي، وسأرجع لك داخل هذه المحادثة بما فهمته، ما ينقصني، وهل أقدر أبني الشجرة الآن.");
 
@@ -217,6 +218,7 @@ export function renderCustomerChatHtml(): string {
       const text = message.value.trim();
       if (!text) return;
       addMessage("owner", text);
+      rememberOwnerDecision(text);
       message.value = "";
       const turn = await runCustomerAgent(text);
       if (turn.action === "crawl_url") {
@@ -244,6 +246,7 @@ export function renderCustomerChatHtml(): string {
           body: JSON.stringify({
             message: text,
             history: chatHistory.slice(-10),
+            ownerContext: buildOwnerContext(),
             useLiveAi: Boolean(liveAi.checked)
           })
         });
@@ -277,7 +280,8 @@ export function renderCustomerChatHtml(): string {
           maxPages: 5,
           useLiveAi: Boolean(liveAi.checked),
           useKnowledgeSearch: Boolean(knowledge.checked),
-          knowledgeSearchQuery: "What should the chatbot know about this business?"
+          knowledgeSearchQuery: "What should the chatbot know about this business?",
+          ownerContext: buildOwnerContext()
         })
       });
       const payload = await response.json();
@@ -301,7 +305,8 @@ export function renderCustomerChatHtml(): string {
           content,
           useLiveAi: Boolean(liveAi.checked),
           useKnowledgeSearch: Boolean(knowledge.checked),
-          knowledgeSearchQuery: "What should the chatbot know about this business?"
+          knowledgeSearchQuery: "What should the chatbot know about this business?",
+          ownerContext: buildOwnerContext()
         })
       });
       const preview = await response.json();
@@ -332,6 +337,7 @@ export function renderCustomerChatHtml(): string {
       const combinedMissing = [...missingQuestions, ...blockers].filter((item, index, items) => item && items.indexOf(item) === index);
       const fields = proposal.requiredFields || [];
       const sourceRefs = source.sourceRefs || [];
+      const ownerContext = buildOwnerContext();
       const sourceName = brief.businessName || source.sourceUrl || source.filename || "المصدر";
       const crawlNote = crawl ? "قرأت " + escapeHtml(String(crawl.pages?.length || 0)) + " صفحات من الموقع. " : "";
       const sourceRefText = sourceRefs.length > 0 ? "<p class='muted'>المصادر: " + escapeHtml(sourceRefs.map(ref => ref.label).slice(0, 3).join(", ")) + "</p>" : "";
@@ -346,6 +352,9 @@ export function renderCustomerChatHtml(): string {
       const fieldsHtml = fields.length > 0
         ? "<div class='pill-row'>" + fields.map(field => "<span class='pill'>" + escapeHtml(field) + "</span>").join("") + "</div>"
         : "<p class='muted'>لم يتم تحديد حقول جمع بيانات العميل بعد.</p>";
+      const contextHtml = ownerContext
+        ? "<h3>قراراتك في المحادثة</h3><p class='muted'>" + escapeHtml(ownerContext.split("\\n").slice(-6).join(" · ")) + "</p>"
+        : "";
 
       return [
         "<h2>تمام، فهمت الاتجاه</h2>",
@@ -358,6 +367,7 @@ export function renderCustomerChatHtml(): string {
         services.length > 0 && catalogItems.length > 0 ? "<h3>الخدمات المختصرة</h3>" + servicesHtml : "",
         "<h3>الحقول المتوقعة</h3>",
         fieldsHtml,
+        contextHtml,
         missingHtml,
         "<p class='muted'>سأستخدم الأسعار أو التوفر فقط إذا كانت موجودة بوضوح في المصدر.</p>",
         currentWorkflowModel ? renderWorkflowLinkMessage(preview) : renderBlockedWorkflowMessage()
@@ -370,7 +380,7 @@ export function renderCustomerChatHtml(): string {
     }
 
     function renderBlockedWorkflowMessage() {
-      return "<p class='muted'>لم أبنِ الشجرة بعد. أرسل الخدمات والحقول المطلوبة مثل الاسم، الجوال، نوع الطلب، والمدينة، وسأبنيها لك.</p>";
+      return "<p class='muted'>لم أبنِ الشجرة بعد. إذا كانت المعلومات كافية اكتب: ابنِ الشجرة الآن، أو أرسل المعلومة الناقصة فقط.</p>";
     }
 
     function addMessage(kind, text) {
@@ -473,6 +483,18 @@ export function renderCustomerChatHtml(): string {
         return "أهلًا، تمام الحمد لله. خلينا نبني البوت صح: ما اسم البزنس أو أرسل لي رابط الموقع/ملف الخدمات، وبعدها أسألك سؤال سؤال لحد ما نطلع workflow واضح.";
       }
       return "أهلًا، تمام الحمد لله. احكِ لي باختصار عن البزنس: ما اسمه؟ وما أهم خدمة أو منتج تريد البوت يساعد العملاء يفهموه أو يشتروه؟";
+    }
+
+    function rememberOwnerDecision(text) {
+      const cleaned = text.replace(/https?:\\/\\/[^\\s]+/g, "").trim();
+      if (!cleaned || isSmallTalkOnly(cleaned) || cleaned.length < 8) return;
+      ownerDecisionLog.push(cleaned.slice(0, 260));
+      while (ownerDecisionLog.length > 14) ownerDecisionLog.shift();
+    }
+
+    function buildOwnerContext() {
+      if (ownerDecisionLog.length === 0) return "";
+      return ownerDecisionLog.map((item, index) => "- Decision " + (index + 1) + ": " + item).join("\\n");
     }
 
     function isSupportedTextFile(value) {

@@ -19,6 +19,7 @@ describe("website crawler", () => {
       "/services": [
         "<!doctype html><html><head><title>Services</title></head><body><main>",
         "<h1>Services</h1><ul><li>Oil change package starts at 180 SAR.</li><li>Battery replacement consultation.</li></ul>",
+        "<a href='/products/oil-change'>Buy oil change package</a>",
         "<a href='/'>Home</a></main></body></html>"
       ].join("")
     });
@@ -35,6 +36,8 @@ describe("website crawler", () => {
     expect(result.document.sourceType).toBe("website");
     expect(result.document.filename).toBe("website-riyadh-auto-care.md");
     expect(result.document.text).toContain("SOURCE_URL:");
+    expect(result.document.text).toContain("CATALOG_LINK: Buy oil change package");
+    expect(result.document.text).toContain("PRICE_CANDIDATE: Oil change package starts at 180 SAR");
     expect(result.document.text).toContain("Riyadh Auto Care");
     expect(result.document.text).toContain("Oil change package starts at 180 SAR.");
     expect(result.document.sourceRefs.some((ref) => ref.label.includes("/services"))).toBe(true);

@@ -346,7 +346,7 @@ function extractArabicCatalogServices(text: string, fields: ExtractedField[], so
     },
     {
       name: "ذبح وتوزيع المواشي",
-      patterns: [/ذبح\s+وتوزيع\s+المواشي/, /توزيع\s+المواشي/, /الذبائح/, /ذبائح/]
+      patterns: [/ذبح\s+وتوزيع\s+المواشي/, /توزيع\s+المواشي/, /الذبائح/, /ذبائح/, /ذبيحه/, /اضحيه/]
     },
     {
       name: "وقف مصاحف",
@@ -368,16 +368,27 @@ function extractArabicCatalogServices(text: string, fields: ExtractedField[], so
 }
 
 function extractNearbyArabicDescription(text: string, patterns: RegExp[]): string | null {
-  const matchingLine = text
+  const lines = text
     .split("\n")
     .map((line) => cleanText(stripMarkdown(line)))
-    .find((line) => {
+    .filter(Boolean);
+  const matchingLine = lines.find((line) => {
       const normalized = normalizeArabic(line);
       return patterns.some((pattern) => pattern.test(normalized));
     });
 
   if (!matchingLine) return null;
-  return matchingLine.replace(/^Page\s+\d+\s*:\s*/i, "").slice(0, 180);
+  const matchingLink = lines.find((line) => {
+    if (!line.startsWith("CATALOG_LINK:")) return false;
+    const normalized = normalizeArabic(line);
+    return patterns.some((pattern) => pattern.test(normalized));
+  });
+  const matchingPrice = lines.find((line) => {
+    if (!line.startsWith("PRICE_CANDIDATE:")) return false;
+    const normalized = normalizeArabic(line);
+    return patterns.some((pattern) => pattern.test(normalized));
+  });
+  return [matchingLine.replace(/^Page\s+\d+\s*:\s*/i, ""), matchingLink, matchingPrice].filter(Boolean).join(" ").slice(0, 320);
 }
 
 function extractFields(lines: string[], sourceRefId: string): ExtractedField[] {

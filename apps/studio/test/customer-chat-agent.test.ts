@@ -52,4 +52,25 @@ describe("customer chat agent", () => {
       reply: "تمام. قل لي اسم البزنس ونوع العملاء الذين تريد خدمتهم."
     });
   });
+
+  test("uses owner context to build when the owner asks to build now", async () => {
+    const result = await runCustomerChatTurn({
+      message: "ابن الشجرة الآن",
+      ownerContext:
+        "- Decision 1: متجر إلكتروني ربحي.\n- Decision 2: البوت على الموقع وواتساب.\n- Decision 3: يجمع الاسم والجوال ويوجه العميل لرابط الشراء حسب المنتج."
+    });
+
+    expect(result.action).toBe("build_text");
+    expect(result.reply).toContain("القرارات");
+  });
+
+  test("does not repeat generic first-step prompts when owner context already exists", async () => {
+    const result = await runCustomerChatTurn({
+      message: "خذ المنتجات من الموقع",
+      ownerContext: "- Decision 1: الهدف استقبال طلبات وترشيح الخدمة المناسبة.\n- Decision 2: النبرة سعودية خفيفة."
+    });
+
+    expect(result.action).toBe("reply");
+    expect(result.reply).toContain("سياق");
+  });
 });

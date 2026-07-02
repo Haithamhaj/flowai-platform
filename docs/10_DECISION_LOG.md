@@ -337,3 +337,10 @@ Decision: `/customer` should call a dedicated customer chat-agent endpoint befor
 Reason: The customer experience should feel like talking to a focused GPT-style chatbot builder. Treating every owner message as a document makes greetings and vague goals produce technical extraction reports, which is the wrong product behavior.
 Consequences: `POST /api/customer-chat` returns one of three safe actions: `reply`, `crawl_url`, or `build_text`. Live AI may improve short discovery replies through backend-only provider config, but no provider key reaches the browser and AI still does not generate final Workflow JSON. The existing `/api/build` and `/api/crawl-build` paths remain the only build/crawl execution paths.
 Revisit trigger: TASK-026 formalizes durable multi-turn agent state, richer source collection, tool calls, and build readiness checks.
+
+## 2026-07-02: Customer Demo Needs Session Decisions And Better Crawl Evidence
+
+Decision: TASK-025 may keep a lightweight browser-session owner decision log and include crawler-extracted `CATALOG_LINK` / `PRICE_CANDIDATE` evidence in website SourceDocument text.
+Reason: Owner testing showed that a GPT-style chat reply is not enough if repeated crawl/build attempts forget prior decisions or if a simple storefront crawl hides product/order links and price text inside unstructured page copy.
+Consequences: The owner decision log is sent to `/api/customer-chat`, `/api/build`, and `/api/crawl-build` as owner-provided requirements. It is not durable memory, not tenant-safe persistence, and not website evidence for prices or availability. Static crawler evidence can improve source review and Live AI output without adding a new crawler dependency, but JavaScript-rendered catalogs still require a later browser-rendered crawling task.
+Revisit trigger: TASK-026 introduces durable local session state, richer source selection, browser-rendered crawling, or production persistence.

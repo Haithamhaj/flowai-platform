@@ -74,6 +74,15 @@ describe("customer chat view", () => {
     expect(html).toContain('fetch("/api/customer-chat"');
   });
 
+  test("keeps a lightweight owner decision memory for agent and build calls", () => {
+    const html = renderCustomerChatHtml();
+
+    expect(html).toContain("ownerDecisionLog");
+    expect(html).toContain("rememberOwnerDecision(text)");
+    expect(html).toContain("ownerContext: buildOwnerContext()");
+    expect(html).toContain("قراراتك في المحادثة");
+  });
+
   test("uses the existing pipeline endpoints without adding server upload behavior", () => {
     const html = renderCustomerChatHtml();
 

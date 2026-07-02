@@ -44,6 +44,8 @@ Another review exposed that greetings like `مرحبا` and small talk like `ك�
 
 The current TASK-025 fix adds a customer chat-agent turn before the build pipeline. `/customer` now calls `POST /api/customer-chat` first; that endpoint classifies each owner message as a conversational reply, URL crawl request, or detailed text build request. When Live AI is enabled and backend-only OpenAI config is available, the agent may use the provider for short discovery replies, while provider keys remain server-side and Workflow JSON generation remains deterministic.
 
+Owner review then showed that conversational intelligence alone is not enough: repeated crawls forgot owner decisions, and simple storefront crawls did not surface links/prices clearly. TASK-025 now keeps a lightweight browser-session owner decision log and sends it with customer-chat/build/crawl-build calls. The crawler also emits bounded `CATALOG_LINK` and `PRICE_CANDIDATE` lines from static same-origin HTML so source review and Live AI can reason from better evidence. This is not production memory, persistence, or browser-rendered crawling.
+
 ## Active Decisions
 
 - FlowAI is a Business-to-Workflow Chatbot Generator.
@@ -124,6 +126,8 @@ The current TASK-025 fix adds a customer chat-agent turn before the build pipeli
 - `/customer` text send is message-first; the URL field is used only by `Use link`, preventing accidental re-crawls from previous examples.
 - `/customer` small talk is handled before source extraction; not every message should become a SourceDocument.
 - `/customer` routes every typed message through a customer chat-agent turn before extraction; the build pipeline runs only when the agent returns a build/crawl action.
+- `/customer` maintains a local owner decision log for the current browser session and appends it to build/crawl-build as owner-provided requirements.
+- Website crawler output may include source-backed catalog/order links and price candidates from static HTML, but these remain review evidence rather than publish-ready price/availability claims.
 
 ## Active Risks
 
@@ -172,6 +176,8 @@ The current TASK-025 fix adds a customer chat-agent turn before the build pipeli
 - Browser-only file attach proves local UX only and does not satisfy production upload, scanning, storage, privacy, retention, or auth needs.
 - Pattern-based Arabic catalog extraction will miss many real catalogs and synonyms until live AI extraction, stronger catalog modeling, or browser-rendered crawling is approved and tested.
 - The TASK-025 chat-agent turn improves intent routing and tone, but it is not yet durable session memory, production orchestration, OCR/PDF upload, browser-rendered crawling, or full multi-agent planning.
+- The session decision log can be lost on reload and is not tenant-safe; production memory/session persistence remains a separate task.
+- Catalog links and price candidates only work when present in static HTML; JS-rendered catalogs still need a browser-rendered crawler spike.
 
 ## Protected Areas
 
