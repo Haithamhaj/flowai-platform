@@ -1,7 +1,9 @@
 import {
   buildProductCatalogDraftFromBusinessUnderstanding,
   type AiBuilderProvider,
+  type FlowAiKnowledgeBaseSearchMatch,
   type OpenAiProviderDiagnostics,
+  type OpenAiVectorStoreClient,
   loadPromptPack,
   orchestrateAiBuilderTurn,
   planProductInquiryWorkflow
@@ -24,7 +26,34 @@ import { buildWorkflowEditorModel, type WorkflowEditorModel } from "./workflow-e
 export interface OwnerFirstPreviewInput {
   filename?: string;
   mimeType?: string;
+  sourceKind?: "business_description" | "document_text" | "website_text";
+  sourceUrl?: string;
   content: string;
+}
+
+export interface OwnerChecklistItem {
+  id:
+    | "source_document"
+    | "source_refs"
+    | "business_understanding"
+    | "catalog_review"
+    | "workflow_generation"
+    | "runtime_test"
+    | "telegram_preview"
+    | "export_package"
+    | "rag_search"
+    | "ocr_pdf"
+    | "website_crawling";
+  label: string;
+  status: "done" | "review" | "blocked" | "not_enabled";
+  note: string;
+}
+
+export interface KnowledgeSearchPanel {
+  status: "not_enabled" | "unconfigured" | "blocked" | "ready";
+  query: string;
+  matches: Array<Pick<FlowAiKnowledgeBaseSearchMatch, "score" | "sourceRefId" | "fileId"> & { text: string }>;
+  note: string;
 }
 
 export interface OwnerFirstPreview {
@@ -39,6 +68,8 @@ export interface OwnerFirstPreview {
   sourcePanel: {
     documentId?: string;
     filename: string;
+    sourceKind: "business_description" | "document_text" | "website_text";
+    sourceUrl: string | null;
     sourceRefs: Array<{ id: string; label: string; locator: string }>;
     reviewExcerpt?: string;
     warnings: string[];
@@ -83,6 +114,8 @@ export interface OwnerFirstPreview {
       suggestedQuestions: string[];
     };
   };
+  ownerChecklist: OwnerChecklistItem[];
+  knowledgeSearch: KnowledgeSearchPanel;
   workflowSummary?: {
     workflowId: string;
     name: string;
@@ -103,6 +136,11 @@ export interface OwnerFirstAiReviewOptions {
   useLiveAi: boolean;
   providerDiagnostics: OpenAiProviderDiagnostics;
   provider?: AiBuilderProvider;
+  useKnowledgeSearch?: boolean;
+  knowledgeSearchQuery?: string;
+  knowledgeProviderDiagnostics?: OpenAiProviderDiagnostics;
+  knowledgeClient?: OpenAiVectorStoreClient;
+  knowledgeSearchRetryDelayMs?: number;
 }
 
 const DEFAULT_CLINIC_TEXT = [
@@ -140,6 +178,8 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
   const promptCount = Object.keys(promptPack).length;
   const filename = input.filename?.trim() || "owner-business.md";
   const mimeType = input.mimeType?.trim() || inferMimeType(filename);
+  const sourceKind = input.sourceKind ?? "business_description";
+  const sourceUrl = normalizeSourceUrl(input.sourceUrl);
   const ingested = ingestSourceDocument({
     filename,
     mimeType,
@@ -160,6 +200,8 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
       suggestedQuestions: ["Paste plain text or markdown only.", "Remove unsupported file content.", "Keep secrets out of source text."],
       sourcePanel: {
         filename,
+        sourceKind,
+        sourceUrl,
         sourceRefs: [],
         warnings: ingested.document.warnings.map((warning) => warning.message),
         errors: ingested.document.errors.map((error) => error.message)
@@ -173,6 +215,18 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
         warnings: []
       },
       productCatalog: emptyProductCatalogPanel(),
+      ownerChecklist: buildOwnerChecklist({
+        sourceAccepted: false,
+        sourceRefCount: 0,
+        businessUnderstandingReady: false,
+        catalogReviewStatus: "blocked",
+        workflowValid: false,
+        runtimeTurnCount: 0,
+        telegramMessageCount: 0,
+        exportReady: false,
+        ragStatus: "not_enabled"
+      }),
+      knowledgeSearch: disabledKnowledgeSearchPanel(),
       runtimeConversation: [],
       telegramPreview: [],
       channelPreview: emptyChannelPreview(),
@@ -195,15 +249,22 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
   });
   const workflow = workflowResult.workflow;
   const validation = workflow ? validateWorkflow(workflow) : undefined;
+  const runtimeConversation = workflow ? runRuntimePreview(workflow) : [];
+  const telegramPreview = workflow ? renderTelegramPreview(workflow) : [];
+  const integrationHub = workflow ? buildWorkflowIntegrationHub({ workflow }) : undefined;
+  const productCatalog = mapProductCatalogPanel(catalog, productInquiryPlan);
+  const workflowValid = Boolean(workflow && validation?.valid);
 
   return {
-    status: workflow && validation?.valid ? "ready" : "blocked",
+    status: workflowValid ? "ready" : "blocked",
     aiMode,
     assistantMessage: buildAssistantMessage(understanding.businessName, workflow),
     suggestedQuestions: buildSuggestedQuestions(understanding.category, workflowResult.generationPlan.missingBlockers.map((blocker) => blocker.message)),
     sourcePanel: {
       documentId: document.id,
       filename: document.filename,
+      sourceKind,
+      sourceUrl,
       sourceRefs: document.sourceRefs.slice(0, 6).map((ref) => ({
         id: ref.id,
         label: ref.label,
@@ -237,7 +298,19 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
       blockers: workflowResult.generationPlan.missingBlockers.map((blocker) => blocker.message),
       warnings: workflowResult.generationPlan.warnings.map((warning) => warning.message)
     },
-    productCatalog: mapProductCatalogPanel(catalog, productInquiryPlan),
+    productCatalog,
+    ownerChecklist: buildOwnerChecklist({
+      sourceAccepted: true,
+      sourceRefCount: document.sourceRefs.length,
+      businessUnderstandingReady: Boolean(understanding.businessName || understanding.summary),
+      catalogReviewStatus: productCatalog.reviewStatus,
+      workflowValid,
+      runtimeTurnCount: runtimeConversation.length,
+      telegramMessageCount: telegramPreview.length,
+      exportReady: Boolean(integrationHub),
+      ragStatus: "not_enabled"
+    }),
+    knowledgeSearch: disabledKnowledgeSearchPanel(),
     workflowSummary: workflow
       ? {
           workflowId: workflow.workflowId,
@@ -249,9 +322,9 @@ export function buildOwnerFirstPreview(input: OwnerFirstPreviewInput): OwnerFirs
         }
       : undefined,
     visualWorkflow: workflow ? buildWorkflowEditorModel(workflow) : undefined,
-    integrationHub: workflow ? buildWorkflowIntegrationHub({ workflow }) : undefined,
-    runtimeConversation: workflow ? runRuntimePreview(workflow) : [],
-    telegramPreview: workflow ? renderTelegramPreview(workflow) : [],
+    integrationHub,
+    runtimeConversation,
+    telegramPreview,
     channelPreview: workflow ? renderChannelPreview(workflow) : emptyChannelPreview(),
     safetyNotes: defaultSafetyNotes()
   };
@@ -262,11 +335,10 @@ export async function buildOwnerFirstPreviewWithAiReview(
   options: OwnerFirstAiReviewOptions
 ): Promise<OwnerFirstPreview> {
   const deterministic = buildOwnerFirstPreview(input);
+  let preview = deterministic;
 
-  if (!options.useLiveAi) return deterministic;
-
-  if (!options.providerDiagnostics.configured || !options.provider) {
-    return {
+  if (options.useLiveAi && (!options.providerDiagnostics.configured || !options.provider)) {
+    preview = {
       ...deterministic,
       aiMode: {
         status: "unconfigured",
@@ -274,51 +346,73 @@ export async function buildOwnerFirstPreviewWithAiReview(
         note: "Live AI review was requested, but no backend provider is configured. Deterministic fallback is still available."
       }
     };
+  } else if (options.useLiveAi && options.provider) {
+    const providerResult = await orchestrateAiBuilderTurn({
+      mode: "live_provider",
+      source: {
+        filename: input.filename?.trim() || "owner-business.md",
+        mimeType: input.mimeType?.trim() || inferMimeType(input.filename?.trim() || "owner-business.md"),
+        content: input.content
+      },
+      provider: options.provider
+    });
+    const productInquiryPlan = planProductInquiryWorkflow(providerResult.productCatalog);
+    const fallbackReason = providerResult.providerDiagnostics.fallbackReason;
+    const productCatalog = mapProductCatalogPanel(providerResult.productCatalog, productInquiryPlan);
+
+    preview = {
+      ...deterministic,
+      aiMode: {
+        status: providerResult.mode === "live_provider" ? "live_provider" : "deterministic_fallback",
+        label: providerResult.mode === "live_provider" ? "Live AI review" : "Live AI fallback",
+        note:
+          providerResult.mode === "live_provider"
+            ? `Reviewed with backend-only live AI provider (${options.providerDiagnostics.model ?? "configured model"}). Workflow JSON is still generated deterministically.`
+            : `Live AI provider returned an unsafe or invalid result, so FlowAI used deterministic fallback. ${fallbackReason ?? ""}`.trim()
+      },
+      assistantMessage:
+        providerResult.mode === "live_provider"
+          ? `I reviewed ${providerResult.businessUnderstanding.businessName ?? "the business"} with live AI and kept the workflow draft under deterministic validation.`
+          : deterministic.assistantMessage,
+      businessBrief: {
+        ...deterministic.businessBrief,
+        businessName: providerResult.businessUnderstanding.businessName,
+        category: providerResult.businessUnderstanding.category,
+        summary: safeExcerpt(redactSecrets(providerResult.businessUnderstanding.summary), 320),
+        missingQuestions: providerResult.businessUnderstanding.missingQuestions.map((question) => question.question)
+      },
+      productCatalog,
+      ownerChecklist: buildOwnerChecklist({
+        sourceAccepted: deterministic.sourcePanel.errors.length === 0,
+        sourceRefCount: deterministic.sourcePanel.sourceRefs.length,
+        businessUnderstandingReady: Boolean(providerResult.businessUnderstanding.businessName || providerResult.businessUnderstanding.summary),
+        catalogReviewStatus: productCatalog.reviewStatus,
+        workflowValid: Boolean(deterministic.workflowSummary?.valid),
+        runtimeTurnCount: deterministic.runtimeConversation.length,
+        telegramMessageCount: deterministic.telegramPreview.length,
+        exportReady: Boolean(deterministic.integrationHub),
+        ragStatus: deterministic.knowledgeSearch.status
+      }),
+      safetyNotes: [
+        "Live AI review is source-backed draft assistance only; Workflow JSON is still generated and validated deterministically.",
+        ...deterministic.safetyNotes
+      ]
+    };
   }
 
-  const providerResult = await orchestrateAiBuilderTurn({
-    mode: "live_provider",
-    source: {
-      filename: input.filename?.trim() || "owner-business.md",
-      mimeType: input.mimeType?.trim() || inferMimeType(input.filename?.trim() || "owner-business.md"),
-      content: input.content
-    },
-    provider: options.provider
-  });
-  const productInquiryPlan = planProductInquiryWorkflow(providerResult.productCatalog);
-  const fallbackReason = providerResult.providerDiagnostics.fallbackReason;
-
-  return {
-    ...deterministic,
-    aiMode: {
-      status: providerResult.mode === "live_provider" ? "live_provider" : "deterministic_fallback",
-      label: providerResult.mode === "live_provider" ? "Live AI review" : "Live AI fallback",
-      note:
-        providerResult.mode === "live_provider"
-          ? `Reviewed with backend-only live AI provider (${options.providerDiagnostics.model ?? "configured model"}). Workflow JSON is still generated deterministically.`
-          : `Live AI provider returned an unsafe or invalid result, so FlowAI used deterministic fallback. ${fallbackReason ?? ""}`.trim()
-    },
-    assistantMessage:
-      providerResult.mode === "live_provider"
-        ? `I reviewed ${providerResult.businessUnderstanding.businessName ?? "the business"} with live AI and kept the workflow draft under deterministic validation.`
-        : deterministic.assistantMessage,
-    businessBrief: {
-      ...deterministic.businessBrief,
-      businessName: providerResult.businessUnderstanding.businessName,
-      category: providerResult.businessUnderstanding.category,
-      summary: safeExcerpt(redactSecrets(providerResult.businessUnderstanding.summary), 320),
-      missingQuestions: providerResult.businessUnderstanding.missingQuestions.map((question) => question.question)
-    },
-    productCatalog: mapProductCatalogPanel(providerResult.productCatalog, productInquiryPlan),
-    safetyNotes: [
-      "Live AI review is source-backed draft assistance only; Workflow JSON is still generated and validated deterministically.",
-      ...deterministic.safetyNotes
-    ]
-  };
+  if (!options.useKnowledgeSearch) return preview;
+  return withKnowledgeSearch(input, preview, options);
 }
 
 function inferMimeType(filename: string): string {
   return filename.endsWith(".txt") ? "text/plain" : "text/markdown";
+}
+
+function normalizeSourceUrl(value: string | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  if (!/^https?:\/\//i.test(trimmed)) return null;
+  return safeExcerpt(redactSecrets(trimmed), 240);
 }
 
 function inferTemplateHint(category: string | null): "clinic_booking" | "service_lead" {
@@ -463,6 +557,181 @@ function emptyProductCatalogPanel(): OwnerFirstPreview["productCatalog"] {
   };
 }
 
+async function withKnowledgeSearch(
+  input: OwnerFirstPreviewInput,
+  preview: OwnerFirstPreview,
+  options: OwnerFirstAiReviewOptions
+): Promise<OwnerFirstPreview> {
+  const knowledgeSearch = await runKnowledgeSearch(input, options);
+  return {
+    ...preview,
+    knowledgeSearch,
+    ownerChecklist: buildOwnerChecklist({
+      sourceAccepted: preview.sourcePanel.errors.length === 0,
+      sourceRefCount: preview.sourcePanel.sourceRefs.length,
+      businessUnderstandingReady: Boolean(preview.businessBrief.businessName || preview.businessBrief.summary),
+      catalogReviewStatus: preview.productCatalog.reviewStatus,
+      workflowValid: Boolean(preview.workflowSummary?.valid),
+      runtimeTurnCount: preview.runtimeConversation.length,
+      telegramMessageCount: preview.telegramPreview.length,
+      exportReady: Boolean(preview.integrationHub),
+      ragStatus: knowledgeSearch.status
+    })
+  };
+}
+
+async function runKnowledgeSearch(
+  input: OwnerFirstPreviewInput,
+  options: OwnerFirstAiReviewOptions
+): Promise<KnowledgeSearchPanel> {
+  const query = options.knowledgeSearchQuery?.trim() || "What should the chatbot know about this business?";
+  if (!options.knowledgeProviderDiagnostics?.configured || !options.knowledgeClient) {
+    return {
+      status: "unconfigured",
+      query,
+      matches: [],
+      note: "RAG search was requested, but no backend OpenAI Vector Stores client is configured."
+    };
+  }
+
+  const ingested = ingestSourceDocument({
+    filename: input.filename?.trim() || "owner-business.md",
+    mimeType: input.mimeType?.trim() || inferMimeType(input.filename?.trim() || "owner-business.md"),
+    content: input.content
+  });
+  if (!ingested.ok) {
+    return {
+      status: "blocked",
+      query,
+      matches: [],
+      note: "RAG search was skipped because the source document was rejected."
+    };
+  }
+
+  let handle: Awaited<ReturnType<OpenAiVectorStoreClient["createKnowledgeBase"]>> | null = null;
+  try {
+    handle = await options.knowledgeClient.createKnowledgeBase({
+      name: `FlowAI Studio ${Date.now()}`,
+      sourceDocuments: [ingested.document]
+    });
+    const result = await searchKnowledgeWithRetry({
+      client: options.knowledgeClient,
+      vectorStoreId: handle.vectorStoreId,
+      query,
+      delayMs: options.knowledgeSearchRetryDelayMs ?? 2500,
+      attempts: 6
+    });
+    if (result.matches.length === 0) {
+      return {
+        status: "blocked",
+        query,
+        matches: [],
+        note: "RAG search completed, but OpenAI returned no source matches for this query."
+      };
+    }
+    return {
+      status: "ready",
+      query,
+      matches: result.matches.slice(0, 5).map((match) => ({
+        text: safeExcerpt(redactSecrets(match.text), 700),
+        score: match.score,
+        sourceRefId: match.sourceRefId,
+        fileId: match.fileId
+      })),
+      note: "Temporary OpenAI vector store was created, searched, and scheduled for cleanup in this request."
+    };
+  } catch (error) {
+    return {
+      status: "blocked",
+      query,
+      matches: [],
+      note: `RAG search failed safely: ${safeExcerpt(redactSecrets(error instanceof Error ? error.message : "unknown"), 220)}`
+    };
+  } finally {
+    if (handle) {
+      await options.knowledgeClient.deleteKnowledgeBase(handle);
+    }
+  }
+}
+
+async function searchKnowledgeWithRetry({
+  client,
+  vectorStoreId,
+  query,
+  attempts,
+  delayMs
+}: {
+  client: OpenAiVectorStoreClient;
+  vectorStoreId: string;
+  query: string;
+  attempts: number;
+  delayMs: number;
+}): Promise<Awaited<ReturnType<OpenAiVectorStoreClient["searchKnowledgeBase"]>>> {
+  let last: Awaited<ReturnType<OpenAiVectorStoreClient["searchKnowledgeBase"]>> = { matches: [] };
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    last = await client.searchKnowledgeBase({ vectorStoreId, query });
+    if (last.matches.length > 0) return last;
+    if (attempt < attempts) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  return last;
+}
+
+function disabledKnowledgeSearchPanel(): KnowledgeSearchPanel {
+  return {
+    status: "not_enabled",
+    query: "What should the chatbot know about this business?",
+    matches: [],
+    note: "RAG search is available only when explicitly enabled from the local backend."
+  };
+}
+
+function buildOwnerChecklist({
+  sourceAccepted,
+  sourceRefCount,
+  businessUnderstandingReady,
+  catalogReviewStatus,
+  workflowValid,
+  runtimeTurnCount,
+  telegramMessageCount,
+  exportReady,
+  ragStatus
+}: {
+  sourceAccepted: boolean;
+  sourceRefCount: number;
+  businessUnderstandingReady: boolean;
+  catalogReviewStatus: OwnerFirstPreview["productCatalog"]["reviewStatus"];
+  workflowValid: boolean;
+  runtimeTurnCount: number;
+  telegramMessageCount: number;
+  exportReady: boolean;
+  ragStatus: KnowledgeSearchPanel["status"];
+}): OwnerChecklistItem[] {
+  return [
+    checklistItem("source_document", "Source document accepted", sourceAccepted ? "done" : "blocked", sourceAccepted ? "Text/markdown source is accepted." : "Source needs safe text or markdown."),
+    checklistItem("source_refs", "SourceRefs created", sourceRefCount > 0 ? "done" : "blocked", `${sourceRefCount} sourceRef(s) available.`),
+    checklistItem("business_understanding", "Business brain drafted", businessUnderstandingReady ? "done" : "blocked", "BusinessUnderstanding draft is reviewable."),
+    checklistItem("catalog_review", "Catalog review", catalogReviewStatus === "blocked" ? "blocked" : "review", "Catalog facts require owner review before recommendations or price claims."),
+    checklistItem("workflow_generation", "Workflow generated", workflowValid ? "done" : "blocked", workflowValid ? "Workflow JSON validates." : "Workflow needs missing information."),
+    checklistItem("runtime_test", "Runtime test conversation", runtimeTurnCount > 0 ? "done" : "blocked", `${runtimeTurnCount} runtime transcript turn(s).`),
+    checklistItem("telegram_preview", "Telegram mock preview", telegramMessageCount > 0 ? "done" : "blocked", "Mock only; no live bot token."),
+    checklistItem("export_package", "Export package", exportReady ? "done" : "blocked", "Copy-ready JSON/mapping is available."),
+    checklistItem("rag_search", "RAG knowledge search", ragStatus === "ready" ? "done" : ragStatus === "not_enabled" ? "not_enabled" : "blocked", ragStatus === "ready" ? "SourceRef-backed knowledge search returned evidence." : "Enable backend RAG search to test OpenAI Vector Stores."),
+    checklistItem("ocr_pdf", "OCR/PDF ingestion", "blocked", "Needs approved OCR/parser dependency spike."),
+    checklistItem("website_crawling", "Website crawling", "blocked", "Current website mode accepts pasted website text only; crawler spike is separate.")
+  ];
+}
+
+function checklistItem(
+  id: OwnerChecklistItem["id"],
+  label: string,
+  status: OwnerChecklistItem["status"],
+  note: string
+): OwnerChecklistItem {
+  return { id, label, status, note };
+}
+
 function emptyChannelPreview(): ChannelPreviewWorkspace {
   return {
     channels: [],
@@ -472,9 +741,10 @@ function emptyChannelPreview(): ChannelPreviewWorkspace {
 
 function defaultSafetyNotes(): string[] {
   return [
-    "Live AI is not connected in this task.",
+    "Live AI review is backend-only and explicit when enabled.",
+    "OpenAI RAG search is temporary per request when enabled; production retention and tenant isolation are not implemented.",
     "Workflow JSON remains strict JSON and validator-backed.",
     "Telegram output is a mock preview, not a production bot.",
-    "Upload, crawling, RAG, persistence, and live WhatsApp remain deferred."
+    "Upload, OCR/PDF parsing, crawling, persistence, and live WhatsApp remain deferred."
   ];
 }

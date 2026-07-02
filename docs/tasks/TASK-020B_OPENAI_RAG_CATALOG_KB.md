@@ -1,6 +1,6 @@
 # TASK-020B: OpenAI RAG Catalog Knowledge Base
 
-Status: in review
+Status: accepted / merged
 Owner/Agent: Codex
 Parent: `TASK-020_DOCUMENT_INTELLIGENCE_EVALUATION`
 
@@ -85,6 +85,8 @@ SourceDocument chunks/sourceRefs
 
 ## Next Recommended Task
 
-`TASK-020C_OCR_PARSER_LOCAL_SPIKE`
+`TASK-021_VISIBLE_FULL_SYSTEM_TRIAL`
 
-Goal: evaluate one local open-source OCR/parser path against FlowAI fixtures and the `ExtractedDocument` contract, with documented dependency/license/security approval before installing or integrating it.
+Goal: make the full local Studio product path visible and reviewable before adding OCR/parser dependencies.
+
+After TASK-021, start `TASK-022_OCR_PARSER_LOCAL_SPIKE` only if dependency/license/security approval is documented.

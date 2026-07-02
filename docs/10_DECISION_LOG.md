@@ -258,3 +258,10 @@ Decision: TASK-020B implements a narrow backend OpenAI Vector Stores adapter ove
 Reason: The owner approved using the existing OpenAI key path for RAG, and TASK-020A already provides a sourceRef-backed extracted document boundary. This lets FlowAI prove catalog/knowledge retrieval without adding a self-hosted vector DB, crawler, OCR dependency, or upload system yet.
 Consequences: RAG can create, search, and clean up a hosted vector store for MVP smoke/testing. It remains downstream of extraction and source review. Retrieval results must not become the source of truth for catalog prices, availability, recommendations, medical/legal claims, or final Workflow JSON decisions without review gates. Production use still needs retention, deletion, tenant isolation, billing, privacy, and citation policy.
 Revisit trigger: OCR/parser spike shows sourceRefs need richer locators, OpenAI retrieval quality is insufficient, hosted retention/privacy is unacceptable, or a production requirement justifies a self-hosted vector database.
+
+## 2026-07-02: Visible System Trial Before More Invisible Infrastructure
+
+Decision: TASK-021 should make Studio show one complete owner-facing trial across sourceRefs, business understanding, catalog review, optional RAG evidence, checklist, workflow, runtime, channel previews, and export.
+Reason: The owner wants to judge whether FlowAI feels like the right product, not review isolated backend proofs. The fastest useful path is to expose the existing safe pipeline in one visible local flow and clearly label the missing production pieces.
+Consequences: Studio may call backend-only live AI and OpenAI Vector Stores only when explicitly enabled. Website mode accepts pasted website text plus an optional URL reference; it does not crawl. OCR/PDF, upload, crawling, persistence, auth/tenants, live Telegram/WhatsApp, and production RAG lifecycle remain separate tasks.
+Revisit trigger: Owner trial shows the UI still does not match the desired chatbot-builder experience, or OCR/parser/crawler integration becomes the next unavoidable blocker.
