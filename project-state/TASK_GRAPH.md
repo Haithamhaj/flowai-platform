@@ -27,17 +27,18 @@
 - TASK-019 owner review demo with live AI.
 - TASK-020 document intelligence evaluation.
 - TASK-020A extracted document contract and fixture harness.
+- TASK-020B OpenAI RAG catalog knowledge base.
 
 ## Current Phase
 
-- Hosted RAG/catalog knowledge base adapter.
-- Current implementation target: TASK-020B OpenAI RAG catalog knowledge base.
-- Boundary: sourceRef-backed SourceDocument chunks only; no browser key access, upload endpoint, parser dependency, OCR implementation, Google integration, persistence, crawling implementation, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
+- Visible full system trial.
+- Current implementation target: TASK-021 visible full system trial.
+- Boundary: pasted business/document/website text only; no browser key access, upload endpoint, parser dependency, OCR implementation, Google integration, persistence, crawling implementation, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
 
 ## Next
 
-- Review TASK-020B OpenAI RAG catalog knowledge base PR.
-- After acceptance, the next recommended task is TASK-020C_OCR_PARSER_LOCAL_SPIKE.
+- Review TASK-021 visible full system trial PR.
+- After acceptance, the next recommended task is TASK-022_OCR_PARSER_LOCAL_SPIKE.
 
 ## Later
 

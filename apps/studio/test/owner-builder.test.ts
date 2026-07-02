@@ -44,6 +44,19 @@ describe("owner-first builder preview", () => {
     expect(preview.channelPreview.channels[2]?.mockLabel).toBe("WhatsApp mock preview, not production WhatsApp.");
     expect(preview.integrationHub?.flowAiJson.format).toBe("flowai.workflow.export.v1");
     expect(preview.integrationHub?.copyBlocks.map((block) => block.id)).toEqual(["flowai_json", "crm_mapping", "ticketing_mapping"]);
+    expect(preview.ownerChecklist.map((item) => `${item.id}:${item.status}`)).toEqual([
+      "source_document:done",
+      "source_refs:done",
+      "business_understanding:done",
+      "catalog_review:review",
+      "workflow_generation:done",
+      "runtime_test:done",
+      "telegram_preview:done",
+      "export_package:done",
+      "rag_search:not_enabled",
+      "ocr_pdf:blocked",
+      "website_crawling:blocked"
+    ]);
   });
 
   test("keeps Arabic business input reviewable", () => {
@@ -179,5 +192,74 @@ describe("owner-first builder preview", () => {
     expect(preview.aiMode.status).toBe("unconfigured");
     expect(preview.aiMode.label).toBe("Live AI unavailable");
     expect(preview.businessBrief.summary).not.toContain("AI-reviewed");
+  });
+
+  test("can run sourceRef-backed knowledge search when explicitly requested", async () => {
+    const calls: string[] = [];
+    let searchAttempts = 0;
+    const preview = await buildOwnerFirstPreviewWithAiReview(
+      {
+        filename: "clinic.md",
+        mimeType: "text/markdown",
+        content: clinicText,
+        sourceKind: "website_text",
+        sourceUrl: "https://example.test/clinic"
+      },
+      {
+        useLiveAi: false,
+        providerDiagnostics: {
+          configured: false,
+          source: "none",
+          model: null
+        },
+        useKnowledgeSearch: true,
+        knowledgeSearchQuery: "What services does this clinic offer?",
+        knowledgeProviderDiagnostics: {
+          configured: true,
+          source: "local_config",
+          model: null
+        },
+        knowledgeSearchRetryDelayMs: 0,
+        knowledgeClient: {
+          async createKnowledgeBase(request) {
+            calls.push(`create:${request.sourceDocuments[0]?.id ?? "missing"}`);
+            return { vectorStoreId: "vs_test", fileId: "file_test", name: request.name };
+          },
+          async searchKnowledgeBase(request) {
+            searchAttempts += 1;
+            calls.push(`search:${request.query}`);
+            if (searchAttempts === 1) {
+              return { matches: [] };
+            }
+            return {
+              matches: [
+                {
+                  text: "SOURCE_REF: src_doc_test#line_1_4\nDental checkup and teeth whitening.",
+                  score: 0.91,
+                  sourceRefId: "src_doc_test#line_1_4",
+                  fileId: "file_test"
+                }
+              ]
+            };
+          },
+          async deleteKnowledgeBase(handle) {
+            calls.push(`delete:${handle.vectorStoreId}:${handle.fileId}`);
+          }
+        }
+      }
+    );
+
+    expect(preview.sourcePanel.sourceKind).toBe("website_text");
+    expect(preview.sourcePanel.sourceUrl).toBe("https://example.test/clinic");
+    expect(preview.knowledgeSearch.status).toBe("ready");
+    expect(preview.knowledgeSearch.query).toBe("What services does this clinic offer?");
+    expect(preview.knowledgeSearch.matches[0]?.sourceRefId).toBe("src_doc_test#line_1_4");
+    expect(preview.ownerChecklist.find((item) => item.id === "rag_search")?.status).toBe("done");
+    expect(calls).toEqual([
+      expect.stringMatching(/^create:src_doc_/),
+      "search:What services does this clinic offer?",
+      "search:What services does this clinic offer?",
+      "delete:vs_test:file_test"
+    ]);
   });
 });

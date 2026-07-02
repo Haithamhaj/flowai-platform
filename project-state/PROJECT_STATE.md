@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Prove the first hosted RAG/catalog knowledge boundary using OpenAI Vector Stores over existing FlowAI `SourceDocument` chunks and sourceRefs, without adding OCR, upload endpoints, parser dependencies, crawling, persistence, or a production RAG lifecycle.
+Make FlowAI locally reviewable as one visible owner-facing system trial: business/document/website text input, sourceRefs, BusinessUnderstanding, catalog review, optional OpenAI RAG evidence, checklist, workflow, visual editor, runtime test, Telegram/Web/WhatsApp mock previews, and export package.
 
 ## Current Reality
 
@@ -22,7 +22,9 @@ TASK-020 is merged. It documents the approved direction for document intelligenc
 
 TASK-020A is merged. It adds an `ExtractedDocument` contract and fixture harness so FlowAI can prove the path from OCR-like output to SourceDocument/sourceRefs/chunks, BusinessUnderstanding, WorkflowGenerationPlan, WorkflowDefinition, runtime test conversation, and Telegram preview mock without implementing OCR, upload endpoints, parser dependencies, RAG, crawling, persistence, or cloud providers.
 
-TASK-020B is the active implementation task. It adds a narrow OpenAI Vector Stores adapter in `packages/ai-builder-orchestrator` so FlowAI can create a sourceRef-backed knowledge file from `SourceDocument` chunks, create/search/delete a hosted vector store, and prove the path with a local smoke command using ignored backend-only OpenAI config. This is a RAG/catalog retrieval boundary, not production OCR, crawling, upload, persistence, tenant isolation, or catalog source-of-truth behavior.
+TASK-020B is merged. It adds a narrow OpenAI Vector Stores adapter in `packages/ai-builder-orchestrator` so FlowAI can create a sourceRef-backed knowledge file from `SourceDocument` chunks, create/search/delete a hosted vector store, and prove the path with a local smoke command using ignored backend-only OpenAI config. This is a RAG/catalog retrieval boundary, not production OCR, crawling, upload, persistence, tenant isolation, or catalog source-of-truth behavior.
+
+TASK-021 is active. It turns the existing local Studio into a more complete visible system trial by showing an owner checklist, source kind/website URL reference, optional sourceRef-backed RAG knowledge search, workflow generation, visual editing, runtime conversation, channel previews, and export blocks in one reviewable page.
 
 ## Active Decisions
 
@@ -91,6 +93,7 @@ TASK-020B is the active implementation task. It adds a narrow OpenAI Vector Stor
 - TASK-020A uses fixture-based extracted output only; OCR/parser providers should map into `ExtractedDocument` later rather than owning FlowAI workflow logic.
 - `ExtractedDocument` is evidence and sourceRefs, not BusinessUnderstanding and not Workflow JSON.
 - TASK-020B uses OpenAI Vector Stores over sourceRef-backed knowledge Markdown; retrieval results remain review evidence, not final workflow/catalog truth.
+- TASK-021 Studio RAG search is explicit, backend-only, and temporary per request; website mode is pasted website text plus URL reference, not crawling.
 
 ## Active Risks
 
@@ -131,6 +134,7 @@ TASK-020B is the active implementation task. It adds a narrow OpenAI Vector Stor
 - Arabic OCR and extraction quality must be proven on fixtures rather than assumed from multilingual claims.
 - TASK-020A proves only contract compatibility and deterministic pipeline shape; it does not prove real OCR quality.
 - TASK-020B proves only create/search/delete against OpenAI Vector Stores for a small sourceRef-backed fixture; it does not prove production RAG lifecycle, tenant isolation, retention policy, catalog truth, OCR quality, or crawling quality.
+- TASK-021 can make the system feel more complete than the backend reality; UI must continue showing OCR/PDF, upload, crawling, persistence, live channels, and production RAG as blocked/deferred.
 
 ## Protected Areas
 
@@ -156,7 +160,7 @@ TASK-020B is the active implementation task. It adds a narrow OpenAI Vector Stor
 
 ## Next Recommended Action
 
-Review TASK-020B OpenAI RAG Catalog Knowledge Base PR. After acceptance, start `TASK-020C_OCR_PARSER_LOCAL_SPIKE` only if dependency/license/security approval is documented.
+Review TASK-021 visible full system trial. After acceptance, start `TASK-022_OCR_PARSER_LOCAL_SPIKE` only if dependency/license/security approval is documented.
 
 ## Critical References
 
@@ -182,6 +186,7 @@ Review TASK-020B OpenAI RAG Catalog Knowledge Base PR. After acceptance, start `
 - `docs/tasks/TASK-020_DOCUMENT_INTELLIGENCE_EVALUATION.md`
 - `docs/tasks/TASK-020A_EXTRACTED_DOCUMENT_CONTRACT_AND_FIXTURE_HARNESS.md`
 - `docs/tasks/TASK-020B_OPENAI_RAG_CATALOG_KB.md`
+- `docs/tasks/TASK-021_VISIBLE_FULL_SYSTEM_TRIAL.md`
 - `docs/document-intelligence/DOCUMENT_INTELLIGENCE_OPTIONS.md`
 - `docs/ai-provider/LIVE_AI_PROVIDER_BOUNDARY.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`

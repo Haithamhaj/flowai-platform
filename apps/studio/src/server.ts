@@ -6,7 +6,7 @@ import {
   type OwnerFirstAiReviewOptions,
   type OwnerFirstPreviewInput
 } from "./index.js";
-import { createOpenAiResponsesProvider, loadOpenAiProviderConfig } from "@flowai/ai-builder-orchestrator";
+import { createOpenAiResponsesProvider, createOpenAiVectorStoreClient, loadOpenAiProviderConfig } from "@flowai/ai-builder-orchestrator";
 import { applyWorkflowEditorCommand, runEditedWorkflowPreview, type WorkflowEditorCommand } from "./workflow-editor.js";
 import type { WorkflowDefinition } from "@flowai/workflow-dsl";
 
@@ -81,6 +81,8 @@ function normalizeInput(value: unknown): OwnerFirstPreviewInput {
   return {
     filename: typeof record.filename === "string" ? record.filename : "owner-business.md",
     mimeType: typeof record.mimeType === "string" ? record.mimeType : "text/markdown",
+    sourceKind: normalizeSourceKind(record.sourceKind),
+    sourceUrl: typeof record.sourceUrl === "string" ? record.sourceUrl : undefined,
     content: record.content
   };
 }
@@ -88,24 +90,57 @@ function normalizeInput(value: unknown): OwnerFirstPreviewInput {
 function buildAiReviewOptions(value: unknown): OwnerFirstAiReviewOptions {
   const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
   const useLiveAi = record.useLiveAi === true;
+  const useKnowledgeSearch = record.useKnowledgeSearch === true;
+  const knowledgeSearchQuery = typeof record.knowledgeSearchQuery === "string" ? record.knowledgeSearchQuery : undefined;
+  const config = useLiveAi || useKnowledgeSearch
+    ? loadOpenAiProviderConfig({
+        allowLocalConfig: true,
+        workspaceRoot
+      })
+    : {
+        configured: false as const,
+        diagnostics: {
+          configured: false as const,
+          source: "none" as const,
+          model: null
+        },
+        apiKey: "",
+        model: ""
+      };
   if (!useLiveAi) {
+    if (useKnowledgeSearch && config.configured) {
+      return {
+        useLiveAi: false,
+        providerDiagnostics: {
+          configured: false,
+          source: "none",
+          model: null
+        },
+        useKnowledgeSearch,
+        knowledgeSearchQuery,
+        knowledgeProviderDiagnostics: config.diagnostics,
+        knowledgeClient: createOpenAiVectorStoreClient({ apiKey: config.apiKey })
+      };
+    }
     return {
       useLiveAi: false,
       providerDiagnostics: {
         configured: false,
         source: "none",
         model: null
-      }
+      },
+      useKnowledgeSearch,
+      knowledgeSearchQuery,
+      knowledgeProviderDiagnostics: config.diagnostics
     };
   }
-  const config = loadOpenAiProviderConfig({
-    allowLocalConfig: true,
-    workspaceRoot
-  });
   if (!config.configured) {
     return {
       useLiveAi: true,
-      providerDiagnostics: config.diagnostics
+      providerDiagnostics: config.diagnostics,
+      useKnowledgeSearch,
+      knowledgeSearchQuery,
+      knowledgeProviderDiagnostics: config.diagnostics
     };
   }
   return {
@@ -114,8 +149,17 @@ function buildAiReviewOptions(value: unknown): OwnerFirstAiReviewOptions {
     provider: createOpenAiResponsesProvider({
       apiKey: config.apiKey,
       model: config.model
-    })
+    }),
+    useKnowledgeSearch,
+    knowledgeSearchQuery,
+    knowledgeProviderDiagnostics: config.diagnostics,
+    knowledgeClient: useKnowledgeSearch ? createOpenAiVectorStoreClient({ apiKey: config.apiKey }) : undefined
   };
+}
+
+function normalizeSourceKind(value: unknown): OwnerFirstPreviewInput["sourceKind"] {
+  if (value === "document_text" || value === "website_text" || value === "business_description") return value;
+  return "business_description";
 }
 
 function normalizeEditorCommand(value: unknown): { workflow: WorkflowDefinition; command: WorkflowEditorCommand } {
@@ -209,6 +253,13 @@ function renderHtml(): string {
     li { margin: 4px 0; }
     .pill-row { display: flex; flex-wrap: wrap; gap: 6px; }
     .pill { border: 1px solid var(--line); background: var(--surface-2); border-radius: 999px; padding: 4px 8px; font-size: 12px; color: var(--muted); }
+    .checklist { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .check { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: #fff; min-height: 88px; }
+    .check strong { display: block; font-size: 13px; margin-bottom: 5px; }
+    .check.done { border-color: #9bd3b3; background: #f0faf4; }
+    .check.review { border-color: #d8b98b; background: #fff8eb; }
+    .check.blocked { border-color: #e0a5a0; background: #fff3f1; }
+    .check.not_enabled { background: #f6f7f9; }
     .ok { color: var(--ok); }
     .danger { color: var(--danger); }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -233,6 +284,7 @@ function renderHtml(): string {
       main { grid-template-columns: 1fr; }
       .chat { border-right: 0; border-bottom: 1px solid var(--line); min-height: auto; }
       .grid { grid-template-columns: 1fr; }
+      .checklist { grid-template-columns: 1fr; }
       .tree-editor { grid-template-columns: 1fr; }
       .composer-row { grid-template-columns: 1fr; }
     }
@@ -256,7 +308,17 @@ function renderHtml(): string {
             <input id="filename" value="bright-dental-clinic.md" aria-label="Filename" />
             <button class="secondary" id="loadSample" type="button">Sample</button>
           </div>
+          <div class="composer-row">
+            <select id="sourceKind" aria-label="Source kind">
+              <option value="business_description">Business description</option>
+              <option value="document_text">Document text</option>
+              <option value="website_text">Website text</option>
+            </select>
+            <input id="sourceUrl" placeholder="Website URL reference" aria-label="Website URL reference" />
+          </div>
           <label class="toggle-row"><input id="useLiveAi" type="checkbox" />Use live AI review</label>
+          <label class="toggle-row"><input id="useKnowledgeSearch" type="checkbox" />Use OpenAI RAG search</label>
+          <input id="knowledgeSearchQuery" value="What should the chatbot know about this business?" aria-label="RAG search query" />
           <textarea id="content" aria-label="Business description"></textarea>
           <button id="build" type="button">Build chatbot</button>
         </div>
@@ -268,8 +330,12 @@ function renderHtml(): string {
     const thread = document.getElementById("thread");
     const workspace = document.getElementById("workspace");
     const filename = document.getElementById("filename");
+    const sourceKind = document.getElementById("sourceKind");
+    const sourceUrl = document.getElementById("sourceUrl");
     const content = document.getElementById("content");
     const useLiveAi = document.getElementById("useLiveAi");
+    const useKnowledgeSearch = document.getElementById("useKnowledgeSearch");
+    const knowledgeSearchQuery = document.getElementById("knowledgeSearchQuery");
     const build = document.getElementById("build");
     const loadSample = document.getElementById("loadSample");
     let visualWorkflowModel = null;
@@ -292,7 +358,16 @@ function renderHtml(): string {
       const res = await fetch("/api/build", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filename: filename.value, mimeType: filename.value.endsWith(".txt") ? "text/plain" : "text/markdown", content: ownerText, useLiveAi: Boolean(useLiveAi.checked) })
+        body: JSON.stringify({
+          filename: filename.value,
+          mimeType: filename.value.endsWith(".txt") ? "text/plain" : "text/markdown",
+          sourceKind: sourceKind.value,
+          sourceUrl: sourceUrl.value,
+          content: ownerText,
+          useLiveAi: Boolean(useLiveAi.checked),
+          useKnowledgeSearch: Boolean(useKnowledgeSearch.checked),
+          knowledgeSearchQuery: knowledgeSearchQuery.value
+        })
       });
       const preview = await res.json();
       addBubble("bot", preview.assistantMessage || "I could not build a preview.");
@@ -309,6 +384,8 @@ function renderHtml(): string {
     function renderPreview(preview) {
       workspace.innerHTML = [
         renderStatus(preview),
+        renderChecklist(preview),
+        renderKnowledgeSearch(preview),
         "<div class='grid'>" + renderBusiness(preview) + renderWorkflow(preview) + "</div>",
         renderProductCatalog(preview),
         renderVisualWorkflow(preview),
@@ -319,6 +396,17 @@ function renderHtml(): string {
         renderSafety(preview)
       ].join("");
       hydrateVisualWorkflow(preview.visualWorkflow);
+    }
+
+    function renderChecklist(preview) {
+      const items = (preview.ownerChecklist || []).map(item => "<div class='check " + escapeHtml(item.status) + "'><strong>" + escapeHtml(item.label) + "</strong><span class='pill'>" + escapeHtml(item.status) + "</span><p class='muted'>" + escapeHtml(item.note) + "</p></div>").join("");
+      return "<section><h2>Owner launch checklist</h2><div class='checklist'>" + items + "</div></section>";
+    }
+
+    function renderKnowledgeSearch(preview) {
+      const search = preview.knowledgeSearch || { status: "not_enabled", query: "", matches: [], note: "Not enabled." };
+      const matches = (search.matches || []).map(match => "<div class='panel'><p><strong>score " + escapeHtml(Number(match.score || 0).toFixed(3)) + "</strong> · " + escapeHtml(match.sourceRefId || "no sourceRef") + "</p><div class='mono'>" + escapeHtml(match.text || "") + "</div></div>").join("");
+      return "<section><h2>RAG Knowledge Search</h2><p><strong>" + escapeHtml(search.status) + "</strong> · " + escapeHtml(search.query || "No query") + "</p><p class='muted'>" + escapeHtml(search.note || "") + "</p><div class='grid'>" + (matches || "<p class='muted'>No RAG matches yet.</p>") + "</div></section>";
     }
 
     function renderStatus(preview) {
@@ -352,7 +440,7 @@ function renderHtml(): string {
 
     function renderSource(preview) {
       const source = preview.sourcePanel;
-      return "<section><h2>SourceDocument / sourceRefs</h2><p><strong>" + escapeHtml(source.filename) + "</strong></p><p class='muted'>" + escapeHtml(source.documentId || "No document id") + "</p><div class='mono'>" + escapeHtml(source.reviewExcerpt || "No excerpt") + "</div><h3>Refs</h3><ul>" + source.sourceRefs.map(r => "<li>" + escapeHtml(r.label) + " · " + escapeHtml(r.locator) + "</li>").join("") + "</ul><h3>Warnings</h3><ul>" + source.warnings.map(w => "<li>" + escapeHtml(w) + "</li>").join("") + "</ul></section>";
+      return "<section><h2>SourceDocument / sourceRefs</h2><p><strong>" + escapeHtml(source.filename) + "</strong></p><p class='muted'>" + escapeHtml(source.sourceKind || "business_description") + (source.sourceUrl ? " · " + escapeHtml(source.sourceUrl) : "") + "</p><p class='muted'>" + escapeHtml(source.documentId || "No document id") + "</p><div class='mono'>" + escapeHtml(source.reviewExcerpt || "No excerpt") + "</div><h3>Refs</h3><ul>" + source.sourceRefs.map(r => "<li>" + escapeHtml(r.label) + " · " + escapeHtml(r.locator) + "</li>").join("") + "</ul><h3>Warnings</h3><ul>" + source.warnings.map(w => "<li>" + escapeHtml(w) + "</li>").join("") + "</ul></section>";
     }
 
     function renderTelegram(preview) {
