@@ -52,6 +52,7 @@ describe("customer chat view", () => {
 
     expect(html).toContain("const turn = await runCustomerAgent(text);");
     expect(html).toContain('turn.action === "crawl_url"');
+    expect(html).toContain("buildFromWebsite(turn.url, { announce: false })");
     expect(html).not.toContain("const url = link.value.trim() || firstUrl(text);");
     expect(html).toContain("sourceUrl: source.sourceUrl");
     expect(html).not.toContain("sourceUrl: link.value.trim() || undefined");
@@ -82,6 +83,8 @@ describe("customer chat view", () => {
     expect(html).toContain("ownerContext: buildOwnerContext()");
     expect(html).toContain("customerSourceName");
     expect(html).toContain("isInternalCustomerSource");
+    expect(html).toContain("customerFacingSummary");
+    expect(html).toContain("website-.*\\.md");
     expect(html).not.toContain("قراراتك في المحادثة");
   });
 

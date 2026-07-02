@@ -223,7 +223,7 @@ export function renderCustomerChatHtml(): string {
       const turn = await runCustomerAgent(text);
       if (turn.action === "crawl_url") {
         addMessage("bot", turn.reply);
-        await buildFromWebsite(turn.url);
+        await buildFromWebsite(turn.url, { announce: false });
         return;
       }
       if (turn.action === "build_text") {
@@ -270,8 +270,8 @@ export function renderCustomerChatHtml(): string {
       }
     }
 
-    async function buildFromWebsite(url) {
-      addMessage("bot", "تمام، سأقرأ الموقع الآن وأرجع لك بالنتيجة هنا داخل المحادثة.");
+    async function buildFromWebsite(url, options = {}) {
+      if (options.announce !== false) addMessage("bot", "تمام، سأقرأ الموقع الآن وأرجع لك بالنتيجة هنا داخل المحادثة.");
       const response = await fetch("/api/crawl-build", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -336,10 +336,8 @@ export function renderCustomerChatHtml(): string {
       const missingQuestions = brief.missingQuestions || [];
       const combinedMissing = [...missingQuestions, ...blockers].filter((item, index, items) => item && items.indexOf(item) === index);
       const fields = proposal.requiredFields || [];
-      const sourceRefs = (source.sourceRefs || []).filter(ref => !isInternalCustomerSource(ref.label));
       const sourceName = customerSourceName(brief, source);
       const crawlNote = crawl ? "قرأت " + escapeHtml(String(crawl.pages?.length || 0)) + " صفحات من الموقع. " : "";
-      const sourceRefText = sourceRefs.length > 0 ? "<p class='muted'>المصادر: " + escapeHtml(sourceRefs.map(ref => ref.label).slice(0, 3).join(", ")) + "</p>" : "";
       const servicesHtml = services.length > 0
         ? "<ul>" + services.slice(0, 4).map(service => "<li>" + escapeHtml(service.name) + "</li>").join("") + "</ul>"
         : "<p class='muted'>لم أستخرج خدمات أو منتجات واضحة كفاية من المصدر.</p>";
@@ -355,9 +353,8 @@ export function renderCustomerChatHtml(): string {
       return [
         "<h2>تمام، فهمت الاتجاه</h2>",
         "<p>" + crawlNote + "أقدر أبدأ ببناء بوت يساعد الزائر يفهم الخدمات ويقربه من قرار الشراء، لكن أحتاج أوضح طريقة إتمام الطلب قبل بناء الشجرة.</p>",
-        "<p><strong>" + escapeHtml(sourceName) + "</strong></p>",
-        brief.summary ? "<p>" + escapeHtml(brief.summary) + "</p>" : "",
-        sourceRefText,
+        sourceName ? "<p><strong>" + escapeHtml(sourceName) + "</strong></p>" : "",
+        customerFacingSummary(brief.summary),
         "<h3>ما فهمته من الخدمات/المنتجات</h3>",
         catalogItems.length > 0 ? catalogHtml : servicesHtml,
         services.length > 0 && catalogItems.length > 0 ? "<h3>الخدمات المختصرة</h3>" + servicesHtml : "",
@@ -369,6 +366,11 @@ export function renderCustomerChatHtml(): string {
       ].filter(Boolean).join("");
     }
 
+    function customerFacingSummary(summary) {
+      if (!summary || !hasArabicText(summary)) return "";
+      return "<p>" + escapeHtml(summary) + "</p>";
+    }
+
     function customerSourceName(brief, source) {
       if (brief.businessName && !isInternalCustomerSource(brief.businessName)) return brief.businessName;
       if (source.sourceUrl) return source.sourceUrl;
@@ -377,7 +379,11 @@ export function renderCustomerChatHtml(): string {
     }
 
     function isInternalCustomerSource(value) {
-      return /Owner Conversation Decisions|customer-chat\\.md|sourceRefs|SourceDocument/i.test(String(value || ""));
+      return /Owner Conversation Decisions|customer-chat\\.md|website-.*\\.md|sourceRefs|SourceDocument|src_doc_|#line_/i.test(String(value || ""));
+    }
+
+    function hasArabicText(value) {
+      return /[\\u0600-\\u06ff]/.test(String(value || ""));
     }
 
     function renderWorkflowLinkMessage(preview) {
