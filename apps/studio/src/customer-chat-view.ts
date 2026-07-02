@@ -337,7 +337,6 @@ export function renderCustomerChatHtml(): string {
       const combinedMissing = [...missingQuestions, ...blockers].filter((item, index, items) => item && items.indexOf(item) === index);
       const fields = proposal.requiredFields || [];
       const sourceRefs = source.sourceRefs || [];
-      const ownerContext = buildOwnerContext();
       const sourceName = brief.businessName || source.sourceUrl || source.filename || "المصدر";
       const crawlNote = crawl ? "قرأت " + escapeHtml(String(crawl.pages?.length || 0)) + " صفحات من الموقع. " : "";
       const sourceRefText = sourceRefs.length > 0 ? "<p class='muted'>المصادر: " + escapeHtml(sourceRefs.map(ref => ref.label).slice(0, 3).join(", ")) + "</p>" : "";
@@ -352,9 +351,6 @@ export function renderCustomerChatHtml(): string {
       const fieldsHtml = fields.length > 0
         ? "<div class='pill-row'>" + fields.map(field => "<span class='pill'>" + escapeHtml(field) + "</span>").join("") + "</div>"
         : "<p class='muted'>لم يتم تحديد حقول جمع بيانات العميل بعد.</p>";
-      const contextHtml = ownerContext
-        ? "<h3>قراراتك في المحادثة</h3><p class='muted'>" + escapeHtml(ownerContext.split("\\n").slice(-6).join(" · ")) + "</p>"
-        : "";
 
       return [
         "<h2>تمام، فهمت الاتجاه</h2>",
@@ -367,7 +363,6 @@ export function renderCustomerChatHtml(): string {
         services.length > 0 && catalogItems.length > 0 ? "<h3>الخدمات المختصرة</h3>" + servicesHtml : "",
         "<h3>الحقول المتوقعة</h3>",
         fieldsHtml,
-        contextHtml,
         missingHtml,
         "<p class='muted'>سأستخدم الأسعار أو التوفر فقط إذا كانت موجودة بوضوح في المصدر.</p>",
         currentWorkflowModel ? renderWorkflowLinkMessage(preview) : renderBlockedWorkflowMessage()

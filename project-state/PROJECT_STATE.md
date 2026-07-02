@@ -46,6 +46,8 @@ The current TASK-025 fix adds a customer chat-agent turn before the build pipeli
 
 Owner review then showed that conversational intelligence alone is not enough: repeated crawls forgot owner decisions, and simple storefront crawls did not surface links/prices clearly. TASK-025 now keeps a lightweight browser-session owner decision log and sends it with customer-chat/build/crawl-build calls. The crawler also emits bounded `CATALOG_LINK` and `PRICE_CANDIDATE` lines from static same-origin HTML so source review and Live AI can reason from better evidence. This is not production memory, persistence, or browser-rendered crawling.
 
+The owner also clarified that agents must not be visible to the customer. `/customer` should present one FlowAI assistant. Internal context, decision memory, and multi-role agent reasoning stay backend-only. The current provider prompt now uses a private multi-role review pattern covering business strategy, source/catalog analysis, global best practices, conversation design, workflow planning, and safety review, but this remains prompt-level orchestration rather than a durable multi-agent runtime.
+
 ## Active Decisions
 
 - FlowAI is a Business-to-Workflow Chatbot Generator.
@@ -127,6 +129,8 @@ Owner review then showed that conversational intelligence alone is not enough: r
 - `/customer` small talk is handled before source extraction; not every message should become a SourceDocument.
 - `/customer` routes every typed message through a customer chat-agent turn before extraction; the build pipeline runs only when the agent returns a build/crawl action.
 - `/customer` maintains a local owner decision log for the current browser session and appends it to build/crawl-build as owner-provided requirements.
+- `/customer` must not display internal agent names, internal decision memory, traces, or orchestration steps to the customer.
+- Live AI chat replies may use private multi-role prompt orchestration, but the UI still presents one FlowAI assistant.
 - Website crawler output may include source-backed catalog/order links and price candidates from static HTML, but these remain review evidence rather than publish-ready price/availability claims.
 
 ## Active Risks
@@ -177,6 +181,7 @@ Owner review then showed that conversational intelligence alone is not enough: r
 - Pattern-based Arabic catalog extraction will miss many real catalogs and synonyms until live AI extraction, stronger catalog modeling, or browser-rendered crawling is approved and tested.
 - The TASK-025 chat-agent turn improves intent routing and tone, but it is not yet durable session memory, production orchestration, OCR/PDF upload, browser-rendered crawling, or full multi-agent planning.
 - The session decision log can be lost on reload and is not tenant-safe; production memory/session persistence remains a separate task.
+- Prompt-level multi-role review can improve reasoning, but it is not a full multi-agent system with independent tools, durable state, or reviewable traces yet.
 - Catalog links and price candidates only work when present in static HTML; JS-rendered catalogs still need a browser-rendered crawler spike.
 
 ## Protected Areas

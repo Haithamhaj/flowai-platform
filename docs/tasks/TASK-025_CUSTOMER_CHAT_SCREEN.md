@@ -77,6 +77,8 @@ customer chat / text file / website URL
   - detailed business descriptions route to the existing build pipeline
 - The customer screen keeps a lightweight in-session owner decision log so repeated crawl/build attempts can reuse owner choices such as business positioning, channel availability, tone, required fields, and purchase routing.
 - Owner context is appended to local build/crawl-build requests as owner-provided requirements; it is not treated as website evidence for prices or availability.
+- Owner context and internal agent roles must stay hidden from the customer-facing chat. The customer sees one FlowAI assistant, not agent names, traces, or internal decision logs.
+- Live AI discovery internally uses a private multi-role review pattern for business strategy, source/catalog analysis, global best practices, conversation design, workflow planning, and safety review before replying.
 - Website crawl source text includes bounded `CATALOG_LINK` and `PRICE_CANDIDATE` signals when the static HTML exposes same-origin catalog/order links or explicit price text.
 - When Live AI review is enabled, the chat-agent reply can use backend-only OpenAI config for conversational discovery, but provider keys must remain server-side and the final Workflow JSON remains deterministic.
 - Internal labels such as SourceDocument, WorkflowGenerationPlan, and Generated WorkflowDefinition must not render as customer-facing panels.
@@ -126,6 +128,7 @@ customer chat / text file / website URL
 - Live AI review improves catalog and missing-question quality, but Workflow JSON is still generated and validated deterministically; it is not yet a fully conversational multi-turn builder agent.
 - The new chat-agent turn is still process-local and stateless beyond the browser-sent recent history; it is a safer conversational gate, not a production memory/session system.
 - The owner decision log is browser-session memory only. It is useful for local owner review but does not replace persistence, auth, audit history, or tenant-safe sessions.
+- The multi-role review is prompt-level orchestration inside the backend provider call. It is not yet a durable multi-agent runtime, scheduler, or separately observable agent trace.
 - Static crawler catalog links and price candidates improve evidence extraction for simple sites, but JavaScript-rendered stores still need a later browser-rendered crawler task.
 - Provider-backed discovery replies improve tone and follow-up quality, but source extraction, OCR/PDF, browser-rendered crawling, persistence, and production channel behavior remain separate tasks.
 

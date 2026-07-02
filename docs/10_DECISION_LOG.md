@@ -344,3 +344,10 @@ Decision: TASK-025 may keep a lightweight browser-session owner decision log and
 Reason: Owner testing showed that a GPT-style chat reply is not enough if repeated crawl/build attempts forget prior decisions or if a simple storefront crawl hides product/order links and price text inside unstructured page copy.
 Consequences: The owner decision log is sent to `/api/customer-chat`, `/api/build`, and `/api/crawl-build` as owner-provided requirements. It is not durable memory, not tenant-safe persistence, and not website evidence for prices or availability. Static crawler evidence can improve source review and Live AI output without adding a new crawler dependency, but JavaScript-rendered catalogs still require a later browser-rendered crawling task.
 Revisit trigger: TASK-026 introduces durable local session state, richer source selection, browser-rendered crawling, or production persistence.
+
+## 2026-07-02: Agents Are Internal, FlowAI Is The Customer Persona
+
+Decision: Customer-facing `/customer` must show one FlowAI assistant, while internal agent roles, owner decision memory, traces, and orchestration steps stay hidden.
+Reason: The owner wants a ChatGPT-like product experience. Showing agent names or internal logs to a business owner makes the product feel technical and distracts from the goal of building a better chatbot.
+Consequences: The backend live AI prompt may privately simulate a multi-role review loop across business strategy, source/catalog analysis, global best practices, conversation design, workflow planning, and safety review. The UI must not expose those roles. This remains prompt-level orchestration until a later task implements durable multi-agent state and tools.
+Revisit trigger: TASK-026 designs a real backend multi-agent loop with explicit internal traces for developers while keeping customer UX simple.
