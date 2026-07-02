@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Rebuild the visible product path around an owner-first AI chatbot builder experience.
+Define the safe document intelligence path for FlowAI before adding OCR, PDF parsing, cloud extraction, RAG/vector search, or crawling.
 
 ## Current Reality
 
@@ -16,7 +16,9 @@ Owner review rejected the original visible surface as too technical and not the 
 
 The owner-first plan is captured in `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`. TASK-010 formalized AI builder agents, tools, prompt pack, data models, and UX flow before implementation. TASK-011 implemented `apps/studio` as an owner-first local builder UI shell backed by deterministic source ingestion, source review, BusinessUnderstanding draft, WorkflowGenerationPlan, Workflow JSON draft, runtime preview, and Telegram mock preview. TASK-012 added `packages/ai-builder-orchestrator` with prompt pack files, mocked provider tests, structured output validation, product catalog sourceRef blockers, and deterministic fallback. TASK-013 Product Catalog Workspace is merged into `main` at `df2c615`. TASK-014 Visual Workflow Editor is merged into `main` at `776208b`. TASK-015 Channel Preview Workspace is merged into `main` at `e718c70`. TASK-016 Export & Integration Hub is merged into `main` at `8ccd895d4a995435bf74fb397b958fcdd81df8de`; Studio now shows local FlowAI Workflow JSON, CRM mapping, and ticketing mapping copy blocks. The ignored local `.flowai.local.json` may hold development model preferences and API key material, but application code must not read it until a later approved live provider task.
 
-TASK-017 is merged as the live AI provider boundary plan. TASK-017A is merged as the backend-only OpenAI extraction spike: `packages/ai-builder-orchestrator` now has an OpenAI Responses API provider adapter, disabled unless explicitly configured, with mocked CI tests and an optional local smoke script. It reads ignored `.flowai.local.json` only when the backend caller explicitly allows local config. TASK-018 is merged: Studio exposes live AI review as an explicit owner toggle while keeping deterministic fallback and Workflow JSON generation unchanged. TASK-019 is the active branch: it produces `docs/demo/FLOWAI_LIVE_AI_OWNER_REVIEW.md` from `pnpm demo:flowai:live` so the owner can compare deterministic and live AI review output.
+TASK-017 is merged as the live AI provider boundary plan. TASK-017A is merged as the backend-only OpenAI extraction spike: `packages/ai-builder-orchestrator` now has an OpenAI Responses API provider adapter, disabled unless explicitly configured, with mocked CI tests and an optional local smoke script. It reads ignored `.flowai.local.json` only when the backend caller explicitly allows local config. TASK-018 is merged: Studio exposes live AI review as an explicit owner toggle while keeping deterministic fallback and Workflow JSON generation unchanged. TASK-019 is merged: it produces `docs/demo/FLOWAI_LIVE_AI_OWNER_REVIEW.md` from `pnpm demo:flowai:live` so the owner can compare deterministic and live AI review output.
+
+TASK-020 is the active evaluation task. It documents the approved direction for document intelligence: OCR/PDF extraction, cloud extraction, RAG/vector search, crawling, and catalog extraction must start from source-backed extraction and stable sourceRefs, not from a RAG-first implementation. No parser, crawler, vector store, upload endpoint, provider credential, persistence, or source/package code is added in TASK-020.
 
 ## Active Decisions
 
@@ -75,6 +77,13 @@ TASK-017 is merged as the live AI provider boundary plan. TASK-017A is merged as
 - TASK-017A uses OpenAI Responses API with strict structured output for BusinessUnderstanding refinement only; deterministic generation remains responsible for WorkflowGenerationPlan and WorkflowDefinition.
 - TASK-018 Studio live AI review must remain off by default and must use backend-only provider config; the browser can request live review but must never receive or send provider keys.
 - TASK-019 owner demo output should show live AI as review assistance, while Workflow JSON remains deterministic and validator-backed.
+- TASK-020 document intelligence should start with evaluation and sourceRefs before implementation.
+- FlowAI should not go RAG-first; RAG/vector search should sit on extracted chunks with stable sourceRefs.
+- MinerU, Docling, and PaddleOCR are the first local PDF/OCR candidates to evaluate, but no dependency is approved yet.
+- LeapAI-SA/leap-ocr-platform is an internal reference and possible OCR/extraction service adapter candidate, not a direct code-copy source.
+- Google Document AI OCR/Form Parser/Custom Extractor is a cloud extraction candidate that requires separate credential, billing, privacy, and region approval before any spike.
+- OpenAI Vector Stores/File Search may be useful for hosted MVP RAG after extracted chunks/sourceRefs exist, but not as the source of truth for catalog or workflow decisions.
+- Crawl4AI and Crawlee are crawling candidates for a later website ingestion spike; Firecrawl remains learn-only until license/security/provider review.
 
 ## Active Risks
 
@@ -107,6 +116,12 @@ TASK-017 is merged as the live AI provider boundary plan. TASK-017A is merged as
 - Live AI provider integration can leak secrets or overclaim facts unless TASK-017A keeps provider access backend-only, disabled by default, sourceRef-gated, mocked in CI, and sanitized in diagnostics.
 - TASK-017A live smoke proves the provider can return structured output locally, but Studio is not wired to live AI yet and the output remains a review draft, not publish-ready chatbot behavior.
 - Studio live AI review may be mistaken for production chatbot intelligence unless UI notes continue to say Workflow JSON is still generated and validated deterministically.
+- OCR/parser tools may add heavy native binaries, GPU requirements, model downloads, custom licenses, and supply-chain risk.
+- The internal LeapOCR repo can accelerate OCR/extraction learning, but direct reuse needs ownership/license confirmation and would otherwise pull in MongoDB, GCS, auth, OpenRouter, Vertex AI, Terraform, and deployment scope.
+- Google Document AI or OpenAI Vector Stores may transfer customer documents to third-party providers and need privacy, retention, region, and deletion review.
+- RAG can produce unsupported answers if chunking, sourceRefs, freshness, and citation rules are weak.
+- Crawling can introduce SSRF, robots, rate-limit, stale-data, and privacy risks.
+- Arabic OCR and extraction quality must be proven on fixtures rather than assumed from multilingual claims.
 
 ## Protected Areas
 
@@ -125,10 +140,13 @@ TASK-017 is merged as the live AI provider boundary plan. TASK-017A is merged as
 - Do not continue polishing the technical demo as the final product experience.
 - Do not expose provider keys to browser code, workflow JSON, BusinessUnderstanding, traces, logs, screenshots, docs, tests, or export packages.
 - Do not wire live AI into Studio without an explicit review toggle/status and backend-only provider access.
+- Do not add OCR, PDF parsers, cloud extraction, vector stores, RAG, crawling, or upload endpoints without their own approved task.
+- Do not copy code from LeapAI-SA/leap-ocr-platform into FlowAI until ownership/reuse permission, security boundaries, and a specific adapter task are approved.
+- Do not use RAG results as source of truth for prices, availability, recommendations, medical/legal policy, or workflow decisions without source-backed review.
 
 ## Next Recommended Action
 
-Review TASK-019 Owner Review Demo With Live AI PR. After acceptance, start TASK-020_OWNER_UI_POLISH_FOR_REVIEW.
+Open and review TASK-020 Document Intelligence Evaluation PR. After acceptance, start `TASK-020A_EXTRACTED_DOCUMENT_CONTRACT_AND_FIXTURE_HARNESS` only.
 
 ## Critical References
 
@@ -151,6 +169,8 @@ Review TASK-019 Owner Review Demo With Live AI PR. After acceptance, start TASK-
 - `docs/tasks/TASK-018_STUDIO_LIVE_AI_REVIEW_TOGGLE.md`
 - `docs/tasks/TASK-019_OWNER_REVIEW_DEMO_WITH_LIVE_AI.md`
 - `docs/demo/FLOWAI_LIVE_AI_OWNER_REVIEW.md`
+- `docs/tasks/TASK-020_DOCUMENT_INTELLIGENCE_EVALUATION.md`
+- `docs/document-intelligence/DOCUMENT_INTELLIGENCE_OPTIONS.md`
 - `docs/ai-provider/LIVE_AI_PROVIDER_BOUNDARY.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`
 - `docs/shards/`
