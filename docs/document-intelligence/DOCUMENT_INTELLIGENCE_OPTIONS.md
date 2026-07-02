@@ -275,7 +275,7 @@ Recommended use:
 
 ### OpenAI Vector Stores / File Search
 
-Fit: good hosted RAG candidate after chunk/sourceRefs exist.
+Fit: accepted hosted MVP RAG candidate after chunk/sourceRefs exist.
 
 Why:
 
@@ -291,7 +291,8 @@ Risks:
 
 Recommended use:
 
-- Separate `TASK-020D_OPENAI_VECTOR_STORE_RAG_SPIKE` after `TASK-020A` and at least one parser/OCR spike.
+- `TASK-020B_OPENAI_RAG_CATALOG_KB` implements the first narrow adapter and smoke test because the owner approved using the existing OpenAI key path for RAG.
+- Keep it behind backend-only config and sourceRef-backed chunks.
 - Do not use vector search as the source of truth for catalog prices, availability, medical/legal policy, or workflow decisions.
 
 Reference:
@@ -414,7 +415,18 @@ Scope:
 - no provider calls.
 - include adapter fields that can represent LeapOCR-like page results without importing LeapOCR code.
 
-### TASK-020B_PDF_OCR_LOCAL_SPIKE
+### TASK-020B_OPENAI_RAG_CATALOG_KB
+
+Implement the first hosted RAG/catalog knowledge adapter.
+
+Scope:
+
+- use existing SourceDocument chunks with sourceRefs.
+- create/search/delete OpenAI Vector Stores through a backend-only adapter.
+- prove a real smoke path when local OpenAI config is present.
+- no OCR, no parser dependency, no crawling, no catalog source-of-truth decisions.
+
+### TASK-020C_OCR_PARSER_LOCAL_SPIKE
 
 Evaluate LeapOCR service output, MinerU, Docling, and PaddleOCR on local fixtures.
 
@@ -426,7 +438,7 @@ Scope:
 - compare Arabic, tables, reading order, and sourceRef recoverability.
 - output review Markdown, not production integration.
 
-### TASK-020C_GOOGLE_DOCUMENT_AI_EXTRACTION_SPIKE
+### TASK-020D_GOOGLE_DOCUMENT_AI_EXTRACTION_SPIKE
 
 Evaluate Google Document AI with a dedicated key.
 
@@ -436,16 +448,6 @@ Scope:
 - Custom Extractor only if needed.
 - no production storage.
 - no browser-exposed credentials.
-
-### TASK-020D_OPENAI_VECTOR_STORE_RAG_SPIKE
-
-Evaluate OpenAI Vector Stores/File Search.
-
-Scope:
-
-- use extracted chunks with sourceRefs.
-- show citations and deletion/expiry behavior.
-- do not use retrieval results as workflow source of truth without review.
 
 ### TASK-020E_WEBSITE_CRAWLING_SPIKE
 
@@ -460,6 +462,6 @@ Scope:
 
 ## Current Decision
 
-Proceed next with `TASK-020A_EXTRACTED_DOCUMENT_CONTRACT_AND_FIXTURE_HARNESS`.
+Proceed next with review of `TASK-020B_OPENAI_RAG_CATALOG_KB`.
 
-Do not add LeapOCR code, MinerU, Docling, PaddleOCR, Google Document AI, OpenAI Vector Stores, Crawl4AI, Crawlee, Firecrawl, RAG, vector DB, upload endpoints, or persistence until their specific task is approved.
+Do not add LeapOCR code, MinerU, Docling, PaddleOCR, Google Document AI, Crawl4AI, Crawlee, Firecrawl, upload endpoints, or persistence until their specific task is approved.

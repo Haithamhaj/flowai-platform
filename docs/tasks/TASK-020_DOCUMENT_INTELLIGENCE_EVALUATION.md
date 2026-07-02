@@ -1,6 +1,6 @@
 # TASK-020: Document Intelligence Evaluation
 
-Status: in progress
+Status: accepted / merged
 Owner/Agent: Codex
 Parent: Owner-first visible MVP review
 
@@ -56,12 +56,12 @@ RAG becomes useful only after FlowAI can create trustworthy chunks with stable `
 Recommended order:
 
 1. `TASK-020A_EXTRACTED_DOCUMENT_CONTRACT_AND_FIXTURE_HARNESS`
-2. `TASK-020B_PDF_OCR_LOCAL_SPIKE`
-3. `TASK-020C_GOOGLE_DOCUMENT_AI_EXTRACTION_SPIKE`
-4. `TASK-020D_OPENAI_VECTOR_STORE_RAG_SPIKE`
+2. `TASK-020B_OPENAI_RAG_CATALOG_KB`
+3. `TASK-020C_OCR_PARSER_LOCAL_SPIKE`
+4. `TASK-020D_GOOGLE_DOCUMENT_AI_EXTRACTION_SPIKE`
 5. `TASK-020E_WEBSITE_CRAWLING_SPIKE`
 
-Only `TASK-020A` should be next. Later tasks require separate approval because they add dependencies, cloud credentials, or network behavior.
+`TASK-020A` is merged. `TASK-020B` is the active follow-up because the owner approved using the existing OpenAI key path for hosted RAG. OCR/parser, Google Document AI, and crawling still require separate approval because they add dependencies, cloud credentials, or broader network behavior.
 
 ## Candidate Stack Summary
 
@@ -115,8 +115,8 @@ Full test/build is optional because this task changes docs only.
 
 ## Next Recommended Task
 
-`TASK-020A_EXTRACTED_DOCUMENT_CONTRACT_AND_FIXTURE_HARNESS`
+`TASK-020B_OPENAI_RAG_CATALOG_KB`
 
-Goal: implement only a local contract and fixture evaluation harness for extracted text/chunks/sourceRefs using existing text/markdown examples first, with no parser dependency, no upload endpoint, no RAG, no crawling, and no cloud provider.
+Goal: implement only a narrow OpenAI Vector Stores adapter over existing `SourceDocument` chunks/sourceRefs, with mocked tests and an optional local smoke, and without OCR, parser dependencies, upload endpoints, crawling, persistence, or catalog source-of-truth decisions.
 
-The contract should be able to represent future LeapOCR-like page results, but must not import or copy LeapOCR code.
+OCR/parser work should follow as `TASK-020C_OCR_PARSER_LOCAL_SPIKE` only after dependency/license/security approval.
