@@ -31,6 +31,22 @@ describe("customer chat view", () => {
     expect(html).not.toContain("Generated WorkflowDefinition</h2>");
   });
 
+  test("renders live AI product catalog items in the chat result path", () => {
+    const html = renderCustomerChatHtml();
+
+    expect(html).toContain("productCatalog");
+    expect(html).toContain("catalogItems");
+    expect(html).toContain("catalogHtml");
+    expect(html).toContain("المنتجات/الباقات التي فهمتها");
+  });
+
+  test("renders AI missing questions instead of only technical generation blockers", () => {
+    const html = renderCustomerChatHtml();
+
+    expect(html).toContain("missingQuestions");
+    expect(html).toContain("combinedMissing");
+  });
+
   test("uses the existing pipeline endpoints without adding server upload behavior", () => {
     const html = renderCustomerChatHtml();
 

@@ -36,6 +36,8 @@ TASK-025 is active. The owner clarified that the current Studio surface should r
 
 During owner review, `https://alboshrastore.com/` exposed a product-fit gap: the crawler fetched Arabic catalog pages, but deterministic source review did not surface Arabic services/products. TASK-025 now includes a narrow source-backed Arabic website catalog extraction fix for explicit terms such as `حفر آبار`, `ذبح وتوزيع المواشي`, and `وقف مصاحف`. The system still blocks workflow generation when required customer fields are missing instead of inventing them.
 
+Follow-up review exposed that `/customer` Live AI was not actually enabled when Studio was started from the repository root, because the server resolved ignored local OpenAI config from the wrong workspace path. TASK-025 now resolves the monorepo root before reading `.flowai.local.json`, and `/customer` renders Live AI `ProductCatalogDraft.items` plus AI missing questions inside the chat response. Verified against `https://alboshrastore.com/` with `aiMode.status=live_provider` and model `gpt-5.5`.
+
 ## Active Decisions
 
 - FlowAI is a Business-to-Workflow Chatbot Generator.
@@ -112,6 +114,7 @@ During owner review, `https://alboshrastore.com/` exposed a product-fit gap: the
 - TASK-025 customer output stays inside the conversation; technical panels remain on `/`.
 - Browser-only file attach in `/customer` is limited to `.md` and `.txt` text read with `FileReader`; it is not a server upload feature.
 - Arabic website catalog extraction in TASK-025 is deterministic, source-backed, and conservative; it may surface explicit services/products, but it must not infer prices, availability, recommendations, or missing lead fields.
+- `/customer` may display Live AI catalog items and missing questions when explicitly enabled, but Workflow JSON remains deterministic and validator-backed.
 
 ## Active Risks
 

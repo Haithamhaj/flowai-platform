@@ -63,6 +63,8 @@ customer chat / text file / website URL
 - Browser-only `.md` / `.txt` attach reads file text and builds through the existing pipeline.
 - Website URL builds through the existing crawl-build path.
 - Arabic website catalog/service headings from crawled source text are surfaced as source-backed services/products when they are explicit in the source.
+- When Live AI review is enabled, `/customer` renders AI-returned `ProductCatalogDraft.items` and AI missing questions inside the same chat response.
+- Studio resolves the repository root before reading ignored local OpenAI config, so starting the server from the repo root still enables backend-only Live AI when `.flowai.local.json` exists.
 - The result appears inside the chat, not under it or beside it.
 - Customer-facing result messages summarize what FlowAI understood, found services/FAQs, sourceRefs, required fields, missing information, and whether a workflow can be opened.
 - Internal labels such as SourceDocument, WorkflowGenerationPlan, and Generated WorkflowDefinition must not render as customer-facing panels.
@@ -70,10 +72,12 @@ customer chat / text file / website URL
 - Workflow node text edits call the existing workflow editor command endpoint and refresh preview panels.
 - Tests verify no `/api/upload`, `eval`, or `new Function` path is introduced.
 - A real `https://alboshrastore.com/` crawl-build check returns explicit source-backed items such as `حفر آبار`, `ذبح وتوزيع المواشي`, and `وقف مصاحف`, while still blocking workflow generation until required customer fields are supplied.
+- A real `https://alboshrastore.com/` crawl-build check with Live AI enabled reports `aiMode.status=live_provider`, shows AI catalog items, and returns useful owner questions about required customer fields, handoff, and order completion.
 
 ## Tests
 
 - `CI=true pnpm --filter @flowai/studio test -- customer-chat-view.test.ts`
+- `CI=true pnpm --filter @flowai/studio test -- workspace-root.test.ts`
 - `CI=true pnpm --filter @flowai/source-review test -- source-review.test.ts`
 - `CI=true pnpm --filter @flowai/studio test`
 - `CI=true pnpm --filter @flowai/studio typecheck`
@@ -82,6 +86,7 @@ customer chat / text file / website URL
 - `git diff --check`
 - Local API check:
   - `POST http://127.0.0.1:4178/api/crawl-build` with `https://alboshrastore.com/` returns Arabic service/product candidates from source text.
+  - Same endpoint with `useLiveAi: true` reports backend-only `live_provider` mode when local OpenAI config is present.
 - Manual/browser check:
   - `http://127.0.0.1:4178/` remains current Studio.
   - `http://127.0.0.1:4178/customer` shows the customer chat screen.
@@ -100,6 +105,7 @@ customer chat / text file / website URL
 - The customer chat now hides most internal terminology, so internal review still belongs on `/`.
 - Website URL quality remains limited by the current bounded Cheerio crawler; JavaScript-heavy websites may still need a later browser-rendered crawler task.
 - Arabic catalog extraction is intentionally conservative and pattern-based; it proves simple source-backed service discovery, not full product catalog extraction, pricing, availability, or recommendation quality.
+- Live AI review improves catalog and missing-question quality, but Workflow JSON is still generated and validated deterministically; it is not yet a fully conversational multi-turn builder agent.
 
 ## Next Recommended Task
 

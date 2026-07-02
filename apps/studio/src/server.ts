@@ -1,5 +1,4 @@
 import { createServer } from "node:http";
-import { resolve } from "node:path";
 import {
   buildOwnerFirstPreviewWithAiReview,
   getDefaultOwnerInput,
@@ -10,11 +9,12 @@ import { createOpenAiResponsesProvider, createOpenAiVectorStoreClient, loadOpenA
 import { crawlWebsiteToSourceDocument } from "@flowai/website-crawler";
 import { applyWorkflowEditorCommand, runEditedWorkflowPreview, type WorkflowEditorCommand } from "./workflow-editor.js";
 import { renderCustomerChatHtml } from "./customer-chat-view.js";
+import { resolveStudioWorkspaceRoot } from "./workspace-root.js";
 import type { WorkflowDefinition } from "@flowai/workflow-dsl";
 
 const port = Number.parseInt(process.env.PORT ?? "4177", 10);
 const host = process.env.HOST ?? "127.0.0.1";
-const workspaceRoot = process.env.FLOWAI_WORKSPACE_ROOT ?? resolve(process.cwd(), "../..");
+const workspaceRoot = process.env.FLOWAI_WORKSPACE_ROOT ?? resolveStudioWorkspaceRoot(process.cwd());
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? `${host}:${port}`}`);

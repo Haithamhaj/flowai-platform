@@ -285,9 +285,13 @@ export function renderCustomerChatHtml(): string {
       const brief = preview.businessBrief || {};
       const source = preview.sourcePanel || {};
       const proposal = preview.workflowProposal || {};
+      const catalog = preview.productCatalog || {};
       const services = brief.services || [];
+      const catalogItems = catalog.items || [];
       const faqs = brief.faqs || [];
       const blockers = proposal.blockers || [];
+      const missingQuestions = brief.missingQuestions || [];
+      const combinedMissing = [...missingQuestions, ...blockers].filter((item, index, items) => item && items.indexOf(item) === index);
       const fields = proposal.requiredFields || [];
       const sourceRefs = source.sourceRefs || [];
       const crawlNote = crawl ? "<p>قرأت " + escapeHtml(String(crawl.pages?.length || 0)) + " صفحات عامة من الموقع.</p>" : "";
@@ -295,11 +299,14 @@ export function renderCustomerChatHtml(): string {
       const servicesHtml = services.length > 0
         ? "<ul>" + services.map(service => "<li>" + escapeHtml(service.name) + "</li>").join("") + "</ul>"
         : "<p class='muted'>لم أستخرج خدمات أو منتجات واضحة كفاية من المصدر.</p>";
+      const catalogHtml = catalogItems.length > 0
+        ? "<ul>" + catalogItems.map(item => "<li><strong>" + escapeHtml(item.name) + "</strong>" + (item.description ? "<br><span class='muted'>" + escapeHtml(item.description) + "</span>" : "") + "</li>").join("") + "</ul><p class='muted'>هذه عناصر كتالوج للمراجعة من المصدر. الأسعار والتوفر لا تُستخدم إلا إذا كانت واضحة ومسنودة بالمصدر.</p>"
+        : "<p class='muted'>لم أجد كتالوج منتجات/باقات واضحًا بعد.</p>";
       const faqsHtml = faqs.length > 0
         ? "<ul>" + faqs.map(faq => "<li>" + escapeHtml(faq.question) + "</li>").join("") + "</ul>"
         : "<p class='muted'>لم أجد FAQ واضحة بعد.</p>";
-      const missingHtml = blockers.length > 0
-        ? "<ul>" + blockers.map(blocker => "<li>" + escapeHtml(blocker) + "</li>").join("") + "</ul>"
+      const missingHtml = combinedMissing.length > 0
+        ? "<ul>" + combinedMissing.map(item => "<li>" + escapeHtml(item) + "</li>").join("") + "</ul>"
         : "<p class='ok'>المعلومات الأساسية كافية لبناء مسودة أولية.</p>";
       const fieldsHtml = fields.length > 0
         ? "<div class='pill-row'>" + fields.map(field => "<span class='pill'>" + escapeHtml(field) + "</span>").join("") + "</div>"
@@ -313,6 +320,8 @@ export function renderCustomerChatHtml(): string {
         sourceRefText,
         "<h3>الخدمات/المنتجات التي وجدتها</h3>",
         servicesHtml,
+        "<h3>المنتجات/الباقات التي فهمتها</h3>",
+        catalogHtml,
         "<h3>الأسئلة الشائعة</h3>",
         faqsHtml,
         "<h3>الحقول التي سيجمعها البوت</h3>",
