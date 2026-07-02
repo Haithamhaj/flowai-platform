@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Make the website URL path visibly complete in Studio by running bounded crawl output through the same owner-first build, optional live AI review, optional RAG evidence, workflow, runtime, channel preview, and export surfaces.
+Add owner-review crawl quality fixtures so FlowAI can compare where the current Cheerio crawler succeeds and where browser-rendered/Crawl4AI-style crawling may be needed.
 
 ## Current Reality
 
@@ -28,7 +28,7 @@ TASK-021 is active. It turns the existing local Studio into a more complete visi
 
 TASK-022 is merged. It added `packages/website-crawler` using Crawlee `CheerioCrawler` as the first real website crawling path. The crawler is same-origin, capped, explicit, blocks private-network targets by default, uses in-memory Crawlee storage, and converts crawled pages into a website `SourceDocument` for the existing Studio pipeline.
 
-TASK-023 is active. It connects the website crawler to the visible Studio build path so a URL can produce crawl summary, website SourceDocument/sourceRefs, owner checklist status, optional live AI review, optional OpenAI RAG search, WorkflowGenerationPlan/WorkflowDefinition summary, runtime conversation, channel previews, and export blocks in one owner-review action.
+TASK-023 is merged through PR #35 at final main HEAD `ef237981ed70713c5ef8101420d1964a8a7eb318`. It connects the website crawler to the visible Studio build path so a URL can produce crawl summary, website SourceDocument/sourceRefs, owner checklist status, optional live AI review, optional OpenAI RAG search, WorkflowGenerationPlan/WorkflowDefinition summary, runtime conversation, channel previews, and export blocks in one owner-review action.
 
 ## Active Decisions
 
@@ -169,7 +169,7 @@ TASK-023 is active. It connects the website crawler to the visible Studio build 
 
 ## Next Recommended Action
 
-Complete TASK-023 crawl-to-review wiring, verify it in Studio with a public URL, then review/merge the PR.
+Start `TASK-024_BROWSER_CRAWL_REVIEW_FIXTURES`.
 
 ## Critical References
 

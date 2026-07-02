@@ -30,17 +30,17 @@
 - TASK-020B OpenAI RAG catalog knowledge base.
 - TASK-021 visible full system trial.
 - TASK-022 website crawling with Crawlee.
+- TASK-023 crawl to AI/RAG review.
 
 ## Current Phase
 
-- Crawl-to-review Studio trial.
-- Current implementation target: TASK-023 crawl to AI/RAG review.
+- Crawl quality review.
+- Current implementation target: TASK-024 browser crawl review fixtures.
 - Boundary: bounded same-origin public http/https crawling only; no browser key access, upload endpoint, parser dependency, OCR implementation, Google integration, persistence, login/session crawling, private-network crawling by default, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
 
 ## Next
 
-- Review TASK-023 crawl-to-review PR.
-- After acceptance, the next recommended task is TASK-024_BROWSER_CRAWL_REVIEW_FIXTURES.
+- Start TASK-024_BROWSER_CRAWL_REVIEW_FIXTURES.
 
 ## Later
 
