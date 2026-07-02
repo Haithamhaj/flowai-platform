@@ -31,17 +31,17 @@
 - TASK-021 visible full system trial.
 - TASK-022 website crawling with Crawlee.
 - TASK-023 crawl to AI/RAG review.
+- TASK-024 browser crawl review fixtures.
 
 ## Current Phase
 
 - Crawl quality review.
-- Current implementation target: TASK-024 browser crawl review fixtures.
+- Current planning target: decide whether TASK-025 browser-rendered crawler spike planning is justified.
 - Boundary: bounded same-origin public http/https crawling only; no browser key access, upload endpoint, parser dependency, OCR implementation, Google integration, persistence, login/session crawling, private-network crawling by default, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
 
 ## Next
 
-- Review TASK-024_BROWSER_CRAWL_REVIEW_FIXTURES PR.
-- After acceptance, decide whether to start TASK-025_BROWSER_RENDERED_CRAWLER_SPIKE_PLAN.
+- Start TASK-025_BROWSER_RENDERED_CRAWLER_SPIKE_PLAN only if real target websites need JavaScript-rendered extraction.
 
 ## Later
 
