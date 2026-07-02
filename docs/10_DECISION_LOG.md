@@ -278,4 +278,5 @@ Revisit trigger: Real customer sites require JavaScript rendering, Crawl4AI-styl
 Decision: TASK-023 adds a Studio crawl-build path that runs bounded website crawl output through the existing owner-first preview, optional live AI review, optional OpenAI RAG search, workflow generation, runtime test, channel previews, and export blocks.
 Reason: The owner needs to paste a URL and see the full FlowAI product path, not inspect crawler output as a separate technical artifact.
 Consequences: `/api/crawl-preview` remains available for raw crawl inspection, while `/api/crawl-build` is the owner-visible path. Crawled sources are marked separately from pasted website text so the checklist only claims website crawling when the crawler actually ran. This remains a local review flow, not production crawling, persistent ingestion, OCR/PDF parsing, browser rendering, live channel delivery, or RAG source-of-truth behavior.
+Merge: PR #35, final main HEAD `ef237981ed70713c5ef8101420d1964a8a7eb318`.
 Revisit trigger: Owner testing shows crawler output is too weak for real websites, or the next task needs browser-rendered/Crawl4AI-style crawling fixtures.

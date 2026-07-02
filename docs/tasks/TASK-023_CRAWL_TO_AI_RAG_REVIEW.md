@@ -1,6 +1,6 @@
 # TASK-023: Crawl To AI/RAG Review
 
-Status: implemented / ready for review
+Status: accepted/merged
 Owner/Agent: Codex
 Parent: Owner-visible website source trial
 
