@@ -80,6 +80,7 @@ TASK-020 is the active evaluation task. It documents the approved direction for 
 - TASK-020 document intelligence should start with evaluation and sourceRefs before implementation.
 - FlowAI should not go RAG-first; RAG/vector search should sit on extracted chunks with stable sourceRefs.
 - MinerU, Docling, and PaddleOCR are the first local PDF/OCR candidates to evaluate, but no dependency is approved yet.
+- LeapAI-SA/leap-ocr-platform is an internal reference and possible OCR/extraction service adapter candidate, not a direct code-copy source.
 - Google Document AI OCR/Form Parser/Custom Extractor is a cloud extraction candidate that requires separate credential, billing, privacy, and region approval before any spike.
 - OpenAI Vector Stores/File Search may be useful for hosted MVP RAG after extracted chunks/sourceRefs exist, but not as the source of truth for catalog or workflow decisions.
 - Crawl4AI and Crawlee are crawling candidates for a later website ingestion spike; Firecrawl remains learn-only until license/security/provider review.
@@ -116,6 +117,7 @@ TASK-020 is the active evaluation task. It documents the approved direction for 
 - TASK-017A live smoke proves the provider can return structured output locally, but Studio is not wired to live AI yet and the output remains a review draft, not publish-ready chatbot behavior.
 - Studio live AI review may be mistaken for production chatbot intelligence unless UI notes continue to say Workflow JSON is still generated and validated deterministically.
 - OCR/parser tools may add heavy native binaries, GPU requirements, model downloads, custom licenses, and supply-chain risk.
+- The internal LeapOCR repo can accelerate OCR/extraction learning, but direct reuse needs ownership/license confirmation and would otherwise pull in MongoDB, GCS, auth, OpenRouter, Vertex AI, Terraform, and deployment scope.
 - Google Document AI or OpenAI Vector Stores may transfer customer documents to third-party providers and need privacy, retention, region, and deletion review.
 - RAG can produce unsupported answers if chunking, sourceRefs, freshness, and citation rules are weak.
 - Crawling can introduce SSRF, robots, rate-limit, stale-data, and privacy risks.
@@ -139,6 +141,7 @@ TASK-020 is the active evaluation task. It documents the approved direction for 
 - Do not expose provider keys to browser code, workflow JSON, BusinessUnderstanding, traces, logs, screenshots, docs, tests, or export packages.
 - Do not wire live AI into Studio without an explicit review toggle/status and backend-only provider access.
 - Do not add OCR, PDF parsers, cloud extraction, vector stores, RAG, crawling, or upload endpoints without their own approved task.
+- Do not copy code from LeapAI-SA/leap-ocr-platform into FlowAI until ownership/reuse permission, security boundaries, and a specific adapter task are approved.
 - Do not use RAG results as source of truth for prices, availability, recommendations, medical/legal policy, or workflow decisions without source-backed review.
 
 ## Next Recommended Action

@@ -35,6 +35,51 @@ Any candidate must be reviewed against:
 
 ## PDF/OCR Candidates
 
+### LeapAI-SA/leap-ocr-platform
+
+Fit: strongest internal reference candidate and possible external service boundary, not a direct code-copy source.
+
+Observed repo state:
+
+- Private GitHub repository: `LeapAI-SA/leap-ocr-platform`.
+- Last pushed: 2026-04-17.
+- No GitHub license metadata was visible during review.
+- Python/FastAPI platform with Docker, Terraform, MongoDB, GCS, OpenRouter, Vertex AI, LangExtract, JWT auth, Jinja UI, and Cloud Run deployment.
+- Dependencies include FastAPI, MongoDB clients, OpenAI SDK, pdf2image, Pillow, PyMuPDF, python-docx, Google Cloud Storage, Google Cloud AI Platform, Google Cloud Speech, LangExtract, Sentry, and backoff.
+
+Useful patterns for FlowAI:
+
+- Session/job flow: create session, upload files, run OCR asynchronously, poll progress, fetch results.
+- Page-level result model with per-page success/error, token usage, and cost tracking.
+- Model registry and model-cost tracking, including calculated vs provider-reported cost comparison.
+- PDF/image/DOCX conversion path using Poppler, Pillow, and LibreOffice.
+- Schema-driven OCR prompts that require strict JSON output.
+- Post-OCR entity extraction using LangExtract + Vertex AI with user examples.
+- HTML visualization for extracted entities, including UTF-8 handling for Arabic/multibyte text.
+- Cloud Run deployment pattern for an isolated OCR microservice.
+
+Risks and blockers:
+
+- No visible license metadata. Even though this is an internal/team repo, FlowAI should not copy code until ownership and reuse permission are explicitly documented.
+- It is a full application, not a small parser adapter. Direct migration would import auth, MongoDB, GCS, UI, admin, Sentry, Terraform, and deployment assumptions into FlowAI.
+- It stores and processes customer files in GCS and uses MongoDB sessions, which conflicts with FlowAI's current no-persistence/no-upload boundary.
+- It depends on OpenRouter and Google Vertex/GCS service-account credentials, which require provider, privacy, billing, region, and secret handling review.
+- Some defaults and deployment settings need security review before reuse, including public Cloud Run invocation and default admin credentials in config/docs.
+- Current extraction output is generic entities, not FlowAI-specific `BusinessUnderstanding`, `BusinessGraph`, catalog facts, source priority, or workflow-ready capabilities.
+- The PDF/OCR path is LLM-vision over rendered pages, not a deterministic parser with robust sourceRefs. It may be useful, but sourceRef granularity must be added.
+
+Recommended use:
+
+- Treat as an internal reference and potential separate OCR/extraction microservice.
+- Do not copy code into FlowAI during TASK-020.
+- In `TASK-020A`, design `ExtractedDocument` so a future adapter can accept LeapOCR-like page results.
+- In a later approved spike, call the deployed/internal OCR service or run it locally against FlowAI fixtures, then map its output into FlowAI `ExtractedDocument` and sourceRefs.
+- Prefer service integration or adapter reimplementation over migrating the whole app into the FlowAI monorepo.
+
+Reference:
+
+- https://github.com/LeapAI-SA/leap-ocr-platform
+
 ### MinerU
 
 Fit: strongest first candidate for local PDF/document parsing spike.
@@ -367,14 +412,16 @@ Scope:
 - no upload endpoint.
 - no RAG.
 - no provider calls.
+- include adapter fields that can represent LeapOCR-like page results without importing LeapOCR code.
 
 ### TASK-020B_PDF_OCR_LOCAL_SPIKE
 
-Evaluate MinerU, Docling, and PaddleOCR on local fixtures.
+Evaluate LeapOCR service output, MinerU, Docling, and PaddleOCR on local fixtures.
 
 Scope:
 
 - install only after documented dependency approval.
+- for LeapOCR, prefer service/API invocation or local isolated run instead of copying code.
 - run local sample conversion.
 - compare Arabic, tables, reading order, and sourceRef recoverability.
 - output review Markdown, not production integration.
@@ -415,4 +462,4 @@ Scope:
 
 Proceed next with `TASK-020A_EXTRACTED_DOCUMENT_CONTRACT_AND_FIXTURE_HARNESS`.
 
-Do not add MinerU, Docling, PaddleOCR, Google Document AI, OpenAI Vector Stores, Crawl4AI, Crawlee, Firecrawl, RAG, vector DB, upload endpoints, or persistence until their specific task is approved.
+Do not add LeapOCR code, MinerU, Docling, PaddleOCR, Google Document AI, OpenAI Vector Stores, Crawl4AI, Crawlee, Firecrawl, RAG, vector DB, upload endpoints, or persistence until their specific task is approved.

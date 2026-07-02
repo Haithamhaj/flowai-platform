@@ -69,6 +69,7 @@ Detailed comparison is in `docs/document-intelligence/DOCUMENT_INTELLIGENCE_OPTI
 
 Initial recommendation:
 
+- Internal reference evaluation: LeapAI-SA/leap-ocr-platform as a service/adapter candidate, not a direct code-copy source.
 - Local PDF/OCR evaluation: MinerU, Docling, and PaddleOCR.
 - Cloud extraction evaluation: Google Document AI OCR/Form Parser/Custom Extractor.
 - RAG/vector evaluation: OpenAI Vector Stores/File Search after chunk/sourceRefs exist.
@@ -105,6 +106,7 @@ Full test/build is optional because this task changes docs only.
 ## Risks
 
 - Heavy OCR/parser packages can add native binaries, GPU/runtime requirements, model downloads, and supply-chain risk.
+- The internal LeapOCR repo is a full FastAPI/MongoDB/GCS/OpenRouter/Vertex platform; direct migration would import persistence, auth, cloud storage, deployment, and secret-handling scope that FlowAI has not approved.
 - Cloud extraction may send customer documents to a third party and needs privacy, region, billing, and credential review.
 - RAG can produce unsupported answers if chunking and sourceRefs are weak.
 - Crawling can create robots, SSRF, rate-limit, privacy, and stale-data risks.
@@ -116,3 +118,5 @@ Full test/build is optional because this task changes docs only.
 `TASK-020A_EXTRACTED_DOCUMENT_CONTRACT_AND_FIXTURE_HARNESS`
 
 Goal: implement only a local contract and fixture evaluation harness for extracted text/chunks/sourceRefs using existing text/markdown examples first, with no parser dependency, no upload endpoint, no RAG, no crawling, and no cloud provider.
+
+The contract should be able to represent future LeapOCR-like page results, but must not import or copy LeapOCR code.
