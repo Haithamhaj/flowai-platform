@@ -336,8 +336,8 @@ export function renderCustomerChatHtml(): string {
       const missingQuestions = brief.missingQuestions || [];
       const combinedMissing = [...missingQuestions, ...blockers].filter((item, index, items) => item && items.indexOf(item) === index);
       const fields = proposal.requiredFields || [];
-      const sourceRefs = source.sourceRefs || [];
-      const sourceName = brief.businessName || source.sourceUrl || source.filename || "المصدر";
+      const sourceRefs = (source.sourceRefs || []).filter(ref => !isInternalCustomerSource(ref.label));
+      const sourceName = customerSourceName(brief, source);
       const crawlNote = crawl ? "قرأت " + escapeHtml(String(crawl.pages?.length || 0)) + " صفحات من الموقع. " : "";
       const sourceRefText = sourceRefs.length > 0 ? "<p class='muted'>المصادر: " + escapeHtml(sourceRefs.map(ref => ref.label).slice(0, 3).join(", ")) + "</p>" : "";
       const servicesHtml = services.length > 0
@@ -367,6 +367,17 @@ export function renderCustomerChatHtml(): string {
         "<p class='muted'>سأستخدم الأسعار أو التوفر فقط إذا كانت موجودة بوضوح في المصدر.</p>",
         currentWorkflowModel ? renderWorkflowLinkMessage(preview) : renderBlockedWorkflowMessage()
       ].filter(Boolean).join("");
+    }
+
+    function customerSourceName(brief, source) {
+      if (brief.businessName && !isInternalCustomerSource(brief.businessName)) return brief.businessName;
+      if (source.sourceUrl) return source.sourceUrl;
+      if (source.filename && !isInternalCustomerSource(source.filename)) return source.filename;
+      return "المحادثة الحالية";
+    }
+
+    function isInternalCustomerSource(value) {
+      return /Owner Conversation Decisions|customer-chat\\.md|sourceRefs|SourceDocument/i.test(String(value || ""));
     }
 
     function renderWorkflowLinkMessage(preview) {

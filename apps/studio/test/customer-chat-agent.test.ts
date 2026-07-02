@@ -64,6 +64,17 @@ describe("customer chat agent", () => {
     expect(result.reply).toContain("القرارات");
   });
 
+  test("does not treat a generic website chatbot request as an explicit build command", async () => {
+    const result = await runCustomerChatTurn({
+      message: "في عندي الموقع تبعي بدي اعمل تشات بوت عشان يساعد العملاء ويشرح لهم",
+      ownerContext:
+        "- Decision 1: صاحب البزنس يريد بوت للموقع.\n- Decision 2: الهدف مساعدة العملاء والرد على الاستفسارات.\n- Decision 3: المصدر المقصود هو الموقع لكن الرابط لم يرسل بعد."
+    });
+
+    expect(result.action).toBe("reply");
+    expect(result.reply).toContain("رابط");
+  });
+
   test("does not repeat generic first-step prompts when owner context already exists", async () => {
     const result = await runCustomerChatTurn({
       message: "خذ المنتجات من الموقع",

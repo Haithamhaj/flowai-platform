@@ -137,7 +137,7 @@ function buildDiscoveryFallback(ownerContext: string): string {
 
 function buildBusinessGoalFallback(ownerContext: string): string {
   if (ownerContext) {
-    return "واضح. سأضيف هذا القرار لسياق البوت بدل ما أعيد الأسئلة. الخطوة الأنسب الآن: أرسل رابط المصدر أو قل لي ابنِ الشجرة الآن لأحوّل القرارات الحالية إلى workflow.";
+    return "واضح. سأحفظ هذا كسياق للبوت بدل ما أعيد الأسئلة. أرسل رابط الموقع الآن، أو اكتب أهم الخدمات/المنتجات وطريقة إتمام الطلب، وبعدها أبني workflow أولي.";
   }
   return "الفكرة واضحة: تريد بوت يساعد العميل يفهم الخدمات ويتحفز للشراء. أرسل لي الآن رابط الموقع أو اكتب أهم 3 خدمات/منتجات مع طريقة إتمام الطلب، وبعدها أبني لك workflow أولي.";
 }
@@ -151,7 +151,7 @@ function hasBusinessBuildSignal(text: string): boolean {
 
 function wantsBuildNow(text: string): boolean {
   const normalized = normalizeArabicText(text);
-  return /(ابني|ابن|بناء|جهز|طلع|اعمل).*(الشجره|الشجرة|workflow|البوت|تشات بوت|chatbot)|^(ابن الشجره الان|ابن الشجرة الآن|build now)$/i.test(
+  return /(ابني|ابن|جهز|طلع).*(الشجره|الشجرة|workflow)|(ابني|ابن|جهز).*(البوت|تشات بوت|chatbot).*(الان|الآن|الحين|now)|^(ابن الشجره الان|ابن الشجرة الآن|build now)$/i.test(
     normalized
   );
 }
