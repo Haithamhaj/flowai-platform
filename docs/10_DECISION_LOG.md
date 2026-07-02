@@ -323,3 +323,10 @@ Decision: In `/customer`, pressing Send uses only the message text or a URL type
 Reason: Owner testing showed a normal chat message accidentally crawled a stale URL from a previous experiment, making the product look confused and unintelligent.
 Consequences: The URL field can still be used intentionally, but normal chat remains conversational. Assistant responses should stay concise and end with one clear follow-up question instead of a long technical report. Live AI review is checked by default in the customer screen for the local owner-review demo, while provider access remains backend-only.
 Revisit trigger: The next customer chat agent loop introduces explicit source selection, session state, or multi-turn source memory.
+
+## 2026-07-02: Not Every Customer Message Is A Source Document
+
+Decision: `/customer` must classify obvious greetings and small talk before source extraction, and answer conversationally without calling `/api/build`.
+Reason: Owner testing showed that messages like `مرحبا` and `كيف حالك` were analyzed as one-line documents, producing an obviously unintelligent report despite Live AI being enabled.
+Consequences: The current guard handles simple greetings locally and asks for business context. Real multi-turn intent classification remains a follow-up agent-loop task. No new provider, dependency, persistence, or workflow contract change is added.
+Revisit trigger: TASK-026 introduces a real conversational state machine or AI agent loop for intent classification, clarification, and workflow build readiness.

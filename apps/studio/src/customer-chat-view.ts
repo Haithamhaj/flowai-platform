@@ -222,6 +222,10 @@ export function renderCustomerChatHtml(): string {
         await buildFromWebsite(url);
         return;
       }
+      if (isSmallTalkOnly(text)) {
+        addMessage("bot", renderSmallTalkReply(text));
+        return;
+      }
       await buildFromText(text, {
         filename: "customer-chat.md",
         mimeType: "text/markdown",
@@ -420,6 +424,18 @@ export function renderCustomerChatHtml(): string {
     function firstUrl(text) {
       const match = text.match(/https?:\\/\\/[^\\s]+/);
       return match ? match[0] : "";
+    }
+
+    function isSmallTalkOnly(text) {
+      const normalized = text.trim().toLowerCase().replace(/[؟?!.,،]/g, "");
+      return /^(مرحبا|هلا|السلام عليكم|السلام|اهلا|أهلا|هاي|hi|hello|كيف حالك|كيفك|شلونك|عامل ايه|صباح الخير|مساء الخير)$/.test(normalized);
+    }
+
+    function renderSmallTalkReply(text) {
+      if (/كيف حالك|كيفك|شلونك|عامل ايه/i.test(text)) {
+        return "أهلًا، تمام الحمد لله. خلينا نبني البوت صح: ما اسم البزنس أو أرسل لي رابط الموقع/ملف الخدمات، وبعدها أسألك سؤال سؤال لحد ما نطلع workflow واضح.";
+      }
+      return "أهلًا، تمام الحمد لله. احكِ لي باختصار عن البزنس: ما اسمه؟ وما أهم خدمة أو منتج تريد البوت يساعد العملاء يفهموه أو يشتروه؟";
     }
 
     function isSupportedTextFile(value) {

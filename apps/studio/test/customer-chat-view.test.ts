@@ -64,6 +64,15 @@ describe("customer chat view", () => {
     expect(html).toContain("slice(0, 4)");
   });
 
+  test("handles greetings and small talk without running the build pipeline", () => {
+    const html = renderCustomerChatHtml();
+
+    expect(html).toContain("isSmallTalkOnly");
+    expect(html).toContain("renderSmallTalkReply");
+    expect(html).toContain("أهلًا، تمام الحمد لله");
+    expect(html).toContain("await buildFromText(text");
+  });
+
   test("uses the existing pipeline endpoints without adding server upload behavior", () => {
     const html = renderCustomerChatHtml();
 

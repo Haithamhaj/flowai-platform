@@ -40,6 +40,8 @@ Follow-up review exposed that `/customer` Live AI was not actually enabled when 
 
 Further owner review exposed a customer-chat UX bug: typing a normal message while a previous website URL remained in the URL field triggered crawling that stale URL. TASK-025 now only crawls when the owner clicks `Use link` or types a URL inside the message itself. The assistant result is also shortened into a conversational response with one follow-up question instead of a long technical report.
 
+Another review exposed that greetings like `مرحبا` and small talk like `كيف حالك` were being treated as source documents, causing Live AI to produce document-analysis reports. TASK-025 now handles these as normal chat and asks for business context without calling `/api/build`.
+
 ## Active Decisions
 
 - FlowAI is a Business-to-Workflow Chatbot Generator.
@@ -118,6 +120,7 @@ Further owner review exposed a customer-chat UX bug: typing a normal message whi
 - Arabic website catalog extraction in TASK-025 is deterministic, source-backed, and conservative; it may surface explicit services/products, but it must not infer prices, availability, recommendations, or missing lead fields.
 - `/customer` may display Live AI catalog items and missing questions when explicitly enabled, but Workflow JSON remains deterministic and validator-backed.
 - `/customer` text send is message-first; the URL field is used only by `Use link`, preventing accidental re-crawls from previous examples.
+- `/customer` small talk is handled before source extraction; not every message should become a SourceDocument.
 
 ## Active Risks
 
