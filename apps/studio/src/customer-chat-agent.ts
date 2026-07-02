@@ -54,11 +54,11 @@ export async function runCustomerChatTurn(
     };
   }
 
-  if (wantsBuildNow(message) && ownerContext.length > 80) {
+  if (wantsBuildNow(message, history) && ownerContext.length > 80) {
     return {
       action: "build_text",
       content: ownerContext,
-      reply: "تمام، سأبني الآن من القرارات التي اتفقنا عليها في المحادثة بدل ما أعيد الأسئلة."
+      reply: "تمام، سأبني الـ workflow الآن من القرارات التي اعتمدتها بدل ما أعيد الأسئلة."
     };
   }
 
@@ -149,11 +149,20 @@ function hasBusinessBuildSignal(text: string): boolean {
   );
 }
 
-function wantsBuildNow(text: string): boolean {
+function wantsBuildNow(text: string, history: CustomerChatMessage[] = []): boolean {
   const normalized = normalizeArabicText(text);
-  return /(ابني|ابن|جهز|طلع).*(الشجره|الشجرة|workflow)|(ابني|ابن|جهز).*(البوت|تشات بوت|chatbot).*(الان|الآن|الحين|now)|^(ابن الشجره الان|ابن الشجرة الآن|build now)$/i.test(
+  const recentAssistantText = history
+    .filter((entry) => entry.role === "assistant")
+    .slice(-3)
+    .map((entry) => normalizeArabicText(entry.text))
+    .join(" ");
+  const recentReadySignal = /(جاهز|اعتمد|اعتماد|تصميم نهائي|تدفق|workflow|الشجره|الشجرة|سكربت|مسار)/i.test(recentAssistantText);
+  const directBuildSignal = /(ابني|ابن|جهز|طلع).*(الشجره|الشجرة|workflow)|(ابني|ابن|جهز).*(البوت|تشات بوت|chatbot).*(الان|الآن|الحين|now)|^(ابن الشجره الان|ابن الشجرة الآن|build now)$/i.test(
     normalized
   );
+  const approvalSignal = /^(اعتمد|اعتمده|اعتمدها|اوك|تمام|نعم|ايه|ايوه|yes|ok|جهز|جاهز|كمل|نفذ|ابدأ|ابدا)$/i.test(normalized);
+  const frustratedBuildSignal = /(طفشت|زهقت|تعبت|خلص|بلا اسئله|بدون اسئله|جهز|نفذ|اعتمد)/i.test(normalized);
+  return directBuildSignal || (recentReadySignal && (approvalSignal || frustratedBuildSignal));
 }
 
 function hasEnoughSourceDetail(text: string): boolean {

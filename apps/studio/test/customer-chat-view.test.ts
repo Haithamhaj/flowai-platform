@@ -25,6 +25,9 @@ describe("customer chat view", () => {
     expect(html).toContain("واضح أن البوت يحتاج");
     expect(html).toContain("nextQuestion");
     expect(html).toContain("افتح الشجرة");
+    expect(html).toContain("جهزت لك البوت");
+    expect(html).toContain("Telegram mock preview");
+    expect(html).toContain("ليس بوت Telegram حي");
     expect(html).not.toContain("<aside");
     expect(html).not.toContain("سؤالي التالي");
     expect(html).not.toContain("ما فهمته من الخدمات/المنتجات");

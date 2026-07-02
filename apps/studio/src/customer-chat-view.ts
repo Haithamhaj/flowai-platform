@@ -353,7 +353,7 @@ export function renderCustomerChatHtml(): string {
 
     function renderWorkflowLinkMessage(preview) {
       const summary = preview.workflowSummary || {};
-      return "<div class='actions'><button id='openWorkflowEditor' type='button'>افتح الشجرة</button><button class='ghost' id='copyWorkflowFromChat' type='button'>Copy workflow JSON</button></div><p class='muted'>تم بناء مسودة workflow: " + escapeHtml(summary.name || "Workflow draft") + " · " + escapeHtml(String(summary.nodeCount || 0)) + " nodes. يمكنك فتحها بدون مغادرة الشات.</p>";
+      return "<p>جهزت لك البوت كـ workflow قابل للمراجعة والتعديل، ومعه تجربة تشغيل محلية وTelegram mock preview. هذا ليس بوت Telegram حي بعد، لكنه نفس مسار التشغيل الذي سنربطه لاحقًا بتليجرام أو واتساب.</p><div class='actions'><button id='openWorkflowEditor' type='button'>افتح الشجرة</button><button class='ghost' id='copyWorkflowFromChat' type='button'>Copy workflow JSON</button></div><p class='muted'>" + escapeHtml(summary.name || "Workflow draft") + " · " + escapeHtml(String(summary.nodeCount || 0)) + " nodes.</p>";
     }
 
     function renderBlockedWorkflowMessage() {

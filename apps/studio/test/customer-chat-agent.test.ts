@@ -64,6 +64,40 @@ describe("customer chat agent", () => {
     expect(result.reply).toContain("القرارات");
   });
 
+  test("builds from accepted context when the owner says approved", async () => {
+    const result = await runCustomerChatTurn({
+      message: "اعتمد",
+      history: [
+        {
+          role: "assistant",
+          text: "المسار جاهز الآن كتصميم نهائي: فهم البزنس ثم توضيح الفرص ثم جمع البيانات."
+        }
+      ],
+      ownerContext:
+        "- Decision 1: بوت تأهيل عملاء الأتمتة.\n- Decision 2: يفهم البزنس من رابط أو ملف أو وصف.\n- Decision 3: يشرح فرص الأتمتة ثم يجمع الاسم والشركة والجوال والبريد الاختياري."
+    });
+
+    expect(result.action).toBe("build_text");
+    expect(result.reply).toContain("workflow");
+  });
+
+  test("builds instead of asking again when the owner is clearly frustrated", async () => {
+    const result = await runCustomerChatTurn({
+      message: "يا اخي جهز تراك طفشتني",
+      history: [
+        {
+          role: "assistant",
+          text: "الخطوة التالية: أجهزه لك كتدفق محادثة كامل برسائل جاهزة وسيناريوهات الردود المختلفة."
+        }
+      ],
+      ownerContext:
+        "- Decision 1: النبرة احترافية ومبسطة.\n- Decision 2: الهدف جمع بيانات العميل فقط.\n- Decision 3: بدون سؤال الميزانية.\n- Decision 4: يختم بأن الفريق سيراجع الحالة ويتواصل معه."
+    });
+
+    expect(result.action).toBe("build_text");
+    expect(result.reply).toContain("workflow");
+  });
+
   test("does not treat a generic website chatbot request as an explicit build command", async () => {
     const result = await runCustomerChatTurn({
       message: "في عندي الموقع تبعي بدي اعمل تشات بوت عشان يساعد العملاء ويشرح لهم",
