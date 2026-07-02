@@ -106,7 +106,7 @@ export function renderCustomerChatHtml(): string {
           <label class="file-label">Attach .md/.txt
             <input id="customerFile" type="file" accept=".txt,.md,text/plain,text/markdown" />
           </label>
-          <label class="toggle"><input id="customerLiveAi" type="checkbox" />Live AI review</label>
+          <label class="toggle"><input id="customerLiveAi" type="checkbox" checked />Live AI review</label>
           <label class="toggle"><input id="customerKnowledge" type="checkbox" />RAG search</label>
           <span class="muted">PDF/OCR upload is not active in this local demo yet.</span>
         </div>
@@ -214,8 +214,8 @@ export function renderCustomerChatHtml(): string {
 
     async function sendCustomerMessage() {
       const text = message.value.trim();
-      const url = link.value.trim() || firstUrl(text);
-      if (!text && !url) return;
+      const url = firstUrl(text);
+      if (!text) return;
       addMessage("owner", text || url);
       message.value = "";
       if (url) {
@@ -259,7 +259,7 @@ export function renderCustomerChatHtml(): string {
           filename: source.filename,
           mimeType: source.mimeType,
           sourceKind: source.sourceKind,
-          sourceUrl: link.value.trim() || undefined,
+          sourceUrl: source.sourceUrl,
           content,
           useLiveAi: Boolean(liveAi.checked),
           useKnowledgeSearch: Boolean(knowledge.checked),
@@ -294,42 +294,36 @@ export function renderCustomerChatHtml(): string {
       const combinedMissing = [...missingQuestions, ...blockers].filter((item, index, items) => item && items.indexOf(item) === index);
       const fields = proposal.requiredFields || [];
       const sourceRefs = source.sourceRefs || [];
-      const crawlNote = crawl ? "<p>قرأت " + escapeHtml(String(crawl.pages?.length || 0)) + " صفحات عامة من الموقع.</p>" : "";
-      const sourceRefText = sourceRefs.length > 0 ? "<p class='muted'>sourceRefs: " + escapeHtml(sourceRefs.map(ref => ref.label).slice(0, 4).join(", ")) + "</p>" : "";
+      const sourceName = brief.businessName || source.sourceUrl || source.filename || "المصدر";
+      const crawlNote = crawl ? "قرأت " + escapeHtml(String(crawl.pages?.length || 0)) + " صفحات من الموقع. " : "";
+      const sourceRefText = sourceRefs.length > 0 ? "<p class='muted'>المصادر: " + escapeHtml(sourceRefs.map(ref => ref.label).slice(0, 3).join(", ")) + "</p>" : "";
       const servicesHtml = services.length > 0
-        ? "<ul>" + services.map(service => "<li>" + escapeHtml(service.name) + "</li>").join("") + "</ul>"
+        ? "<ul>" + services.slice(0, 4).map(service => "<li>" + escapeHtml(service.name) + "</li>").join("") + "</ul>"
         : "<p class='muted'>لم أستخرج خدمات أو منتجات واضحة كفاية من المصدر.</p>";
       const catalogHtml = catalogItems.length > 0
-        ? "<ul>" + catalogItems.map(item => "<li><strong>" + escapeHtml(item.name) + "</strong>" + (item.description ? "<br><span class='muted'>" + escapeHtml(item.description) + "</span>" : "") + "</li>").join("") + "</ul><p class='muted'>هذه عناصر كتالوج للمراجعة من المصدر. الأسعار والتوفر لا تُستخدم إلا إذا كانت واضحة ومسنودة بالمصدر.</p>"
+        ? "<ul>" + catalogItems.slice(0, 4).map(item => "<li><strong>" + escapeHtml(item.name) + "</strong>" + (item.description ? "<br><span class='muted'>" + escapeHtml(item.description) + "</span>" : "") + "</li>").join("") + "</ul>"
         : "<p class='muted'>لم أجد كتالوج منتجات/باقات واضحًا بعد.</p>";
-      const faqsHtml = faqs.length > 0
-        ? "<ul>" + faqs.map(faq => "<li>" + escapeHtml(faq.question) + "</li>").join("") + "</ul>"
-        : "<p class='muted'>لم أجد FAQ واضحة بعد.</p>";
-      const missingHtml = combinedMissing.length > 0
-        ? "<ul>" + combinedMissing.map(item => "<li>" + escapeHtml(item) + "</li>").join("") + "</ul>"
-        : "<p class='ok'>المعلومات الأساسية كافية لبناء مسودة أولية.</p>";
+      const nextQuestion = combinedMissing[0] || "هل تريد أن أجعل البوت يوجّه العميل للشراء مباشرة، أم يجمع بياناته أولًا ثم يحوله للموظف؟";
+      const missingHtml = "<p><strong>سؤالي التالي:</strong> " + escapeHtml(nextQuestion) + "</p>";
       const fieldsHtml = fields.length > 0
         ? "<div class='pill-row'>" + fields.map(field => "<span class='pill'>" + escapeHtml(field) + "</span>").join("") + "</div>"
         : "<p class='muted'>لم يتم تحديد حقول جمع بيانات العميل بعد.</p>";
 
       return [
-        "<h2>فهمت من المصدر</h2>",
-        "<p><strong>" + escapeHtml(brief.businessName || "البزنس") + "</strong></p>",
-        "<p>" + escapeHtml(brief.summary || "راجعت المصدر، لكن أحتاج تفاصيل أكثر حتى أخرج chatbot قابل للنشر.") + "</p>",
-        crawlNote,
+        "<h2>تمام، فهمت الاتجاه</h2>",
+        "<p>" + crawlNote + "أقدر أبدأ ببناء بوت يساعد الزائر يفهم الخدمات ويقربه من قرار الشراء، لكن أحتاج أوضح طريقة إتمام الطلب قبل بناء الشجرة.</p>",
+        "<p><strong>" + escapeHtml(sourceName) + "</strong></p>",
+        brief.summary ? "<p>" + escapeHtml(brief.summary) + "</p>" : "",
         sourceRefText,
-        "<h3>الخدمات/المنتجات التي وجدتها</h3>",
-        servicesHtml,
-        "<h3>المنتجات/الباقات التي فهمتها</h3>",
-        catalogHtml,
-        "<h3>الأسئلة الشائعة</h3>",
-        faqsHtml,
-        "<h3>الحقول التي سيجمعها البوت</h3>",
+        "<h3>ما فهمته من الخدمات/المنتجات</h3>",
+        catalogItems.length > 0 ? catalogHtml : servicesHtml,
+        services.length > 0 && catalogItems.length > 0 ? "<h3>الخدمات المختصرة</h3>" + servicesHtml : "",
+        "<h3>الحقول المتوقعة</h3>",
         fieldsHtml,
-        "<h3>المعلومات الناقصة</h3>",
         missingHtml,
+        "<p class='muted'>سأستخدم الأسعار أو التوفر فقط إذا كانت موجودة بوضوح في المصدر.</p>",
         currentWorkflowModel ? renderWorkflowLinkMessage(preview) : renderBlockedWorkflowMessage()
-      ].join("");
+      ].filter(Boolean).join("");
     }
 
     function renderWorkflowLinkMessage(preview) {

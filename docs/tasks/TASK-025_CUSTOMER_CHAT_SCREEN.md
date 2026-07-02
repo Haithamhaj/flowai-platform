@@ -62,11 +62,12 @@ customer chat / text file / website URL
 - Text input builds a chatbot preview through the existing build pipeline.
 - Browser-only `.md` / `.txt` attach reads file text and builds through the existing pipeline.
 - Website URL builds through the existing crawl-build path.
+- Sending a normal text message must not crawl a stale URL left in the website URL field; only the `Use link` button or a URL typed in the message starts crawling.
 - Arabic website catalog/service headings from crawled source text are surfaced as source-backed services/products when they are explicit in the source.
 - When Live AI review is enabled, `/customer` renders AI-returned `ProductCatalogDraft.items` and AI missing questions inside the same chat response.
 - Studio resolves the repository root before reading ignored local OpenAI config, so starting the server from the repo root still enables backend-only Live AI when `.flowai.local.json` exists.
 - The result appears inside the chat, not under it or beside it.
-- Customer-facing result messages summarize what FlowAI understood, found services/FAQs, sourceRefs, required fields, missing information, and whether a workflow can be opened.
+- Customer-facing result messages stay conversational: summarize what FlowAI understood, show top source-backed services/products, and end with one clear follow-up question.
 - Internal labels such as SourceDocument, WorkflowGenerationPlan, and Generated WorkflowDefinition must not render as customer-facing panels.
 - Workflow node text edits happen in a modal opened from a chat message action.
 - Workflow node text edits call the existing workflow editor command endpoint and refresh preview panels.
@@ -86,7 +87,8 @@ customer chat / text file / website URL
 - `git diff --check`
 - Local API check:
   - `POST http://127.0.0.1:4178/api/crawl-build` with `https://alboshrastore.com/` returns Arabic service/product candidates from source text.
-  - Same endpoint with `useLiveAi: true` reports backend-only `live_provider` mode when local OpenAI config is present.
+- Same endpoint with `useLiveAi: true` reports backend-only `live_provider` mode when local OpenAI config is present.
+  - `GET http://127.0.0.1:4178/customer` confirms Live AI is checked by default, stale link auto-crawl is absent, and the chat result includes a follow-up question.
 - Manual/browser check:
   - `http://127.0.0.1:4178/` remains current Studio.
   - `http://127.0.0.1:4178/customer` shows the customer chat screen.

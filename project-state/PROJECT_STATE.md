@@ -38,6 +38,8 @@ During owner review, `https://alboshrastore.com/` exposed a product-fit gap: the
 
 Follow-up review exposed that `/customer` Live AI was not actually enabled when Studio was started from the repository root, because the server resolved ignored local OpenAI config from the wrong workspace path. TASK-025 now resolves the monorepo root before reading `.flowai.local.json`, and `/customer` renders Live AI `ProductCatalogDraft.items` plus AI missing questions inside the chat response. Verified against `https://alboshrastore.com/` with `aiMode.status=live_provider` and model `gpt-5.5`.
 
+Further owner review exposed a customer-chat UX bug: typing a normal message while a previous website URL remained in the URL field triggered crawling that stale URL. TASK-025 now only crawls when the owner clicks `Use link` or types a URL inside the message itself. The assistant result is also shortened into a conversational response with one follow-up question instead of a long technical report.
+
 ## Active Decisions
 
 - FlowAI is a Business-to-Workflow Chatbot Generator.
@@ -115,6 +117,7 @@ Follow-up review exposed that `/customer` Live AI was not actually enabled when 
 - Browser-only file attach in `/customer` is limited to `.md` and `.txt` text read with `FileReader`; it is not a server upload feature.
 - Arabic website catalog extraction in TASK-025 is deterministic, source-backed, and conservative; it may surface explicit services/products, but it must not infer prices, availability, recommendations, or missing lead fields.
 - `/customer` may display Live AI catalog items and missing questions when explicitly enabled, but Workflow JSON remains deterministic and validator-backed.
+- `/customer` text send is message-first; the URL field is used only by `Use link`, preventing accidental re-crawls from previous examples.
 
 ## Active Risks
 

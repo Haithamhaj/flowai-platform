@@ -22,8 +22,8 @@ describe("customer chat view", () => {
   test("keeps customer output inside the chat instead of rendering technical panels", () => {
     const html = renderCustomerChatHtml();
 
-    expect(html).toContain("فهمت من المصدر");
-    expect(html).toContain("المعلومات الناقصة");
+    expect(html).toContain("تمام، فهمت الاتجاه");
+    expect(html).toContain("سؤالي التالي");
     expect(html).toContain("افتح الشجرة");
     expect(html).not.toContain("<aside");
     expect(html).not.toContain("WorkflowGenerationPlan</h2>");
@@ -37,7 +37,7 @@ describe("customer chat view", () => {
     expect(html).toContain("productCatalog");
     expect(html).toContain("catalogItems");
     expect(html).toContain("catalogHtml");
-    expect(html).toContain("المنتجات/الباقات التي فهمتها");
+    expect(html).toContain("ما فهمته من الخدمات/المنتجات");
   });
 
   test("renders AI missing questions instead of only technical generation blockers", () => {
@@ -45,6 +45,23 @@ describe("customer chat view", () => {
 
     expect(html).toContain("missingQuestions");
     expect(html).toContain("combinedMissing");
+  });
+
+  test("does not crawl a stale link field when the user sends a text-only message", () => {
+    const html = renderCustomerChatHtml();
+
+    expect(html).toContain("const url = firstUrl(text);");
+    expect(html).not.toContain("const url = link.value.trim() || firstUrl(text);");
+    expect(html).toContain("sourceUrl: source.sourceUrl");
+    expect(html).not.toContain("sourceUrl: link.value.trim() || undefined");
+  });
+
+  test("keeps assistant result conversational with one clear next question", () => {
+    const html = renderCustomerChatHtml();
+
+    expect(html).toContain("nextQuestion");
+    expect(html).toContain("سؤالي التالي");
+    expect(html).toContain("slice(0, 4)");
   });
 
   test("uses the existing pipeline endpoints without adding server upload behavior", () => {
