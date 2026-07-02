@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Decide whether to plan a browser-rendered crawler spike from real website examples, using TASK-024 fixture output as the review baseline.
+Build a separate customer-facing chat screen at `/customer` that uses the existing FlowAI pipeline without changing the current technical Studio review screen at `/`.
 
 ## Current Reality
 
@@ -31,6 +31,8 @@ TASK-022 is merged. It added `packages/website-crawler` using Crawlee `CheerioCr
 TASK-023 is merged through PR #35 at final main HEAD `ef237981ed70713c5ef8101420d1964a8a7eb318`. It connects the website crawler to the visible Studio build path so a URL can produce crawl summary, website SourceDocument/sourceRefs, owner checklist status, optional live AI review, optional OpenAI RAG search, WorkflowGenerationPlan/WorkflowDefinition summary, runtime conversation, channel previews, and export blocks in one owner-review action.
 
 TASK-024 is merged through PR #37 at final main HEAD `266b2bbb5b98e267775f83660e21f7253e2702ad`. It adds crawl quality fixtures and `pnpm demo:crawl-review`, producing `docs/demo/FLOWAI_CRAWL_REVIEW_FIXTURES.md` to show that static public HTML is supported by the current Cheerio crawler while client-rendered catalog content needs a later browser-rendered crawler spike.
+
+TASK-025 is active. The owner clarified that the current Studio surface should remain available for technical review, but customers need a separate normal chat screen. The new route should let a customer describe the business, attach a local text/markdown file in the browser, paste a website URL, and see the existing pipeline output: SourceDocument/sourceRefs, BusinessUnderstanding draft, WorkflowGenerationPlan, WorkflowDefinition summary, runtime test conversation, Telegram preview mock, and a lightweight workflow edit/review area. This task must not add upload endpoints, PDF/OCR, persistence, auth, live channels, new dependencies, or workflow/runtime contract changes.
 
 ## Active Decisions
 
@@ -104,6 +106,8 @@ TASK-024 is merged through PR #37 at final main HEAD `266b2bbb5b98e267775f83660e
 - TASK-023 keeps `/api/crawl-preview` for raw crawl inspection and adds `/api/crawl-build` for the owner-visible URL-to-preview path.
 - Crawled website sources are marked as crawler-origin so Studio can distinguish real crawler execution from pasted website text.
 - TASK-024 uses fixtures to measure crawler fit before approving browser-rendered crawling.
+- TASK-025 keeps the existing `/` Studio screen unchanged and adds `/customer` as a separate customer-facing chat entry point over the same local pipeline.
+- Browser-only file attach in `/customer` is limited to `.md` and `.txt` text read with `FileReader`; it is not a server upload feature.
 
 ## Active Risks
 
@@ -148,6 +152,8 @@ TASK-024 is merged through PR #37 at final main HEAD `266b2bbb5b98e267775f83660e
 - TASK-022 crawling is not production crawling: no login/session crawling, no browser rendering, no scheduled crawl, no durable crawl storage, and no production robots/terms policy yet.
 - TASK-023 can make website ingestion feel more complete than it is; Studio must keep labeling OCR/PDF, upload, private crawling, browser rendering, persistence, live channels, and production RAG lifecycle as deferred.
 - TASK-024 fixture output may underrepresent real customer website complexity; real URLs still need separate review.
+- The customer chat screen may make the product feel more complete than the backend reality; it must keep boundaries visible for upload, OCR/PDF, persistence, live channels, and production integrations.
+- Browser-only file attach proves local UX only and does not satisfy production upload, scanning, storage, privacy, retention, or auth needs.
 
 ## Protected Areas
 
@@ -170,14 +176,17 @@ TASK-024 is merged through PR #37 at final main HEAD `266b2bbb5b98e267775f83660e
 - Do not copy code from LeapAI-SA/leap-ocr-platform into FlowAI until ownership/reuse permission, security boundaries, and a specific adapter task are approved.
 - Do not use RAG results as source of truth for prices, availability, recommendations, medical/legal policy, or workflow decisions without source-backed review.
 - Do not let OCR/parser adapters generate final Workflow JSON or bypass SourceDocument/sourceRefs review.
+- Do not modify the existing `/` Studio review screen while TASK-025 adds the separate `/customer` screen.
+- Do not add a server upload endpoint or file storage during TASK-025.
 
 ## Next Recommended Action
 
-Start `TASK-025_BROWSER_RENDERED_CRAWLER_SPIKE_PLAN` only if owner review confirms real target websites need browser-rendered crawling.
+Complete `TASK-025_CUSTOMER_CHAT_SCREEN`, then review the `/customer` owner/customer experience before choosing the next single implementation task.
 
 ## Critical References
 
 - `AGENTS.md`
+- `docs/tasks/TASK-025_CUSTOMER_CHAT_SCREEN.md`
 - `docs/00_PROJECT_CONTEXT.md`
 - `docs/06_AGENT_WORKFLOW.md`
 - `docs/07_TASK_SYSTEM.md`

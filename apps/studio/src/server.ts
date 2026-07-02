@@ -9,6 +9,7 @@ import {
 import { createOpenAiResponsesProvider, createOpenAiVectorStoreClient, loadOpenAiProviderConfig } from "@flowai/ai-builder-orchestrator";
 import { crawlWebsiteToSourceDocument } from "@flowai/website-crawler";
 import { applyWorkflowEditorCommand, runEditedWorkflowPreview, type WorkflowEditorCommand } from "./workflow-editor.js";
+import { renderCustomerChatHtml } from "./customer-chat-view.js";
 import type { WorkflowDefinition } from "@flowai/workflow-dsl";
 
 const port = Number.parseInt(process.env.PORT ?? "4177", 10);
@@ -20,6 +21,11 @@ const server = createServer(async (request, response) => {
 
   if (request.method === "GET" && url.pathname === "/") {
     send(response, 200, "text/html; charset=utf-8", renderHtml());
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/customer") {
+    send(response, 200, "text/html; charset=utf-8", renderCustomerChatHtml());
     return;
   }
 

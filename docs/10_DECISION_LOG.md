@@ -288,3 +288,10 @@ Reason: The current Cheerio crawler is fast and lower-risk, but it cannot execut
 Consequences: Static public HTML is treated as supported by the current crawler. Client-rendered catalog/service/FAQ content is flagged as `needs_browser_rendering`. No new dependency, Crawl4AI integration, browser crawler, upload endpoint, OCR/PDF parser, persistence, production RAG lifecycle, or login/session crawling is added by this task.
 Merge: PR #37, final main HEAD `266b2bbb5b98e267775f83660e21f7253e2702ad`.
 Revisit trigger: Real target website examples show important business, catalog, FAQ, or policy content missing from Cheerio output.
+
+## 2026-07-02: Customer Chat Screen Is Separate From Studio Review
+
+Decision: TASK-025 adds `/customer` as a separate customer-facing chat screen while keeping the existing `/` Studio review screen unchanged.
+Reason: The owner rejected the current visible surface as too technical for customers, but it remains useful for internal review and pipeline verification. A separate chat entry lets a business owner interact with FlowAI naturally without risking regressions in the existing Studio page.
+Consequences: `/customer` may reuse `POST /api/build`, `POST /api/crawl-build`, and `POST /api/workflow-editor/command`, but it must not add server upload endpoints, file storage, PDF/OCR parsing, persistence, auth, live channels, new dependencies, workflow DSL changes, or runtime semantic changes. Text/markdown attach is browser-only via `FileReader` for local demo purposes.
+Revisit trigger: Owner review of `/customer` shows the next highest-leverage task is richer chat intelligence, production upload/OCR, browser-rendered crawling, or a stronger workflow editor.
