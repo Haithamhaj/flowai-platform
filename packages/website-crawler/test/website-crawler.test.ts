@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import { afterEach, describe, expect, test } from "vitest";
-import { crawlWebsiteToSourceDocument } from "../src/index.js";
+import { crawlWebsiteToSourceDocument, reviewWebsiteCrawlQuality } from "../src/index.js";
 
 const servers: Array<{ close: () => Promise<void> }> = [];
 
@@ -49,6 +49,52 @@ describe("website crawler", () => {
 
     expect(result.ok).toBe(false);
     expect(result.error.code).toBe("CRAWL_TARGET_BLOCKED");
+  });
+
+  test("reviews crawl fixture quality and flags JavaScript-rendered gaps", async () => {
+    const origin = await startFixtureSite({
+      "/static": [
+        "<!doctype html><html><head><title>Static Clinic</title></head>",
+        "<body><main><h1>Static Clinic</h1><p>Book dental cleaning appointments.</p>",
+        "<p>Emergency appointment requests go to staff follow-up.</p></main></body></html>"
+      ].join(""),
+      "/client-rendered": [
+        "<!doctype html><html><head><title>Client Rendered Store</title></head>",
+        "<body><main><h1>Client Rendered Store</h1><div id='catalog'></div>",
+        "<script>document.querySelector('#catalog').textContent = 'Premium ceramic package starts at 320 SAR.';</script>",
+        "</main></body></html>"
+      ].join("")
+    });
+
+    const report = await reviewWebsiteCrawlQuality({
+      allowPrivateNetwork: true,
+      cases: [
+        {
+          id: "static_clinic",
+          label: "Static clinic page",
+          startUrl: `${origin}/static`,
+          expectedSignals: ["Book dental cleaning appointments", "Emergency appointment requests"]
+        },
+        {
+          id: "client_rendered_catalog",
+          label: "Client-rendered catalog page",
+          startUrl: `${origin}/client-rendered`,
+          expectedSignals: ["Premium ceramic package starts at 320 SAR"],
+          expectedGap: "client_rendered_content"
+        }
+      ]
+    });
+
+    expect(report.summary.supported).toBe(1);
+    expect(report.summary.needsBrowserRendering).toBe(1);
+    expect(report.cases.map((item) => `${item.id}:${item.status}`)).toEqual([
+      "static_clinic:supported",
+      "client_rendered_catalog:needs_browser_rendering"
+    ]);
+    expect(report.cases[1]?.missingSignals).toEqual(["Premium ceramic package starts at 320 SAR"]);
+    expect(report.markdown).toContain("Static clinic page");
+    expect(report.markdown).toContain("Browser rendering needed");
+    expect(report.markdown).toContain("Current Cheerio crawler did not execute JavaScript");
   });
 });
 

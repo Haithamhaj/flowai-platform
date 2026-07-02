@@ -12,6 +12,7 @@
     "demo:flowai": "pnpm build && node examples/flowai-demo/visible-mvp-demo.mjs",
     "demo:flowai:live": "pnpm build && node examples/flowai-demo/live-ai-owner-review-demo.mjs --write",
     "demo:flowai:extracted": "pnpm build && node examples/flowai-demo/extracted-document-harness-demo.mjs",
+    "demo:crawl-review": "pnpm build && node examples/flowai-demo/crawl-review-fixtures-demo.mjs",
     "smoke:flowai-ai": "pnpm --filter @flowai/ai-builder-orchestrator build && node examples/flowai-demo/live-ai-extraction-smoke.mjs",
     "smoke:flowai-rag": "pnpm build && node examples/flowai-demo/openai-rag-smoke.mjs",
     "dev:api": "pnpm --filter @flowai/api dev",

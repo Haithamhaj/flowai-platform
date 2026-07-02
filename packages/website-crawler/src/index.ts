@@ -36,6 +36,38 @@ export interface WebsiteCrawlFailure {
 
 export type WebsiteCrawlResult = WebsiteCrawlSuccess | WebsiteCrawlFailure;
 
+export interface WebsiteCrawlReviewCase {
+  id: string;
+  label: string;
+  startUrl: string;
+  expectedSignals: string[];
+  expectedGap?: "client_rendered_content" | "navigation_not_found" | "unknown";
+  maxPages?: number;
+}
+
+export interface WebsiteCrawlReviewCaseResult {
+  id: string;
+  label: string;
+  startUrl: string;
+  status: "supported" | "needs_browser_rendering" | "failed";
+  pageCount: number;
+  sourceRefCount: number;
+  foundSignals: string[];
+  missingSignals: string[];
+  note: string;
+}
+
+export interface WebsiteCrawlReviewReport {
+  summary: {
+    total: number;
+    supported: number;
+    needsBrowserRendering: number;
+    failed: number;
+  };
+  cases: WebsiteCrawlReviewCaseResult[];
+  markdown: string;
+}
+
 const DEFAULT_MAX_PAGES = 5;
 const DEFAULT_MAX_TEXT_CHARS_PER_PAGE = 8000;
 
@@ -121,6 +153,71 @@ export async function crawlWebsiteToSourceDocument(request: WebsiteCrawlRequest)
     pages,
     document: buildWebsiteSourceDocument(urlResult.url, pages),
     warnings
+  };
+}
+
+export async function reviewWebsiteCrawlQuality({
+  cases,
+  allowPrivateNetwork = false
+}: {
+  cases: WebsiteCrawlReviewCase[];
+  allowPrivateNetwork?: boolean;
+}): Promise<WebsiteCrawlReviewReport> {
+  const results: WebsiteCrawlReviewCaseResult[] = [];
+
+  for (const reviewCase of cases) {
+    const crawl = await crawlWebsiteToSourceDocument({
+      startUrl: reviewCase.startUrl,
+      maxPages: reviewCase.maxPages ?? 2,
+      allowPrivateNetwork
+    });
+
+    if (!crawl.ok) {
+      results.push({
+        id: reviewCase.id,
+        label: reviewCase.label,
+        startUrl: reviewCase.startUrl,
+        status: "failed",
+        pageCount: 0,
+        sourceRefCount: 0,
+        foundSignals: [],
+        missingSignals: reviewCase.expectedSignals,
+        note: crawl.error.message
+      });
+      continue;
+    }
+
+    const normalizedText = normalizeSpace(crawl.document.text).toLowerCase();
+    const foundSignals = reviewCase.expectedSignals.filter((signal) => normalizedText.includes(normalizeSpace(signal).toLowerCase()));
+    const missingSignals = reviewCase.expectedSignals.filter((signal) => !foundSignals.includes(signal));
+    const status = missingSignals.length === 0
+      ? "supported"
+      : reviewCase.expectedGap === "client_rendered_content"
+        ? "needs_browser_rendering"
+        : "failed";
+
+    results.push({
+      id: reviewCase.id,
+      label: reviewCase.label,
+      startUrl: reviewCase.startUrl,
+      status,
+      pageCount: crawl.pages.length,
+      sourceRefCount: crawl.document.sourceRefs.length,
+      foundSignals,
+      missingSignals,
+      note: buildReviewNote(status, reviewCase.expectedGap)
+    });
+  }
+
+  return {
+    summary: {
+      total: results.length,
+      supported: results.filter((result) => result.status === "supported").length,
+      needsBrowserRendering: results.filter((result) => result.status === "needs_browser_rendering").length,
+      failed: results.filter((result) => result.status === "failed").length
+    },
+    cases: results,
+    markdown: renderCrawlReviewMarkdown(results)
   };
 }
 
@@ -270,6 +367,56 @@ function parseAllowedStartUrl(
   }
 
   return { ok: true, url };
+}
+
+function buildReviewNote(status: WebsiteCrawlReviewCaseResult["status"], expectedGap: WebsiteCrawlReviewCase["expectedGap"]): string {
+  if (status === "supported") return "Current Cheerio crawler extracted the expected review signals.";
+  if (status === "needs_browser_rendering" && expectedGap === "client_rendered_content") {
+    return "Browser rendering needed: Current Cheerio crawler did not execute JavaScript, so client-rendered content was missing.";
+  }
+  return "Crawler output did not contain the expected review signals.";
+}
+
+function renderCrawlReviewMarkdown(results: WebsiteCrawlReviewCaseResult[]): string {
+  const supported = results.filter((result) => result.status === "supported").length;
+  const needsBrowser = results.filter((result) => result.status === "needs_browser_rendering").length;
+  const failed = results.filter((result) => result.status === "failed").length;
+  return [
+    "# FlowAI Crawl Review Fixtures",
+    "",
+    "This report compares the current Crawlee CheerioCrawler path against review fixtures.",
+    "",
+    "It does not prove production crawling, browser rendering, login/session crawling, persistence, OCR, RAG, or source-of-truth catalog extraction.",
+    "",
+    "## Summary",
+    "",
+    `- Total fixtures: ${results.length}`,
+    `- Supported by current crawler: ${supported}`,
+    `- Browser rendering needed: ${needsBrowser}`,
+    `- Failed or inconclusive: ${failed}`,
+    "",
+    "## Fixture Results",
+    "",
+    ...results.flatMap((result) => [
+      `### ${result.label}`,
+      "",
+      `- ID: \`${result.id}\``,
+      `- URL: ${result.startUrl}`,
+      `- Status: \`${result.status}\``,
+      `- Pages crawled: ${result.pageCount}`,
+      `- SourceRefs: ${result.sourceRefCount}`,
+      `- Note: ${result.note}`,
+      `- Found signals: ${result.foundSignals.length > 0 ? result.foundSignals.join("; ") : "none"}`,
+      `- Missing signals: ${result.missingSignals.length > 0 ? result.missingSignals.join("; ") : "none"}`,
+      ""
+    ]),
+    "## Recommendation",
+    "",
+    needsBrowser > 0
+      ? "Keep CheerioCrawler as the first fast path, but evaluate browser-rendered crawling for sites where important catalog, service, FAQ, or pricing text is produced by client-side JavaScript."
+      : "Keep the current CheerioCrawler path for simple public static websites and collect more real-site fixtures before adding browser rendering.",
+    ""
+  ].join("\n");
 }
 
 function isPrivateHostname(hostname: string): boolean {
