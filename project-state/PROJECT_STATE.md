@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Add the first real website crawling path so FlowAI can accept a website URL, crawl bounded same-origin pages, create website SourceDocument/sourceRefs, and feed the visible Studio build pipeline.
+Make the website URL path visibly complete in Studio by running bounded crawl output through the same owner-first build, optional live AI review, optional RAG evidence, workflow, runtime, channel preview, and export surfaces.
 
 ## Current Reality
 
@@ -26,7 +26,9 @@ TASK-020B is merged. It adds a narrow OpenAI Vector Stores adapter in `packages/
 
 TASK-021 is active. It turns the existing local Studio into a more complete visible system trial by showing an owner checklist, source kind/website URL reference, optional sourceRef-backed RAG knowledge search, workflow generation, visual editing, runtime conversation, channel previews, and export blocks in one reviewable page.
 
-TASK-022 is active. It adds `packages/website-crawler` using Crawlee `CheerioCrawler` as the first real website crawling path. The crawler is same-origin, capped, explicit, blocks private-network targets by default, uses in-memory Crawlee storage, and converts crawled pages into a website `SourceDocument` for the existing Studio pipeline.
+TASK-022 is merged. It added `packages/website-crawler` using Crawlee `CheerioCrawler` as the first real website crawling path. The crawler is same-origin, capped, explicit, blocks private-network targets by default, uses in-memory Crawlee storage, and converts crawled pages into a website `SourceDocument` for the existing Studio pipeline.
+
+TASK-023 is active. It connects the website crawler to the visible Studio build path so a URL can produce crawl summary, website SourceDocument/sourceRefs, owner checklist status, optional live AI review, optional OpenAI RAG search, WorkflowGenerationPlan/WorkflowDefinition summary, runtime conversation, channel previews, and export blocks in one owner-review action.
 
 ## Active Decisions
 
@@ -97,6 +99,8 @@ TASK-022 is active. It adds `packages/website-crawler` using Crawlee `CheerioCra
 - TASK-020B uses OpenAI Vector Stores over sourceRef-backed knowledge Markdown; retrieval results remain review evidence, not final workflow/catalog truth.
 - TASK-021 Studio RAG search is explicit, backend-only, and temporary per request; website mode is pasted website text plus URL reference, not crawling.
 - TASK-022 selects Crawlee for the first crawler because it is TypeScript, Apache-2.0, and can start with CheerioCrawler HTTP crawling without browser automation. Crawl4AI remains a later candidate for stronger LLM-friendly Markdown and JS-heavy crawling.
+- TASK-023 keeps `/api/crawl-preview` for raw crawl inspection and adds `/api/crawl-build` for the owner-visible URL-to-preview path.
+- Crawled website sources are marked as crawler-origin so Studio can distinguish real crawler execution from pasted website text.
 
 ## Active Risks
 
@@ -139,6 +143,7 @@ TASK-022 is active. It adds `packages/website-crawler` using Crawlee `CheerioCra
 - TASK-020B proves only create/search/delete against OpenAI Vector Stores for a small sourceRef-backed fixture; it does not prove production RAG lifecycle, tenant isolation, retention policy, catalog truth, OCR quality, or crawling quality.
 - TASK-021 can make the system feel more complete than the backend reality; UI must continue showing OCR/PDF, upload, crawling, persistence, live channels, and production RAG as blocked/deferred.
 - TASK-022 crawling is not production crawling: no login/session crawling, no browser rendering, no scheduled crawl, no durable crawl storage, and no production robots/terms policy yet.
+- TASK-023 can make website ingestion feel more complete than it is; Studio must keep labeling OCR/PDF, upload, private crawling, browser rendering, persistence, live channels, and production RAG lifecycle as deferred.
 
 ## Protected Areas
 
@@ -164,7 +169,7 @@ TASK-022 is active. It adds `packages/website-crawler` using Crawlee `CheerioCra
 
 ## Next Recommended Action
 
-Review TASK-022 website crawling with Crawlee. After acceptance, start `TASK-023_CRAWL_TO_AI_RAG_REVIEW`.
+Complete TASK-023 crawl-to-review wiring, verify it in Studio with a public URL, then review/merge the PR.
 
 ## Critical References
 
@@ -192,6 +197,7 @@ Review TASK-022 website crawling with Crawlee. After acceptance, start `TASK-023
 - `docs/tasks/TASK-020B_OPENAI_RAG_CATALOG_KB.md`
 - `docs/tasks/TASK-021_VISIBLE_FULL_SYSTEM_TRIAL.md`
 - `docs/tasks/TASK-022_WEBSITE_CRAWLING_CRAWLEE.md`
+- `docs/tasks/TASK-023_CRAWL_TO_AI_RAG_REVIEW.md`
 - `docs/document-intelligence/DOCUMENT_INTELLIGENCE_OPTIONS.md`
 - `docs/ai-provider/LIVE_AI_PROVIDER_BOUNDARY.md`
 - `docs/plans/FLOWAI_OWNER_FIRST_AI_BUILDER_PLAN.md`

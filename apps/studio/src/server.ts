@@ -84,6 +84,60 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "POST" && url.pathname === "/api/crawl-build") {
+    try {
+      const body = await readJson(request);
+      const crawlRequest = normalizeCrawlRequest(body);
+      const crawl = await crawlWebsiteToSourceDocument(crawlRequest);
+      if (!crawl.ok) {
+        sendJson(response, 400, {
+          ok: false,
+          error: crawl.error,
+          warnings: crawl.warnings
+        });
+        return;
+      }
+      const input: OwnerFirstPreviewInput = {
+        filename: crawl.document.filename,
+        mimeType: "text/markdown",
+        sourceKind: "website_text",
+        sourceOrigin: "crawler",
+        sourceUrl: crawl.startUrl,
+        content: crawl.document.text
+      };
+      const preview = await buildOwnerFirstPreviewWithAiReview(input, buildAiReviewOptions(body));
+      sendJson(response, 200, {
+        ok: true,
+        crawl: {
+          startUrl: crawl.startUrl,
+          filename: crawl.document.filename,
+          content: crawl.document.text,
+          pages: crawl.pages.map((page) => ({
+            url: page.url,
+            title: page.title,
+            textLength: page.text.length
+          })),
+          sourceRefs: crawl.document.sourceRefs.map((ref) => ({
+            id: ref.id,
+            label: ref.label
+          })),
+          warnings: crawl.warnings
+        },
+        preview
+      });
+    } catch (error) {
+      sendJson(response, 400, {
+        ok: false,
+        error: {
+          code: "INVALID_CRAWL_BUILD_REQUEST",
+          message: error instanceof Error ? error.message : "Crawl build request could not be processed."
+        },
+        warnings: []
+      });
+    }
+    return;
+  }
+
   if (request.method === "POST" && url.pathname === "/api/workflow-editor/command") {
     try {
       const body = await readJson(request);
@@ -125,6 +179,7 @@ function normalizeInput(value: unknown): OwnerFirstPreviewInput {
     filename: typeof record.filename === "string" ? record.filename : "owner-business.md",
     mimeType: typeof record.mimeType === "string" ? record.mimeType : "text/markdown",
     sourceKind: normalizeSourceKind(record.sourceKind),
+    sourceOrigin: record.sourceOrigin === "crawler" ? "crawler" : "pasted",
     sourceUrl: typeof record.sourceUrl === "string" ? record.sourceUrl : undefined,
     content: record.content
   };
@@ -647,22 +702,32 @@ function renderHtml(): string {
         return;
       }
       crawlStatus.textContent = "Crawling website pages...";
-      const res = await fetch("/api/crawl-preview", {
+      const res = await fetch("/api/crawl-build", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, maxPages: 5 })
+        body: JSON.stringify({
+          url,
+          maxPages: 5,
+          useLiveAi: Boolean(useLiveAi.checked),
+          useKnowledgeSearch: Boolean(useKnowledgeSearch.checked),
+          knowledgeSearchQuery: knowledgeSearchQuery.value
+        })
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
         crawlStatus.textContent = "Crawl blocked: " + (data.error?.message || "Unable to crawl this URL.");
         return;
       }
-      filename.value = data.filename || "website-crawl.md";
+      filename.value = data.crawl?.filename || "website-crawl.md";
       sourceKind.value = "website_text";
-      sourceUrl.value = data.startUrl || url;
-      content.value = data.content || "";
-      crawlStatus.textContent = "Crawled " + (data.pages?.length || 0) + " page(s). Build the chatbot from this source now.";
-      await runBuild();
+      sourceUrl.value = data.crawl?.startUrl || url;
+      content.value = data.crawl?.content || "";
+      crawlStatus.textContent = "Crawled " + (data.crawl?.pages?.length || 0) + " page(s). Chatbot preview was built from this website source.";
+      thread.innerHTML = "";
+      addBubble("bot", "I crawled the website, extracted sourceRefs, and built the chatbot preview from that source.");
+      addBubble("owner", url);
+      addBubble("bot", data.preview?.assistantMessage || "Website build completed.");
+      renderPreview(data.preview);
     }
   </script>
 </body>

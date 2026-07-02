@@ -1,6 +1,6 @@
 # TASK-022: Website Crawling With Crawlee
 
-Status: in progress
+Status: accepted/merged
 Owner/Agent: Codex
 Parent: Website source ingestion for visible FlowAI trial
 

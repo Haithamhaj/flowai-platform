@@ -29,17 +29,18 @@
 - TASK-020A extracted document contract and fixture harness.
 - TASK-020B OpenAI RAG catalog knowledge base.
 - TASK-021 visible full system trial.
+- TASK-022 website crawling with Crawlee.
 
 ## Current Phase
 
-- Website crawling.
-- Current implementation target: TASK-022 website crawling with Crawlee.
+- Crawl-to-review Studio trial.
+- Current implementation target: TASK-023 crawl to AI/RAG review.
 - Boundary: bounded same-origin public http/https crawling only; no browser key access, upload endpoint, parser dependency, OCR implementation, Google integration, persistence, login/session crawling, private-network crawling by default, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
 
 ## Next
 
-- Review TASK-022 website crawling PR.
-- After acceptance, the next recommended task is TASK-023_CRAWL_TO_AI_RAG_REVIEW.
+- Review TASK-023 crawl-to-review PR.
+- After acceptance, the next recommended task is TASK-024_BROWSER_CRAWL_REVIEW_FIXTURES.
 
 ## Later
 
@@ -48,6 +49,7 @@
 - Real upload API after auth, limits, storage, and operational controls are planned.
 - BusinessUnderstanding / BusinessGraph extraction from reviewed source documents.
 - Browser-rendered crawling.
+- Crawl quality fixtures and owner review examples.
 - Production RAG lifecycle: persistence, expiry, deletion, tenant isolation, citations, and review policy.
 - Studio UI.
 - WhatsApp.
