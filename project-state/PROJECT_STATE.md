@@ -32,7 +32,7 @@ TASK-023 is merged through PR #35 at final main HEAD `ef237981ed70713c5ef8101420
 
 TASK-024 is merged through PR #37 at final main HEAD `266b2bbb5b98e267775f83660e21f7253e2702ad`. It adds crawl quality fixtures and `pnpm demo:crawl-review`, producing `docs/demo/FLOWAI_CRAWL_REVIEW_FIXTURES.md` to show that static public HTML is supported by the current Cheerio crawler while client-rendered catalog content needs a later browser-rendered crawler spike.
 
-TASK-025 is active. The owner clarified that the current Studio surface should remain available for technical review, but customers need a separate normal chat screen. The new route should let a customer describe the business, attach a local text/markdown file in the browser, paste a website URL, and see the existing pipeline output: SourceDocument/sourceRefs, BusinessUnderstanding draft, WorkflowGenerationPlan, WorkflowDefinition summary, runtime test conversation, Telegram preview mock, and a lightweight workflow edit/review area. This task must not add upload endpoints, PDF/OCR, persistence, auth, live channels, new dependencies, or workflow/runtime contract changes.
+TASK-025 is active. The owner clarified that the current Studio surface should remain available for technical review, but customers need a separate normal chat screen. The new route should let a customer describe the business, attach a local text/markdown file in the browser, paste a website URL, and receive all results inside the chat thread. The chat summarizes sourceRefs, what FlowAI understood, services/FAQs, required fields, missing information, and whether a workflow can be opened. Workflow review opens from a chat action in an in-page modal. This task must not add upload endpoints, PDF/OCR, persistence, auth, live channels, new dependencies, or workflow/runtime contract changes.
 
 ## Active Decisions
 
@@ -107,6 +107,7 @@ TASK-025 is active. The owner clarified that the current Studio surface should r
 - Crawled website sources are marked as crawler-origin so Studio can distinguish real crawler execution from pasted website text.
 - TASK-024 uses fixtures to measure crawler fit before approving browser-rendered crawling.
 - TASK-025 keeps the existing `/` Studio screen unchanged and adds `/customer` as a separate customer-facing chat entry point over the same local pipeline.
+- TASK-025 customer output stays inside the conversation; technical panels remain on `/`.
 - Browser-only file attach in `/customer` is limited to `.md` and `.txt` text read with `FileReader`; it is not a server upload feature.
 
 ## Active Risks

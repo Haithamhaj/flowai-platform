@@ -295,3 +295,10 @@ Decision: TASK-025 adds `/customer` as a separate customer-facing chat screen wh
 Reason: The owner rejected the current visible surface as too technical for customers, but it remains useful for internal review and pipeline verification. A separate chat entry lets a business owner interact with FlowAI naturally without risking regressions in the existing Studio page.
 Consequences: `/customer` may reuse `POST /api/build`, `POST /api/crawl-build`, and `POST /api/workflow-editor/command`, but it must not add server upload endpoints, file storage, PDF/OCR parsing, persistence, auth, live channels, new dependencies, workflow DSL changes, or runtime semantic changes. Text/markdown attach is browser-only via `FileReader` for local demo purposes.
 Revisit trigger: Owner review of `/customer` shows the next highest-leverage task is richer chat intelligence, production upload/OCR, browser-rendered crawling, or a stronger workflow editor.
+
+## 2026-07-02: Customer Results Must Stay Inside Chat
+
+Decision: The `/customer` screen should behave like a ChatGPT/Claude/Gemini-style conversation where all customer-visible progress, questions, source review, missing information, and workflow actions appear inside the chat thread.
+Reason: The owner clarified that chat is the product experience. Side panels and technical result sections make the product feel like an internal dashboard instead of an AI builder.
+Consequences: `/customer` should not render a customer-facing results panel below or beside the conversation. SourceRefs, business understanding, missing fields, and workflow availability are summarized in assistant messages. Workflow review opens from a chat action in an in-page modal. The technical `/` Studio page remains the place for full internal pipeline inspection.
+Revisit trigger: Owner testing shows customers need a separate shareable workflow/PDF view, production upload flow, or richer visual workflow editor beyond the in-chat modal.

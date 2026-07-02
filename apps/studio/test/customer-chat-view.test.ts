@@ -11,8 +11,24 @@ describe("customer chat view", () => {
     expect(html).toContain('id="customerSend"');
     expect(html).toContain('id="customerFile"');
     expect(html).toContain('id="customerLink"');
-    expect(html).toContain('id="openWorkflowEditor"');
+    expect(html).toContain("#openWorkflowEditor");
     expect(html).toContain('id="customerWorkflowEditor"');
+    expect(html).toContain('id="workflowModal"');
+    expect(html).toContain("appendAssistantResult");
+    expect(html).toContain("renderWorkflowLinkMessage");
+    expect(html).not.toContain('id="customerReview"');
+  });
+
+  test("keeps customer output inside the chat instead of rendering technical panels", () => {
+    const html = renderCustomerChatHtml();
+
+    expect(html).toContain("فهمت من المصدر");
+    expect(html).toContain("المعلومات الناقصة");
+    expect(html).toContain("افتح الشجرة");
+    expect(html).not.toContain("<aside");
+    expect(html).not.toContain("WorkflowGenerationPlan</h2>");
+    expect(html).not.toContain("SourceDocument / sourceRefs</h2>");
+    expect(html).not.toContain("Generated WorkflowDefinition</h2>");
   });
 
   test("uses the existing pipeline endpoints without adding server upload behavior", () => {
