@@ -1,6 +1,6 @@
 # TASK-021: Visible Full System Trial
 
-Status: in progress
+Status: accepted / merged
 Owner/Agent: Codex
 Parent: Owner request for a complete local system trial
 
@@ -85,6 +85,6 @@ SourceDocument/sourceRefs
 
 ## Next Recommended Task
 
-`TASK-022_OCR_PARSER_LOCAL_SPIKE`
+`TASK-022_WEBSITE_CRAWLING_CRAWLEE`
 
-Goal: evaluate a local open-source OCR/parser candidate against FlowAI fixtures and the `ExtractedDocument` contract, with dependency/license/security approval before installation or integration.
+Goal: add the first bounded same-origin website crawler using Crawlee so the owner can provide a URL and test the visible Studio pipeline from crawled source content.

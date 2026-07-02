@@ -265,3 +265,10 @@ Decision: TASK-021 should make Studio show one complete owner-facing trial acros
 Reason: The owner wants to judge whether FlowAI feels like the right product, not review isolated backend proofs. The fastest useful path is to expose the existing safe pipeline in one visible local flow and clearly label the missing production pieces.
 Consequences: Studio may call backend-only live AI and OpenAI Vector Stores only when explicitly enabled. Website mode accepts pasted website text plus an optional URL reference; it does not crawl. OCR/PDF, upload, crawling, persistence, auth/tenants, live Telegram/WhatsApp, and production RAG lifecycle remain separate tasks.
 Revisit trigger: Owner trial shows the UI still does not match the desired chatbot-builder experience, or OCR/parser/crawler integration becomes the next unavoidable blocker.
+
+## 2026-07-02: Use Crawlee For First Website Crawler
+
+Decision: TASK-022 uses Crawlee `CheerioCrawler` for the first real website crawling path.
+Reason: Crawlee is TypeScript, Apache-2.0, current, and fits the monorepo without adding a Python/Docker service. `CheerioCrawler` provides a lower-risk HTTP/HTML crawl path before browser automation.
+Consequences: Studio can crawl bounded same-origin public http/https pages into a website SourceDocument/sourceRefs. Private-network targets are blocked by default. Crawl4AI remains a strong later candidate for LLM-friendly Markdown, screenshots, PDFs, Docker service deployment, and JS-heavy crawling, but it is not the first dependency because it expands operational and security scope.
+Revisit trigger: Real customer sites require JavaScript rendering, Crawl4AI-style Markdown quality, deep crawling, authenticated sessions, or production crawling policy.

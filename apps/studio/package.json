@@ -18,6 +18,7 @@
     "@flowai/runtime-core": "workspace:*",
     "@flowai/source-ingestion": "workspace:*",
     "@flowai/source-review": "workspace:*",
+    "@flowai/website-crawler": "workspace:*",
     "@flowai/workflow-dsl": "workspace:*",
     "@flowai/workflow-generator": "workspace:*"
   },

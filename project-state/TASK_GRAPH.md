@@ -28,17 +28,18 @@
 - TASK-020 document intelligence evaluation.
 - TASK-020A extracted document contract and fixture harness.
 - TASK-020B OpenAI RAG catalog knowledge base.
+- TASK-021 visible full system trial.
 
 ## Current Phase
 
-- Visible full system trial.
-- Current implementation target: TASK-021 visible full system trial.
-- Boundary: pasted business/document/website text only; no browser key access, upload endpoint, parser dependency, OCR implementation, Google integration, persistence, crawling implementation, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
+- Website crawling.
+- Current implementation target: TASK-022 website crawling with Crawlee.
+- Boundary: bounded same-origin public http/https crawling only; no browser key access, upload endpoint, parser dependency, OCR implementation, Google integration, persistence, login/session crawling, private-network crawling by default, live Telegram, live WhatsApp, live CRM/ticketing credentials, production webhook, workflow DSL, runtime semantic change, or AI-generated final Workflow JSON.
 
 ## Next
 
-- Review TASK-021 visible full system trial PR.
-- After acceptance, the next recommended task is TASK-022_OCR_PARSER_LOCAL_SPIKE.
+- Review TASK-022 website crawling PR.
+- After acceptance, the next recommended task is TASK-023_CRAWL_TO_AI_RAG_REVIEW.
 
 ## Later
 
@@ -46,7 +47,7 @@
 - Google Document AI extraction spike.
 - Real upload API after auth, limits, storage, and operational controls are planned.
 - BusinessUnderstanding / BusinessGraph extraction from reviewed source documents.
-- Crawling.
+- Browser-rendered crawling.
 - Production RAG lifecycle: persistence, expiry, deletion, tenant isolation, citations, and review policy.
 - Studio UI.
 - WhatsApp.
